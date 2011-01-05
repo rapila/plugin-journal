@@ -1,0 +1,40 @@
+<table name="journals" phpName="Journal">
+  <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+  <column name="name" type="varchar" size="200" required="true" />
+  <column name="description" type="varchar" size="255" />
+</table>
+
+<table name="journal_entries" phpName="JournalEntry">
+  <column name="id" type="integer" required="true" autoIncrement="true" primaryKey="true"/>
+  <column name="journal_id" type="integer"/>
+  <foreign-key foreignTable="journals">
+   <reference local="journal_id" foreign="id" />
+  </foreign-key>
+  <column name="title" type="varchar" size="180" required="true"/>
+  <column name="name" type="varchar" size="60" required="true"/>
+  <column name="text" type="longvarchar" required="true" />
+  <behavior name="taggable" />
+</table>
+
+<table name="journal_comments" phpName="JournalComment">
+  <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+  <column name="user" type="varchar" size="200" required="true" phpName="Username"/>
+  <column name="email" type="varchar" size="200" required="true" />
+  <column name="text" type="longvarchar" required="true" />
+  <column name="journal_entry_id" type="integer" required="true" />
+  <foreign-key foreignTable="journal_entries" onDelete="cascade">
+    <reference local="journal_entry_id" foreign="id" />
+  </foreign-key>
+</table>
+
+<table name="journal_entry_images" phpName="JournalEntryImage">
+  <column name="journal_entry_id" type="integer" required="true" primaryKey="true" />
+  <foreign-key foreignTable="journal_entries" onDelete="cascade">
+    <reference local="journal_entry_id" foreign="id" />
+  </foreign-key>
+  <column name="document_id" type="integer" required="true"/>
+  <foreign-key foreignTable="documents" onDelete="cascade">
+    <reference local="document_id" foreign="id" />
+  </foreign-key>
+  <column name="legend" type="varchar" size="180" required="true"/>
+</table>
