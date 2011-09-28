@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'journal_entry_images' table.
  *
@@ -13,7 +14,8 @@
  *
  * @package    propel.generator.model.map
  */
-class JournalEntryImageTableMap extends TableMap {
+class JournalEntryImageTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class JournalEntryImageTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('journal_entry_images');
 		$this->setPhpName('JournalEntryImage');
 		$this->setClassname('JournalEntryImage');
@@ -51,16 +53,16 @@ class JournalEntryImageTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('JournalEntry', 'JournalEntry', RelationMap::MANY_TO_ONE, array('journal_entry_id' => 'id', ), 'CASCADE', null);
-    $this->addRelation('Document', 'Document', RelationMap::MANY_TO_ONE, array('document_id' => 'id', ), 'CASCADE', null);
-    $this->addRelation('UserRelatedByCreatedBy', 'User', RelationMap::MANY_TO_ONE, array('created_by' => 'id', ), 'SET NULL', null);
-    $this->addRelation('UserRelatedByUpdatedBy', 'User', RelationMap::MANY_TO_ONE, array('updated_by' => 'id', ), 'SET NULL', null);
+		$this->addRelation('JournalEntry', 'JournalEntry', RelationMap::MANY_TO_ONE, array('journal_entry_id' => 'id', ), 'CASCADE', null);
+		$this->addRelation('Document', 'Document', RelationMap::MANY_TO_ONE, array('document_id' => 'id', ), 'CASCADE', null);
+		$this->addRelation('UserRelatedByCreatedBy', 'User', RelationMap::MANY_TO_ONE, array('created_by' => 'id', ), 'SET NULL', null);
+		$this->addRelation('UserRelatedByUpdatedBy', 'User', RelationMap::MANY_TO_ONE, array('updated_by' => 'id', ), 'SET NULL', null);
 	} // buildRelations()
 
 	/**
-	 * 
+	 *
 	 * Gets the list of behaviors registered for this table
-	 * 
+	 *
 	 * @return array Associative array (name => parameters) of behaviors
 	 */
 	public function getBehaviors()

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Base static class for performing query and update operations on the 'journal_entries' table.
  *
@@ -10,7 +11,7 @@
 abstract class BaseJournalEntryPeer {
 
 	/** the default database name for this class */
-	const DATABASE_NAME = 'mini_cms';
+	const DATABASE_NAME = 'rapila';
 
 	/** the table name for this class */
 	const TABLE_NAME = 'journal_entries';
@@ -23,12 +24,15 @@ abstract class BaseJournalEntryPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'JournalEntryTableMap';
-	
+
 	/** The total number of columns. */
 	const NUM_COLUMNS = 9;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
+
+	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
+	const NUM_HYDRATE_COLUMNS = 9;
 
 	/** the column name for the ID field */
 	const ID = 'journal_entries.ID';
@@ -57,6 +61,9 @@ abstract class BaseJournalEntryPeer {
 	/** the column name for the UPDATED_BY field */
 	const UPDATED_BY = 'journal_entries.UPDATED_BY';
 
+	/** The default string format for model objects of the related table **/
+	const DEFAULT_STRING_FORMAT = 'YAML';
+
 	/**
 	 * An identiy map to hold any loaded instances of JournalEntry objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -72,7 +79,7 @@ abstract class BaseJournalEntryPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	private static $fieldNames = array (
+	protected static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'JournalId', 'Title', 'Name', 'Text', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'journalId', 'title', 'name', 'text', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::JOURNAL_ID, self::TITLE, self::NAME, self::TEXT, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
@@ -87,7 +94,7 @@ abstract class BaseJournalEntryPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	private static $fieldKeys = array (
+	protected static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'JournalId' => 1, 'Title' => 2, 'Name' => 3, 'Text' => 4, 'CreatedAt' => 5, 'UpdatedAt' => 6, 'CreatedBy' => 7, 'UpdatedBy' => 8, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'journalId' => 1, 'title' => 2, 'name' => 3, 'text' => 4, 'createdAt' => 5, 'updatedAt' => 6, 'createdBy' => 7, 'updatedBy' => 8, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::JOURNAL_ID => 1, self::TITLE => 2, self::NAME => 3, self::TEXT => 4, self::CREATED_AT => 5, self::UPDATED_AT => 6, self::CREATED_BY => 7, self::UPDATED_BY => 8, ),
@@ -231,7 +238,7 @@ abstract class BaseJournalEntryPeer {
 		return $count;
 	}
 	/**
-	 * Method to select one object from the DB.
+	 * Selects one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -250,7 +257,7 @@ abstract class BaseJournalEntryPeer {
 		return null;
 	}
 	/**
-	 * Method to do selects.
+	 * Selects several row from the DB.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -304,7 +311,7 @@ abstract class BaseJournalEntryPeer {
 	 * @param      JournalEntry $value A JournalEntry object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool(JournalEntry $obj, $key = null)
+	public static function addInstanceToPool($obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -377,12 +384,12 @@ abstract class BaseJournalEntryPeer {
 	 */
 	public static function clearRelatedInstancePool()
 	{
-		// invalidate objects in JournalCommentPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
+		// Invalidate objects in JournalCommentPeer instance pool,
+		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
 		JournalCommentPeer::clearInstancePool();
-
-		// invalidate objects in JournalEntryImagePeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
+		// Invalidate objects in JournalEntryImagePeer instance pool,
+		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
 		JournalEntryImagePeer::clearInstancePool();
-
 	}
 
 	/**
@@ -405,7 +412,7 @@ abstract class BaseJournalEntryPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row 
+	 * Retrieves the primary key from the DB resultset row
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -465,7 +472,7 @@ abstract class BaseJournalEntryPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + JournalEntryPeer::NUM_COLUMNS;
+			$col = $startcol + JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 		} else {
 			$cls = JournalEntryPeer::OM_CLASS;
 			$obj = new $cls();
@@ -474,6 +481,7 @@ abstract class BaseJournalEntryPeer {
 		}
 		return array($obj, $col);
 	}
+
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related Journal table
@@ -501,9 +509,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -551,9 +559,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -601,9 +609,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -644,7 +652,7 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 		JournalPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(JournalEntryPeer::JOURNAL_ID, JournalPeer::ID, $join_behavior);
@@ -710,7 +718,7 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 		UserPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(JournalEntryPeer::CREATED_BY, UserPeer::ID, $join_behavior);
@@ -776,7 +784,7 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 		UserPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(JournalEntryPeer::UPDATED_BY, UserPeer::ID, $join_behavior);
@@ -849,9 +857,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -896,16 +904,16 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol2 = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 
 		JournalPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (JournalPeer::NUM_COLUMNS - JournalPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + JournalPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(JournalEntryPeer::JOURNAL_ID, JournalPeer::ID, $join_behavior);
 
@@ -1009,7 +1017,7 @@ abstract class BaseJournalEntryPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(JournalEntryPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1017,9 +1025,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1061,7 +1069,7 @@ abstract class BaseJournalEntryPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(JournalEntryPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1069,9 +1077,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1111,7 +1119,7 @@ abstract class BaseJournalEntryPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(JournalEntryPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1119,9 +1127,9 @@ abstract class BaseJournalEntryPeer {
 		if (!$criteria->hasSelectClause()) {
 			JournalEntryPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1165,13 +1173,13 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol2 = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(JournalEntryPeer::CREATED_BY, UserPeer::ID, $join_behavior);
 
@@ -1262,10 +1270,10 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol2 = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 
 		JournalPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (JournalPeer::NUM_COLUMNS - JournalPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + JournalPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(JournalEntryPeer::JOURNAL_ID, JournalPeer::ID, $join_behavior);
 
@@ -1335,10 +1343,10 @@ abstract class BaseJournalEntryPeer {
 		}
 
 		JournalEntryPeer::addSelectColumns($criteria);
-		$startcol2 = (JournalEntryPeer::NUM_COLUMNS - JournalEntryPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = JournalEntryPeer::NUM_HYDRATE_COLUMNS;
 
 		JournalPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (JournalPeer::NUM_COLUMNS - JournalPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + JournalPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(JournalEntryPeer::JOURNAL_ID, JournalPeer::ID, $join_behavior);
 
@@ -1426,7 +1434,7 @@ abstract class BaseJournalEntryPeer {
 	}
 
 	/**
-	 * Method perform an INSERT on the database, given a JournalEntry or Criteria object.
+	 * Performs an INSERT on the database, given a JournalEntry or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or JournalEntry object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -1469,7 +1477,7 @@ abstract class BaseJournalEntryPeer {
 	}
 
 	/**
-	 * Method perform an UPDATE on the database, given a JournalEntry or Criteria object.
+	 * Performs an UPDATE on the database, given a JournalEntry or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or JournalEntry object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -1508,11 +1516,12 @@ abstract class BaseJournalEntryPeer {
 	}
 
 	/**
-	 * Method to DELETE all rows from the journal_entries table.
+	 * Deletes all rows from the journal_entries table.
 	 *
+	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll($con = null)
+	public static function doDeleteAll(PropelPDO $con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(JournalEntryPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1538,7 +1547,7 @@ abstract class BaseJournalEntryPeer {
 	}
 
 	/**
-	 * Method perform a DELETE on the database, given a JournalEntry or Criteria object OR a primary key value.
+	 * Performs a DELETE on the database, given a JournalEntry or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or JournalEntry object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -1548,7 +1557,7 @@ abstract class BaseJournalEntryPeer {
 	 * @throws     PropelException Any exceptions caught during processing will be
 	 *		 rethrown wrapped into a PropelException.
 	 */
-	 public static function doDelete($values, PropelPDO $con = null)
+	 private static function doDeleteBeforeTaggable($values, PropelPDO $con = null)
 	 {
 		if ($con === null) {
 			$con = Propel::getConnection(JournalEntryPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1574,7 +1583,10 @@ abstract class BaseJournalEntryPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			$affectedRows += JournalEntryPeer::doOnDeleteCascade($criteria, $con);
+			
+			// cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
+			$c = clone $criteria;
+			$affectedRows += JournalEntryPeer::doOnDeleteCascade($c, $con);
 			
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
@@ -1649,7 +1661,7 @@ abstract class BaseJournalEntryPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate(JournalEntry $obj, $cols = null)
+	public static function doValidate($obj, $cols = null)
 	{
 		$columns = array();
 
@@ -1725,6 +1737,29 @@ abstract class BaseJournalEntryPeer {
 		return $objs;
 	}
 
+	// taggable behavior
+	public static function doDelete($values, PropelPDO $con = null) {
+			if ($con === null) {
+				$con = Propel::getConnection(PagePeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
+			}
+	
+			if($values instanceof Criteria) {
+				// rename for clarity
+				$criteria = clone $values;
+			} elseif ($values instanceof JournalEntry) { // it's a model object
+				// create criteria based on pk values
+				$criteria = $values->buildPkeyCriteria();
+			} else { // it's a primary key, or an array of pks
+				$criteria = new Criteria(self::DATABASE_NAME);
+				$criteria->add(PagePeer::ID, (array) $values, Criteria::IN);
+			}
+			
+			foreach(JournalEntryPeer::doSelect(clone $criteria, $con) as $object) {
+				TagPeer::deleteTagsForObject($object);
+			}
+	
+			return self::doDeleteBeforeTaggable($criteria, $con);
+	}
 } // BaseJournalEntryPeer
 
 // This is the static code needed to register the TableMap for this table with the main Propel class.

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'journal_entries' table.
  *
@@ -13,7 +14,8 @@
  *
  * @package    propel.generator.model.map
  */
-class JournalEntryTableMap extends TableMap {
+class JournalEntryTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class JournalEntryTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('journal_entries');
 		$this->setPhpName('JournalEntry');
 		$this->setClassname('JournalEntry');
@@ -53,17 +55,17 @@ class JournalEntryTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('Journal', 'Journal', RelationMap::MANY_TO_ONE, array('journal_id' => 'id', ), null, null);
-    $this->addRelation('UserRelatedByCreatedBy', 'User', RelationMap::MANY_TO_ONE, array('created_by' => 'id', ), 'SET NULL', null);
-    $this->addRelation('UserRelatedByUpdatedBy', 'User', RelationMap::MANY_TO_ONE, array('updated_by' => 'id', ), 'SET NULL', null);
-    $this->addRelation('JournalComment', 'JournalComment', RelationMap::ONE_TO_MANY, array('id' => 'journal_entry_id', ), 'CASCADE', null);
-    $this->addRelation('JournalEntryImage', 'JournalEntryImage', RelationMap::ONE_TO_ONE, array('id' => 'journal_entry_id', ), 'CASCADE', null);
+		$this->addRelation('Journal', 'Journal', RelationMap::MANY_TO_ONE, array('journal_id' => 'id', ), null, null);
+		$this->addRelation('UserRelatedByCreatedBy', 'User', RelationMap::MANY_TO_ONE, array('created_by' => 'id', ), 'SET NULL', null);
+		$this->addRelation('UserRelatedByUpdatedBy', 'User', RelationMap::MANY_TO_ONE, array('updated_by' => 'id', ), 'SET NULL', null);
+		$this->addRelation('JournalComment', 'JournalComment', RelationMap::ONE_TO_MANY, array('id' => 'journal_entry_id', ), 'CASCADE', null, 'JournalComments');
+		$this->addRelation('JournalEntryImage', 'JournalEntryImage', RelationMap::ONE_TO_ONE, array('id' => 'journal_entry_id', ), 'CASCADE', null);
 	} // buildRelations()
 
 	/**
-	 * 
+	 *
 	 * Gets the list of behaviors registered for this table
-	 * 
+	 *
 	 * @return array Associative array (name => parameters) of behaviors
 	 */
 	public function getBehaviors()

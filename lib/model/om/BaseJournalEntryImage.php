@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Base class that represents a row from the 'journal_entry_images' table.
  *
@@ -13,7 +14,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-  const PEER = 'JournalEntryImagePeer';
+	const PEER = 'JournalEntryImagePeer';
 
 	/**
 	 * The Peer class.
@@ -296,45 +297,18 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	/**
 	 * Sets the value of [created_at] column to a normalized version of the date/time value specified.
 	 * 
-	 * @param      mixed $v string, integer (timestamp), or DateTime value.  Empty string will
-	 *						be treated as NULL for temporal objects.
+	 * @param      mixed $v string, integer (timestamp), or DateTime value.
+	 *               Empty strings are treated as NULL.
 	 * @return     JournalEntryImage The current object (for fluent API support)
 	 */
 	public function setCreatedAt($v)
 	{
-		// we treat '' as NULL for temporal objects because DateTime('') == DateTime('now')
-		// -- which is unexpected, to say the least.
-		if ($v === null || $v === '') {
-			$dt = null;
-		} elseif ($v instanceof DateTime) {
-			$dt = $v;
-		} else {
-			// some string/numeric value passed; we normalize that so that we can
-			// validate it.
-			try {
-				if (is_numeric($v)) { // if it's a unix timestamp
-					$dt = new DateTime('@'.$v, new DateTimeZone('UTC'));
-					// We have to explicitly specify and then change the time zone because of a
-					// DateTime bug: http://bugs.php.net/bug.php?id=43003
-					$dt->setTimeZone(new DateTimeZone(date_default_timezone_get()));
-				} else {
-					$dt = new DateTime($v);
-				}
-			} catch (Exception $x) {
-				throw new PropelException('Error parsing date/time value: ' . var_export($v, true), $x);
-			}
-		}
-
-		if ( $this->created_at !== null || $dt !== null ) {
-			// (nested ifs are a little easier to read in this case)
-
-			$currNorm = ($this->created_at !== null && $tmpDt = new DateTime($this->created_at)) ? $tmpDt->format('Y-m-d H:i:s') : null;
-			$newNorm = ($dt !== null) ? $dt->format('Y-m-d H:i:s') : null;
-
-			if ( ($currNorm !== $newNorm) // normalized values don't match 
-					)
-			{
-				$this->created_at = ($dt ? $dt->format('Y-m-d H:i:s') : null);
+		$dt = PropelDateTime::newInstance($v, null, 'DateTime');
+		if ($this->created_at !== null || $dt !== null) {
+			$currentDateAsString = ($this->created_at !== null && $tmpDt = new DateTime($this->created_at)) ? $tmpDt->format('Y-m-d H:i:s') : null;
+			$newDateAsString = $dt ? $dt->format('Y-m-d H:i:s') : null;
+			if ($currentDateAsString !== $newDateAsString) {
+				$this->created_at = $newDateAsString;
 				$this->modifiedColumns[] = JournalEntryImagePeer::CREATED_AT;
 			}
 		} // if either are not null
@@ -345,45 +319,18 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	/**
 	 * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
 	 * 
-	 * @param      mixed $v string, integer (timestamp), or DateTime value.  Empty string will
-	 *						be treated as NULL for temporal objects.
+	 * @param      mixed $v string, integer (timestamp), or DateTime value.
+	 *               Empty strings are treated as NULL.
 	 * @return     JournalEntryImage The current object (for fluent API support)
 	 */
 	public function setUpdatedAt($v)
 	{
-		// we treat '' as NULL for temporal objects because DateTime('') == DateTime('now')
-		// -- which is unexpected, to say the least.
-		if ($v === null || $v === '') {
-			$dt = null;
-		} elseif ($v instanceof DateTime) {
-			$dt = $v;
-		} else {
-			// some string/numeric value passed; we normalize that so that we can
-			// validate it.
-			try {
-				if (is_numeric($v)) { // if it's a unix timestamp
-					$dt = new DateTime('@'.$v, new DateTimeZone('UTC'));
-					// We have to explicitly specify and then change the time zone because of a
-					// DateTime bug: http://bugs.php.net/bug.php?id=43003
-					$dt->setTimeZone(new DateTimeZone(date_default_timezone_get()));
-				} else {
-					$dt = new DateTime($v);
-				}
-			} catch (Exception $x) {
-				throw new PropelException('Error parsing date/time value: ' . var_export($v, true), $x);
-			}
-		}
-
-		if ( $this->updated_at !== null || $dt !== null ) {
-			// (nested ifs are a little easier to read in this case)
-
-			$currNorm = ($this->updated_at !== null && $tmpDt = new DateTime($this->updated_at)) ? $tmpDt->format('Y-m-d H:i:s') : null;
-			$newNorm = ($dt !== null) ? $dt->format('Y-m-d H:i:s') : null;
-
-			if ( ($currNorm !== $newNorm) // normalized values don't match 
-					)
-			{
-				$this->updated_at = ($dt ? $dt->format('Y-m-d H:i:s') : null);
+		$dt = PropelDateTime::newInstance($v, null, 'DateTime');
+		if ($this->updated_at !== null || $dt !== null) {
+			$currentDateAsString = ($this->updated_at !== null && $tmpDt = new DateTime($this->updated_at)) ? $tmpDt->format('Y-m-d H:i:s') : null;
+			$newDateAsString = $dt ? $dt->format('Y-m-d H:i:s') : null;
+			if ($currentDateAsString !== $newDateAsString) {
+				$this->updated_at = $newDateAsString;
 				$this->modifiedColumns[] = JournalEntryImagePeer::UPDATED_AT;
 			}
 		} // if either are not null
@@ -486,7 +433,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 7; // 7 = JournalEntryImagePeer::NUM_COLUMNS - JournalEntryImagePeer::NUM_LAZY_LOAD_COLUMNS).
+			return $startcol + 7; // 7 = JournalEntryImagePeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating JournalEntryImage object", $e);
@@ -585,14 +532,14 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(JournalEntryImagePeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		try {
+			$deleteQuery = JournalEntryImageQuery::create()
+				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				JournalEntryImageQuery::create()
-					->filterByPrimaryKey($this->getPrimaryKey())
-					->delete($con);
+				$deleteQuery->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
@@ -627,7 +574,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(JournalEntryImagePeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -919,15 +866,20 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
+	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
 	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
 	{
+		if (isset($alreadyDumpedObjects['JournalEntryImage'][$this->getPrimaryKey()])) {
+			return '*RECURSION*';
+		}
+		$alreadyDumpedObjects['JournalEntryImage'][$this->getPrimaryKey()] = true;
 		$keys = JournalEntryImagePeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getJournalEntryId(),
@@ -940,16 +892,16 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aJournalEntry) {
-				$result['JournalEntry'] = $this->aJournalEntry->toArray($keyType, $includeLazyLoadColumns, true);
+				$result['JournalEntry'] = $this->aJournalEntry->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
 			}
 			if (null !== $this->aDocument) {
-				$result['Document'] = $this->aDocument->toArray($keyType, $includeLazyLoadColumns, true);
+				$result['Document'] = $this->aDocument->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
 			}
 			if (null !== $this->aUserRelatedByCreatedBy) {
-				$result['UserRelatedByCreatedBy'] = $this->aUserRelatedByCreatedBy->toArray($keyType, $includeLazyLoadColumns, true);
+				$result['UserRelatedByCreatedBy'] = $this->aUserRelatedByCreatedBy->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
 			}
 			if (null !== $this->aUserRelatedByUpdatedBy) {
-				$result['UserRelatedByUpdatedBy'] = $this->aUserRelatedByUpdatedBy->toArray($keyType, $includeLazyLoadColumns, true);
+				$result['UserRelatedByUpdatedBy'] = $this->aUserRelatedByUpdatedBy->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
 			}
 		}
 		return $result;
@@ -1109,19 +1061,21 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of JournalEntryImage (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false)
+	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
 	{
-		$copyObj->setJournalEntryId($this->journal_entry_id);
-		$copyObj->setDocumentId($this->document_id);
-		$copyObj->setLegend($this->legend);
-		$copyObj->setCreatedAt($this->created_at);
-		$copyObj->setUpdatedAt($this->updated_at);
-		$copyObj->setCreatedBy($this->created_by);
-		$copyObj->setUpdatedBy($this->updated_by);
-
-		$copyObj->setNew(true);
+		$copyObj->setJournalEntryId($this->getJournalEntryId());
+		$copyObj->setDocumentId($this->getDocumentId());
+		$copyObj->setLegend($this->getLegend());
+		$copyObj->setCreatedAt($this->getCreatedAt());
+		$copyObj->setUpdatedAt($this->getUpdatedAt());
+		$copyObj->setCreatedBy($this->getCreatedBy());
+		$copyObj->setUpdatedBy($this->getUpdatedBy());
+		if ($makeNew) {
+			$copyObj->setNew(true);
+		}
 	}
 
 	/**
@@ -1198,7 +1152,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	public function getJournalEntry(PropelPDO $con = null)
 	{
 		if ($this->aJournalEntry === null && ($this->journal_entry_id !== null)) {
-			$this->aJournalEntry = JournalEntryQuery::create()->findPk($this->journal_entry_id);
+			$this->aJournalEntry = JournalEntryQuery::create()->findPk($this->journal_entry_id, $con);
 			// Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
 			$this->aJournalEntry->setJournalEntryImage($this);
 		}
@@ -1242,13 +1196,13 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	public function getDocument(PropelPDO $con = null)
 	{
 		if ($this->aDocument === null && ($this->document_id !== null)) {
-			$this->aDocument = DocumentQuery::create()->findPk($this->document_id);
+			$this->aDocument = DocumentQuery::create()->findPk($this->document_id, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aDocument->addJournalEntryImages($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aDocument->addJournalEntryImages($this);
 			 */
 		}
 		return $this->aDocument;
@@ -1291,13 +1245,13 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	public function getUserRelatedByCreatedBy(PropelPDO $con = null)
 	{
 		if ($this->aUserRelatedByCreatedBy === null && ($this->created_by !== null)) {
-			$this->aUserRelatedByCreatedBy = UserQuery::create()->findPk($this->created_by);
+			$this->aUserRelatedByCreatedBy = UserQuery::create()->findPk($this->created_by, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aUserRelatedByCreatedBy->addJournalEntryImagesRelatedByCreatedBy($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aUserRelatedByCreatedBy->addJournalEntryImagesRelatedByCreatedBy($this);
 			 */
 		}
 		return $this->aUserRelatedByCreatedBy;
@@ -1340,13 +1294,13 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	public function getUserRelatedByUpdatedBy(PropelPDO $con = null)
 	{
 		if ($this->aUserRelatedByUpdatedBy === null && ($this->updated_by !== null)) {
-			$this->aUserRelatedByUpdatedBy = UserQuery::create()->findPk($this->updated_by);
+			$this->aUserRelatedByUpdatedBy = UserQuery::create()->findPk($this->updated_by, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aUserRelatedByUpdatedBy->addJournalEntryImagesRelatedByUpdatedBy($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aUserRelatedByUpdatedBy->addJournalEntryImagesRelatedByUpdatedBy($this);
 			 */
 		}
 		return $this->aUserRelatedByUpdatedBy;
@@ -1369,16 +1323,17 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
+		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all collections of referencing foreign keys.
+	 * Resets all references to other model objects or collections of model objects.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect objects
-	 * with circular references.  This is currently necessary when using Propel in certain
-	 * daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect
+	 * objects with circular references (even in PHP 5.3). This is currently necessary
+	 * when using Propel in certain daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all associated objects.
+	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
@@ -1389,6 +1344,16 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		$this->aDocument = null;
 		$this->aUserRelatedByCreatedBy = null;
 		$this->aUserRelatedByUpdatedBy = null;
+	}
+
+	/**
+	 * Return the string representation of this object
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->exportTo(JournalEntryImagePeer::DEFAULT_STRING_FORMAT);
 	}
 
 	// extended_timestampable behavior
@@ -1453,17 +1418,6 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	{
 		$this->modifiedColumns[] = JournalEntryImagePeer::UPDATED_BY;
 		return $this;
-	}
-
-	/**
-	 * Catches calls to virtual methods
-	 */
-	public function __call($name, $params)
-	{
-		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
-			return $this->getVirtualColumn($matches[1]);
-		}
-		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseJournalEntryImage
