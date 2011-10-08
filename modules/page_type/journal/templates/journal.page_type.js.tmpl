@@ -17,6 +17,7 @@
 			}.deferred(waiters));
 			
 			this.container.find('button[name="add_journal"]').click(this.add_journal.bind(this));
+			this.container.find('.journal_detail').tabs();
 			
 			jQuery.when.apply(waiters, jQuery).then(function() {
 				_this.reload();

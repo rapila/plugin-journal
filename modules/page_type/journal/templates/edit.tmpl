@@ -1,10 +1,18 @@
 <select name="journal">
 </select>
 <button name="add_journal">{{writeString=wns.journal.add}}</button>
-<fieldset>
-	<legend>{{writeString=wns.journal.page_config}}</legend>
-</fieldset>
-<fieldset>
-	<legend>{{writeString=wns.journal.journal_config}}</legend>
-</fieldset>
-
+<div class="journal_detail">
+	<ul>
+		<li><a href="#journal-journal_config">{{writeString=wns.journal.journal_config}}</a></li>
+		<li><a href="#journal-page_config">{{writeString=wns.journal.page_config}}</a></li>
+		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
+	</ul>
+	<div id="journal-journal_config">
+		<label for="journal_name">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" />
+		<label for="journal_description">{{writeString=wns.journal.description}}</label><textarea type="text" name="journal_description" class="ui-widget-content"></textarea>
+	</div>
+	<div id="journal-page_config">
+	</div>
+	<div id="journal-journal_entries">
+	</div>
+</div>
