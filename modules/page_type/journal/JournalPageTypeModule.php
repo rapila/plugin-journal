@@ -241,6 +241,11 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	//Admin methods
+	public function detailWidget() {
+		$oWidget = WidgetModule::getWidget('journal_entry_detail', null, $this->oPage);
+		return $oWidget->getSessionKey();
+	}
+	
 	public function setCurrentJournal($iJournalId) {
 		$this->iJournalId = $iJournalId;
 	}

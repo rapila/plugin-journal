@@ -3,6 +3,12 @@
 		this.page_id = page_id;
 		this.container = container;
 		this.page_type = page_type;
+		page_type.callPageTypeMethod('detailWidget', function(session) {
+			Widget.create('journal_entry_detail', function(detail) {
+				this.journal_entry_detail = detail;
+				detail.save_callback = this.reload_entries.bind(this);
+			}.bind(this), jQuery.noop, session);
+		}.bind(this));
 	}
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
@@ -53,11 +59,11 @@
 		add_journal_entry: function() {
 			var _this = this;
 			this.page_type.callPageTypeMethod('currentJournal', function(id) {
-				if(id) {
-					Widget.create('journal_entry_detail', function(detail) {
-						detail.setJournalId(id);
-						detail.save_callback = _this.reload_entries.bind(this);
-					}, jQuery.noop);
+				if(id && _this.journal_entry_detail) {
+					_this.journal_entry_detail.setJournalId(id);
+					_this.journal_entry_detail.setEntryId(null);
+					_this.journal_entry_detail.fill_data();
+					_this.journal_entry_detail.open();
 				}
 			});
 			return false;
@@ -94,7 +100,12 @@
 				_this.entry_list.empty();
 				jQuery.each(result || [], function(i, entry) {
 					var item = jQuery('<li/>');
-					item.text(entry.Title).data('id', entry.Id);
+					item.bind('click', function() {
+						_this.journal_entry_detail.setEntryId(entry.Id);
+						_this.journal_entry_detail.fill_data();
+						_this.journal_entry_detail.open();
+					});
+					item.text(entry.Title);
 					_this.entry_list.append(item);
 				});
 			});

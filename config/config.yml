@@ -1,2 +1,12 @@
-backend:
-  page_properties_allow: true
+journal:
+  text_module:
+    toolbar: 
+      - 
+        - ["Bold", "Italic"]
+        - ["Link", "Unlink", "Anchor", "-", "Image"]
+        - ["NumberedList", "BulletedList", "Blockquote"]
+        - ["Undo", "Redo", "-", "Find"]
+      -
+        - ["Subscript", "Superscript", "-", "Maximize"]
+        - ["Source"]
+
