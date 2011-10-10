@@ -4,8 +4,9 @@ require_once('htmlpurifier/HTMLPurifier.standalone.php');
 
 class JournalPageTypeModule extends PageTypeModule {
 	private $sMode;
+	private $sTemplateSet;
 	private $sContainerName;
-	private $iCurrentBackendEntry;
+	private $sRecentPostContainerName;
 	private $iJournalId;
 	private $oEntry;
 	
@@ -27,10 +28,11 @@ class JournalPageTypeModule extends PageTypeModule {
 		} else { 
 			$this->sMode = $this->oPage->getPagePropertyValue('blog_action', 'entry');
 		}
+		$this->sCommentMode = $this->oPage->getPagePropertyValue('comment_mode', 'on');
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
+		$this->sTemplateSet = $this->oPage->getPagePropertyValue('template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sRecentPostContainerName = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
-		$this->iCurrentBackendEntry = null;
 	}
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
@@ -226,14 +228,75 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oBlogPage = $this->oPage;
 		return self::getActionLink($oBlogPage, $sAction, $sValue);
 	}
+
+	//Override from parent
+	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
+		if($this->sTemplateSet) {
+			try {
+				return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), $this->sTemplateSet));
+
+			} catch (Exception $e) {}
+		}
+		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName()));
+	}
 	
 	//Admin methods
+	public function setCurrentJournal($iJournalId) {
+		$this->iJournalId = $iJournalId;
+	}
+
+	public function currentMode() {
+		return $this->sMode;
+	}
+
+	public function currentCommentMode() {
+		return $this->sCommentMode;
+	}
+
+	public function currentJournal() {
+		return $this->iJournalId;
+	}
+	
 	public function listJournals() {
 		$aJournals = array();
 		foreach(JournalQuery::create()->find() as $oJournal) {
 			$aJournals[$oJournal->getId()] = $oJournal->getName();
 		}
-		ErrorHandler::log($this);
-		return array('journals' => $aJournals, 'current' => null);
+		return array('options' => $aJournals, 'current' => $this->iJournalId);
+	}
+
+	public function listTemplateSets() {
+		$aResult = array();
+		foreach(ResourceFinder::create(array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), DIRNAME_TEMPLATES))->addDirPath()->returnObjects()->find() as $oSet) {
+			$aResult[] = $oSet->getFileName();
+		}
+		return array('options' => $aResult, 'current' => $this->sTemplateSet);
+	}
+
+	public function listContainers() {
+		$aContainers = $this->oPage->getTemplate()->identifiersMatching("container", Template::$ANY_VALUE);
+		$aResult = array();
+		foreach($aContainers as $oContainer) {
+			$aResult[] = $oContainer->getName();
+		}
+		return array('options' => $aResult, 'current' => $this->sContainerName);
+	}
+
+	public function journalProperties() {
+		if($this->iJournalId === null) {
+			return null;
+		}
+		return JournalPeer::retrieveByPK($this->iJournalId)->toArray();
+	}
+
+	public function listEntries() {
+		if($this->iJournalId === null) {
+			return null;
+		}
+		$aResult = array();
+		foreach(JournalEntryQuery::create()->filterByJournalId($this->iJournalId)->orderByCreatedAt()->find() as $oEntry) {
+			$aResult[] = $oEntry->toArray();
+		}
+		return $aResult;
 	}
 }

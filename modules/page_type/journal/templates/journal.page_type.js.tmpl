@@ -10,34 +10,94 @@
 			var waiters = [];
 			
 			this.container.append(jQuery.parseHTML('{{includeTemplate=edit}}'));
+			//Lists to be filled
 			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
-			
+			this.template_list = this.container.find('select[name="template_set"]');
+			this.container_list = this.container.find('select[name="container"]');
+			//Static value lists
+			this.mode_list = this.container.find('select[name="mode"]');
+			this.comment_mode_list = this.container.find('select[name="comment_mode"]');
+			//Elements used later on
+			this.entry_list = this.container.find('ol.entries');
+			this.name_input = this.container.find('input[name="journal_name"]');
+			this.description_input = this.container.find('textarea[name="journal_description"]');
+			this.add_journal_entry_button = this.container.find('button[name="add_journal_entry"]').hide().click(this.add_journal_entry.bind(this));
+
 			this.page_type.callPageTypeMethod('listJournals', function(result) {
-				_this.journal_list.populate(result.journals, result.current);
+				_this.journal_list.populate(result.options, result.current || '');
 			}.deferred(waiters));
 			
-			this.container.find('button[name="add_journal"]').click(this.add_journal.bind(this));
+			this.page_type.callPageTypeMethod('listTemplateSets', function(result) {
+				_this.template_list.populate(result.options, result.current);
+			}.deferred(waiters));
+
+			this.page_type.callPageTypeMethod('listContainers', function(result) {
+				_this.container_list.populate(result.options, result.current);
+			}.deferred(waiters));
+			
+			this.page_type.callPageTypeMethod('currentMode', function(result) {
+				_this.mode_list.val(result);
+			}.deferred(waiters));
+			
+			this.page_type.callPageTypeMethod('currentCommentMode', function(result) {
+				_this.comment_mode_list.val(result);
+			}.deferred(waiters));
+
 			this.container.find('.journal_detail').tabs();
 			
-			jQuery.when.apply(waiters, jQuery).then(function() {
+			jQuery.when.apply(jQuery, waiters).then(function() {
 				_this.reload();
 			});
 		},
 
-		add_journal: function() {
-			
+		add_journal_entry: function() {
+			var _this = this;
+			this.page_type.callPageTypeMethod('currentJournal', function(id) {
+				if(id) {
+					Widget.create('journal_entry_detail', function(detail) {
+						detail.setJournalId(id);
+						detail.save_callback = _this.reload_entries.bind(this);
+					}, jQuery.noop);
+				}
+			});
 			return false;
 		},
 
 		journal_changed: function() {
 			var _this = this;
-			this.page_type.callPageTypeMethod('setCurrentJournal', this.journal_list.val(), function() {
+			var value = this.journal_list.val() ? this.journal_list.val() : null;
+			this.page_type.callPageTypeMethod('setCurrentJournal', value, function() {
 				_this.reload();
 			});
 		},
 
 		reload: function() {
+			var _this = this;
+			this.page_type.callPageTypeMethod('journalProperties', function(result) {
+				if(result) {
+					_this.name_input.val(result.Name);
+					_this.description_input.val(result.Description);
+					_this.add_journal_entry_button.show();
+				} else {
+					_this.name_input.val('');
+					_this.description_input.val('');
+					_this.add_journal_entry_button.hide();
+				}
+			});
 			
+			this.reload_entries();
+		},
+
+		reload_entries: function() {
+			var _this = this;
+			this.page_type.callPageTypeMethod('listEntries', function(result) {
+				_this.entry_list.empty();
+				jQuery.each(result || [], function(i, entry) {
+					var item = jQuery('<li/>');
+					item.text(entry.Title).data('id', entry.Id);
+					_this.entry_list.append(item);
+				});
+			});
 		}
 	});
 	
