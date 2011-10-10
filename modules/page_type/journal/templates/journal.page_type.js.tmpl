@@ -15,7 +15,8 @@
 			var _this = this;
 			var waiters = [];
 			
-			this.container.append(jQuery.parseHTML('{{includeTemplate=edit}}'));
+			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
+			this.container.append(this.form);
 			//Lists to be filled
 			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
 			this.template_list = this.container.find('select[name="template_set"]');
@@ -109,12 +110,27 @@
 					_this.entry_list.append(item);
 				});
 			});
+		},
+
+		save: function() {
+			var _this = this;
+			this.page_type.callPageTypeMethod('saveJournal', this.form.serializeArrayKV(), function() {
+				_this.container.empty();
+				_this.init();
+			});
 		}
 	});
 	
 	Widget.types.page_type.types['journal'] = {
 		handle_preview: function(page_id, page_type) {
-			this.init_journal_controls(page_id, jQuery('#journal_contents'), page_type);
+			var container = jQuery('<div/>');
+			var _this = this;
+			var save = jQuery('<button/>').text(window.AdminInterface.translations.okButtonText).button();
+			jQuery('#journal_contents').append(container, save);
+			var controller = this.init_journal_controls(page_id, container, page_type);
+			save.click(function() {
+				controller.save();
+			});
 		},
 
 		handle_admin: function(page_id, container, page_type) {
@@ -123,7 +139,14 @@
 
 		init_journal_controls: function(page_id, container, page_type) {
 			var controller = new JournalController(page_id, container, page_type);
+			container.data('journal-controller', controller);
 			controller.init();
+			return controller;
+		},
+
+		did_save: function(page_id, container, page_type) {
+			var controller = container.data('journal-controller');
+			controller.save();
 		}
 	};
 })();

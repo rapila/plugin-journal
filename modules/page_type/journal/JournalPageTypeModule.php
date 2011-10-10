@@ -14,6 +14,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	public function __construct(Page $oPage) {
 		parent::__construct($oPage);
+		$this->updateFlagsFromProperties();
 		if(array_key_exists('entry', $_REQUEST)) {
 			$this->sMode = 'entry';
 			$this->oEntry = JournalEntryPeer::retrieveByName($_REQUEST['entry']);
@@ -25,12 +26,14 @@ class JournalPageTypeModule extends PageTypeModule {
 			$this->sMode = 'index';
 		} else if(array_key_exists('comment', $_REQUEST)) {
 			$this->sMode = 'comment';
-		} else { 
-			$this->sMode = $this->oPage->getPagePropertyValue('blog_action', 'entry');
 		}
-		$this->sCommentMode = $this->oPage->getPagePropertyValue('comment_mode', 'on');
+	}
+
+	public function updateFlagsFromProperties() {
+		$this->sMode = $this->oPage->getPagePropertyValue('blog_action', 'entry');
+		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
-		$this->sTemplateSet = $this->oPage->getPagePropertyValue('template_set', 'default');
+		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sRecentPostContainerName = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
 	}
@@ -44,6 +47,11 @@ class JournalPageTypeModule extends PageTypeModule {
 		$sMethod = StringUtil::camelize("display_$this->sMode");
 		$this->fillAuxilliaryContainers($oTemplate);
 		if(!$oTemplate->hasIdentifier('container', $this->sContainerName)) {
+			return;
+		}
+		if($bIsPreview) {
+			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents'));
+			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainerName);
 			return;
 		}
 		return $this->$sMethod($oTemplate);
@@ -282,7 +290,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$aContainers = $this->oPage->getTemplate()->identifiersMatching("container", Template::$ANY_VALUE);
 		$aResult = array();
 		foreach($aContainers as $oContainer) {
-			$aResult[] = $oContainer->getName();
+			$aResult[] = $oContainer->getValue();
 		}
 		return array('options' => $aResult, 'current' => $this->sContainerName);
 	}
@@ -303,5 +311,19 @@ class JournalPageTypeModule extends PageTypeModule {
 			$aResult[] = $oEntry->toArray();
 		}
 		return $aResult;
+	}
+
+	public function saveJournal($aData) {
+		$oJournal = $this->iJournalId ? JournalPeer::retrieveByPK($this->iJournalId) : new Journal();
+		$oJournal->setName($aData['journal_name']);
+		$oJournal->setDescription($aData['journal_description']);
+		$oJournal->save();
+		$this->iJournalId = $oJournal->getId();
+		$this->oPage->updatePageProperty('blog_action', $aData['mode']);
+		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
+		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
+		$this->oPage->updatePageProperty('blog_container', $aData['container']);
+		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
+		$this->updateFlagsFromProperties();
 	}
 }
