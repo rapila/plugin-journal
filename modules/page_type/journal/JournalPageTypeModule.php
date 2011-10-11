@@ -50,7 +50,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			return;
 		}
 		if($bIsPreview) {
-			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents'));
+			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing'));
 			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainerName);
 			return;
 		}
