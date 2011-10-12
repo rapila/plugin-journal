@@ -167,7 +167,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oEntryTemplate = clone $oEntryTemplatePrototype;
 			$oEntryTemplate->replaceIdentifier('name', $oEntry->getName());
 			$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
-			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
+			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate((int) $oEntry->getCreatedAtTimestamp()));
 			$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 			if($oEntryTemplate->hasIdentifier('text')) {
 				$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
