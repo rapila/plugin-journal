@@ -9,32 +9,28 @@
 		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
 	</ul>
 	<div id="journal-journal_config">
-		<div class="group_fields">
-			<label for="journal_name">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" />
-		</div>
-		<div class="group_fields">
-			<label for="journal_description">{{writeString=wns.journal.description}}</label><textarea type="text" name="journal_description" class="ui-widget-content"></textarea>
-		</div>
+		<label for="journal_name">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" /><br />
+		<label for="journal_description">{{writeString=wns.journal.description}}</label><textarea type="text" name="journal_description" class="ui-widget-content"></textarea>
 	</div>
 	<div id="journal-page_config">
 		<div class="group_fields">
 			<label for="mode">{{writeString=wns.journal.action}}</label>
-			<select name="mode">
+			<select name="mode" class="ui-widget-content">
 				<option value="newest">{{writeString=wns.journal.action.newest}}</option>
 				<option value="overview">{{writeString=wns.journal.action.overview}}</option>
 				<option value="first">{{writeString=wns.journal.action.first}}</option>
 			</select>
 		</div>
 		<div class="group_fields">
-			<label for="container">{{writeString=wns.journal.container}}</label><select name="container"></select>
+			<label for="container">{{writeString=wns.journal.container}}</label><select name="container" class="ui-widget-content"></select>
 		</div>
 		<br />
 		<div class="group_fields">
-			<label for="template_set">{{writeString=wns.journal.template_set}}</label><select name="template_set"></select>
+			<label for="template_set">{{writeString=wns.journal.template_set}}</label><select name="template_set" class="ui-widget-content"></select>
 		</div>
 		<div class="group_fields">
 			<label for="comment_mode">{{writeString=wns.journal.comments}}</label>
-			<select name="comment_mode">
+			<select name="comment_mode" class="ui-widget-content">
 				<option value="on">{{writeString=wns.journal.comments.on}}</option>
 				<option value="off">{{writeString=wns.journal.action.off}}</option>
 				<option value="moderated">{{writeString=wns.journal.action.moderated}}</option>
@@ -42,7 +38,7 @@
 		</div>
 	</div>
 	<div id="journal-journal_entries">
-		<ol class="entries">
+		<ol class="entries ui-editable-items-list">
 		</ol>
 		<button name="add_journal_entry">{{writeString=wns.journal.add_entry}}</button>
 	</div>

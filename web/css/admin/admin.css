@@ -19,3 +19,8 @@ div.entries_list a:first-child {
 div.entries_list a:hover {
   background-color: #D3D3D3;
 }
+
+.page_detail div.journal_detail {
+  margin-top: 20px;
+  margin-left: -1em;
+}
