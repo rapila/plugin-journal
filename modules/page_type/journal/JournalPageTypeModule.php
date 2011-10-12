@@ -241,11 +241,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
 		if($this->sTemplateSet) {
 			try {
-				return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), $this->sTemplateSet));
-
+				return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', $this->sTemplateSet));
 			} catch (Exception $e) {}
 		}
-		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName()));
+		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', 'default'));
 	}
 	
 	//Admin methods
