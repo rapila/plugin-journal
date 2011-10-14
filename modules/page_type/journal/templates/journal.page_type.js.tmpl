@@ -25,7 +25,7 @@
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.comment_mode_list = this.container.find('select[name="comment_mode"]');
 			//Elements used later on
-			this.entry_list = this.container.find('ol.entries');
+			this.entry_list = this.container.find('table.entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.add_journal_entry_button = this.container.find('button[name="add_journal_entry"]').hide().click(this.add_journal_entry.bind(this));
@@ -99,15 +99,20 @@
 			var _this = this;
 			this.page_type.callPageTypeMethod('listEntries', function(result) {
 				_this.entry_list.empty();
+				var journal_entry_row = jQuery.parseHTML('{{includeTemplate=journal_entry_row}}', null, 'tbody');
 				jQuery.each(result || [], function(i, entry) {
-					var item = jQuery('<li/>');
-					item.bind('click', function() {
+					var row = journal_entry_row.clone();
+					row.find('td.journal_title').text(entry.Title).bind('click', function() {
 						_this.journal_entry_detail.setEntryId(entry.Id);
 						_this.journal_entry_detail.fill_data();
 						_this.journal_entry_detail.open();
 					});
-					item.text(entry.Title);
-					_this.entry_list.append(item);
+					row.find('td.count_comments').text(entry.CountJournalComments);
+					row.find('td.delete_row').bind('click', function() {
+						alert(entry.Id);
+						this.stopPropagation();
+					});
+					_this.entry_list.append(row);
 				});
 			});
 		},

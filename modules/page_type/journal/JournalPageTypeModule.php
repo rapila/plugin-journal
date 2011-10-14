@@ -167,7 +167,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oEntryTemplate = clone $oEntryTemplatePrototype;
 			$oEntryTemplate->replaceIdentifier('name', $oEntry->getName());
 			$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
-			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate((int) $oEntry->getCreatedAtTimestamp()));
+			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 			$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 			if($oEntryTemplate->hasIdentifier('text')) {
 				$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
@@ -307,7 +307,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$aResult = array();
 		foreach(JournalEntryQuery::create()->filterByJournalId($this->iJournalId)->orderByCreatedAt()->find() as $oEntry) {
-			$aResult[] = $oEntry->toArray();
+			$aJournalEntry = $oEntry->toArray();
+			$aJournalEntry['CountJournalComments'] = $oEntry->countJournalComments();
+			$aResult[] = $aJournalEntry;
 		}
 		return $aResult;
 	}
