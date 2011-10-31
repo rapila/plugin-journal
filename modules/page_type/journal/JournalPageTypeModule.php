@@ -40,7 +40,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
 		$bIsDynamic = true;
-		$aAllowedParams = array('entry', 'date', 'category', 'index', 'newest', 'comment');
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {

@@ -16,18 +16,6 @@ require_once 'model/om/BaseJournalEntry.php';
  */	
 class JournalEntry extends BaseJournalEntry {
 
-  public function save(PropelPDO $oConnection = null) {
-    if($this->isNew()) {
-      $this->setName(strftime('%Y-%m-%d-').trim(StringUtil::truncate(StringUtil::normalize($this->getTitle()), 50, '', 0), '-_'));
-    }
-    return parent::save($oConnection);
-  }
-  
-  public function delete(PropelPDO $oConnection = null) {
-    TagPeer::deleteTagsForObject($this);
-    return parent::delete($oConnection);
-  }
-  
 	public function getJournalComments($oCriteria = null, PropelPDO $oConnection = null) {
 	  if($oCriteria === null) {
       $oCriteria = new Criteria();
@@ -37,12 +25,12 @@ class JournalEntry extends BaseJournalEntry {
     return parent::getJournalComments($oCriteria, $oConnection);
 	}
 	
-	public function getRssAttributes($oJournalPage, $bIsForRpc = false) {
+	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
     $aResult = array();
     $aResult['title'] = $this->getTitle();
-    $aResult['link'] = LinkUtil::absoluteLink(JournalPageTypeModule::getJournalLink($oJournalPage, $this));
+    $aResult['link'] = LinkUtil::absoluteLink(LinkUtil::link($this->getLink($oJournalPage), 'FrontendManager'));
     $aResult['description'] = RichtextUtil::parseStorageForFrontendOutput($this->getText())->render();
-    $aResult['author'] = $this->getUser()->getEmail().' ('.$this->getUser()->getFullName().')';
+    $aResult['author'] = $this->getUserRelatedByCreatedBy()->getEmail().' ('.$this->getUserRelatedByCreatedBy()->getFullName().')';
     $aTags = TagPeer::tagInstancesForObject($this);
     $aCategories = array();
     foreach($aTags as $oTag) {
@@ -50,11 +38,25 @@ class JournalEntry extends BaseJournalEntry {
     }
     $aResult[$bIsForRpc ? 'categories' : 'category'] = $aCategories;
     $aResult['guid'] = $aResult['link'];
-    $aResult['pubDate'] = date(DATE_RFC2822, $this->created_at);
+    $aResult['pubDate'] = date(DATE_RFC2822, $this->getCreatedAtTimestamp());
     if($bIsForRpc) {
       $aResult['postid'] = $this->getId();
     }
     return $aResult;
+	}
+
+	public function getLink($oPage = null) {
+		if($oPage === null) {
+			$oPage = $this->getJournal()->getJournalPage();
+		}
+		return array_merge($oPage->getLinkArray(), array($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug()));
+	}
+
+	public function setTitle($sTitle) {
+		if($this->isNew()) {
+			$this->setSlug(StringUtil::truncate(trim(StringUtil::normalize($sTitle), '-_'), 50, '', 0));
+		}
+		return parent::setTitle($sTitle);
 	}
 	
 	public function fillFromRssAttributes($aAttributes) {

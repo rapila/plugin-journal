@@ -43,8 +43,8 @@ abstract class BaseJournalEntryPeer {
 	/** the column name for the TITLE field */
 	const TITLE = 'journal_entries.TITLE';
 
-	/** the column name for the NAME field */
-	const NAME = 'journal_entries.NAME';
+	/** the column name for the SLUG field */
+	const SLUG = 'journal_entries.SLUG';
 
 	/** the column name for the TEXT field */
 	const TEXT = 'journal_entries.TEXT';
@@ -82,11 +82,11 @@ abstract class BaseJournalEntryPeer {
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
 	protected static $fieldNames = array (
-		BasePeer::TYPE_PHPNAME => array ('Id', 'JournalId', 'Title', 'Name', 'Text', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'journalId', 'title', 'name', 'text', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
-		BasePeer::TYPE_COLNAME => array (self::ID, self::JOURNAL_ID, self::TITLE, self::NAME, self::TEXT, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'JOURNAL_ID', 'TITLE', 'NAME', 'TEXT', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
-		BasePeer::TYPE_FIELDNAME => array ('id', 'journal_id', 'title', 'name', 'text', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
+		BasePeer::TYPE_PHPNAME => array ('Id', 'JournalId', 'Title', 'Slug', 'Text', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'journalId', 'title', 'slug', 'text', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
+		BasePeer::TYPE_COLNAME => array (self::ID, self::JOURNAL_ID, self::TITLE, self::SLUG, self::TEXT, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'JOURNAL_ID', 'TITLE', 'SLUG', 'TEXT', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
+		BasePeer::TYPE_FIELDNAME => array ('id', 'journal_id', 'title', 'slug', 'text', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, )
 	);
 
@@ -97,11 +97,11 @@ abstract class BaseJournalEntryPeer {
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
 	protected static $fieldKeys = array (
-		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'JournalId' => 1, 'Title' => 2, 'Name' => 3, 'Text' => 4, 'CreatedAt' => 5, 'UpdatedAt' => 6, 'CreatedBy' => 7, 'UpdatedBy' => 8, ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'journalId' => 1, 'title' => 2, 'name' => 3, 'text' => 4, 'createdAt' => 5, 'updatedAt' => 6, 'createdBy' => 7, 'updatedBy' => 8, ),
-		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::JOURNAL_ID => 1, self::TITLE => 2, self::NAME => 3, self::TEXT => 4, self::CREATED_AT => 5, self::UPDATED_AT => 6, self::CREATED_BY => 7, self::UPDATED_BY => 8, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'JOURNAL_ID' => 1, 'TITLE' => 2, 'NAME' => 3, 'TEXT' => 4, 'CREATED_AT' => 5, 'UPDATED_AT' => 6, 'CREATED_BY' => 7, 'UPDATED_BY' => 8, ),
-		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'journal_id' => 1, 'title' => 2, 'name' => 3, 'text' => 4, 'created_at' => 5, 'updated_at' => 6, 'created_by' => 7, 'updated_by' => 8, ),
+		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'JournalId' => 1, 'Title' => 2, 'Slug' => 3, 'Text' => 4, 'CreatedAt' => 5, 'UpdatedAt' => 6, 'CreatedBy' => 7, 'UpdatedBy' => 8, ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'journalId' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'createdAt' => 5, 'updatedAt' => 6, 'createdBy' => 7, 'updatedBy' => 8, ),
+		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::JOURNAL_ID => 1, self::TITLE => 2, self::SLUG => 3, self::TEXT => 4, self::CREATED_AT => 5, self::UPDATED_AT => 6, self::CREATED_BY => 7, self::UPDATED_BY => 8, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'JOURNAL_ID' => 1, 'TITLE' => 2, 'SLUG' => 3, 'TEXT' => 4, 'CREATED_AT' => 5, 'UPDATED_AT' => 6, 'CREATED_BY' => 7, 'UPDATED_BY' => 8, ),
+		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'journal_id' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'created_at' => 5, 'updated_at' => 6, 'created_by' => 7, 'updated_by' => 8, ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, )
 	);
 
@@ -177,7 +177,7 @@ abstract class BaseJournalEntryPeer {
 			$criteria->addSelectColumn(JournalEntryPeer::ID);
 			$criteria->addSelectColumn(JournalEntryPeer::JOURNAL_ID);
 			$criteria->addSelectColumn(JournalEntryPeer::TITLE);
-			$criteria->addSelectColumn(JournalEntryPeer::NAME);
+			$criteria->addSelectColumn(JournalEntryPeer::SLUG);
 			$criteria->addSelectColumn(JournalEntryPeer::TEXT);
 			$criteria->addSelectColumn(JournalEntryPeer::CREATED_AT);
 			$criteria->addSelectColumn(JournalEntryPeer::UPDATED_AT);
@@ -187,7 +187,7 @@ abstract class BaseJournalEntryPeer {
 			$criteria->addSelectColumn($alias . '.ID');
 			$criteria->addSelectColumn($alias . '.JOURNAL_ID');
 			$criteria->addSelectColumn($alias . '.TITLE');
-			$criteria->addSelectColumn($alias . '.NAME');
+			$criteria->addSelectColumn($alias . '.SLUG');
 			$criteria->addSelectColumn($alias . '.TEXT');
 			$criteria->addSelectColumn($alias . '.CREATED_AT');
 			$criteria->addSelectColumn($alias . '.UPDATED_AT');
@@ -1767,7 +1767,7 @@ abstract class BaseJournalEntryPeer {
 		self::$IGNORE_RIGHTS = $bIgnore;
 	}
 	public static function isIgnoringRights() {
-		return self::$IGNORE_RIGHTS;
+		return self::$IGNORE_RIGHTS || PHP_SAPI === "cli";
 	}
 	public static function mayOperateOn($oUser, $mObject, $sOperation) {
 		if($oUser === null) {

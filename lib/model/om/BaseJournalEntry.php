@@ -43,10 +43,10 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	protected $title;
 
 	/**
-	 * The value for the name field.
+	 * The value for the slug field.
 	 * @var        string
 	 */
-	protected $name;
+	protected $slug;
 
 	/**
 	 * The value for the text field.
@@ -148,13 +148,13 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Get the [name] column value.
+	 * Get the [slug] column value.
 	 * 
 	 * @return     string
 	 */
-	public function getName()
+	public function getSlug()
 	{
-		return $this->name;
+		return $this->slug;
 	}
 
 	/**
@@ -328,24 +328,24 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	} // setTitle()
 
 	/**
-	 * Set the value of [name] column.
+	 * Set the value of [slug] column.
 	 * 
 	 * @param      string $v new value
 	 * @return     JournalEntry The current object (for fluent API support)
 	 */
-	public function setName($v)
+	public function setSlug($v)
 	{
 		if ($v !== null) {
 			$v = (string) $v;
 		}
 
-		if ($this->name !== $v) {
-			$this->name = $v;
-			$this->modifiedColumns[] = JournalEntryPeer::NAME;
+		if ($this->slug !== $v) {
+			$this->slug = $v;
+			$this->modifiedColumns[] = JournalEntryPeer::SLUG;
 		}
 
 		return $this;
-	} // setName()
+	} // setSlug()
 
 	/**
 	 * Set the value of [text] column.
@@ -494,7 +494,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->id = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
 			$this->journal_id = ($row[$startcol + 1] !== null) ? (int) $row[$startcol + 1] : null;
 			$this->title = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
-			$this->name = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
+			$this->slug = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
 			$this->text = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
 			$this->created_at = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
 			$this->updated_at = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
@@ -955,7 +955,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				return $this->getTitle();
 				break;
 			case 3:
-				return $this->getName();
+				return $this->getSlug();
 				break;
 			case 4:
 				return $this->getText();
@@ -1004,7 +1004,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$keys[0] => $this->getId(),
 			$keys[1] => $this->getJournalId(),
 			$keys[2] => $this->getTitle(),
-			$keys[3] => $this->getName(),
+			$keys[3] => $this->getSlug(),
 			$keys[4] => $this->getText(),
 			$keys[5] => $this->getCreatedAt(),
 			$keys[6] => $this->getUpdatedAt(),
@@ -1068,7 +1068,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				$this->setTitle($value);
 				break;
 			case 3:
-				$this->setName($value);
+				$this->setSlug($value);
 				break;
 			case 4:
 				$this->setText($value);
@@ -1112,7 +1112,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if (array_key_exists($keys[0], $arr)) $this->setId($arr[$keys[0]]);
 		if (array_key_exists($keys[1], $arr)) $this->setJournalId($arr[$keys[1]]);
 		if (array_key_exists($keys[2], $arr)) $this->setTitle($arr[$keys[2]]);
-		if (array_key_exists($keys[3], $arr)) $this->setName($arr[$keys[3]]);
+		if (array_key_exists($keys[3], $arr)) $this->setSlug($arr[$keys[3]]);
 		if (array_key_exists($keys[4], $arr)) $this->setText($arr[$keys[4]]);
 		if (array_key_exists($keys[5], $arr)) $this->setCreatedAt($arr[$keys[5]]);
 		if (array_key_exists($keys[6], $arr)) $this->setUpdatedAt($arr[$keys[6]]);
@@ -1132,7 +1132,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if ($this->isColumnModified(JournalEntryPeer::ID)) $criteria->add(JournalEntryPeer::ID, $this->id);
 		if ($this->isColumnModified(JournalEntryPeer::JOURNAL_ID)) $criteria->add(JournalEntryPeer::JOURNAL_ID, $this->journal_id);
 		if ($this->isColumnModified(JournalEntryPeer::TITLE)) $criteria->add(JournalEntryPeer::TITLE, $this->title);
-		if ($this->isColumnModified(JournalEntryPeer::NAME)) $criteria->add(JournalEntryPeer::NAME, $this->name);
+		if ($this->isColumnModified(JournalEntryPeer::SLUG)) $criteria->add(JournalEntryPeer::SLUG, $this->slug);
 		if ($this->isColumnModified(JournalEntryPeer::TEXT)) $criteria->add(JournalEntryPeer::TEXT, $this->text);
 		if ($this->isColumnModified(JournalEntryPeer::CREATED_AT)) $criteria->add(JournalEntryPeer::CREATED_AT, $this->created_at);
 		if ($this->isColumnModified(JournalEntryPeer::UPDATED_AT)) $criteria->add(JournalEntryPeer::UPDATED_AT, $this->updated_at);
@@ -1202,7 +1202,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	{
 		$copyObj->setJournalId($this->getJournalId());
 		$copyObj->setTitle($this->getTitle());
-		$copyObj->setName($this->getName());
+		$copyObj->setSlug($this->getSlug());
 		$copyObj->setText($this->getText());
 		$copyObj->setCreatedAt($this->getCreatedAt());
 		$copyObj->setUpdatedAt($this->getUpdatedAt());
@@ -1644,7 +1644,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		$this->id = null;
 		$this->journal_id = null;
 		$this->title = null;
-		$this->name = null;
+		$this->slug = null;
 		$this->text = null;
 		$this->created_at = null;
 		$this->updated_at = null;

@@ -11,7 +11,7 @@
    <reference local="journal_id" foreign="id" />
   </foreign-key>
   <column name="title" type="varchar" size="180" required="true"/>
-  <column name="name" type="varchar" size="60" required="true"/>
+  <column name="slug" type="varchar" size="50" required="true"/>
   <column name="text" type="longvarchar" required="true" />
   <behavior name="taggable" />
 </table>

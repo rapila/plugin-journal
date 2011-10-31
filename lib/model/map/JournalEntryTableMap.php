@@ -41,7 +41,7 @@ class JournalEntryTableMap extends TableMap
 		$this->addPrimaryKey('ID', 'Id', 'INTEGER', true, null, null);
 		$this->addForeignKey('JOURNAL_ID', 'JournalId', 'INTEGER', 'journals', 'ID', false, null, null);
 		$this->addColumn('TITLE', 'Title', 'VARCHAR', true, 180, null);
-		$this->addColumn('NAME', 'Name', 'VARCHAR', true, 60, null);
+		$this->addColumn('SLUG', 'Slug', 'VARCHAR', true, 50, null);
 		$this->addColumn('TEXT', 'Text', 'LONGVARCHAR', true, null, null);
 		$this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
 		$this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);

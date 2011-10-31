@@ -9,7 +9,7 @@
  * @method     JournalEntryQuery orderById($order = Criteria::ASC) Order by the id column
  * @method     JournalEntryQuery orderByJournalId($order = Criteria::ASC) Order by the journal_id column
  * @method     JournalEntryQuery orderByTitle($order = Criteria::ASC) Order by the title column
- * @method     JournalEntryQuery orderByName($order = Criteria::ASC) Order by the name column
+ * @method     JournalEntryQuery orderBySlug($order = Criteria::ASC) Order by the slug column
  * @method     JournalEntryQuery orderByText($order = Criteria::ASC) Order by the text column
  * @method     JournalEntryQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     JournalEntryQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
@@ -19,7 +19,7 @@
  * @method     JournalEntryQuery groupById() Group by the id column
  * @method     JournalEntryQuery groupByJournalId() Group by the journal_id column
  * @method     JournalEntryQuery groupByTitle() Group by the title column
- * @method     JournalEntryQuery groupByName() Group by the name column
+ * @method     JournalEntryQuery groupBySlug() Group by the slug column
  * @method     JournalEntryQuery groupByText() Group by the text column
  * @method     JournalEntryQuery groupByCreatedAt() Group by the created_at column
  * @method     JournalEntryQuery groupByUpdatedAt() Group by the updated_at column
@@ -56,7 +56,7 @@
  * @method     JournalEntry findOneById(int $id) Return the first JournalEntry filtered by the id column
  * @method     JournalEntry findOneByJournalId(int $journal_id) Return the first JournalEntry filtered by the journal_id column
  * @method     JournalEntry findOneByTitle(string $title) Return the first JournalEntry filtered by the title column
- * @method     JournalEntry findOneByName(string $name) Return the first JournalEntry filtered by the name column
+ * @method     JournalEntry findOneBySlug(string $slug) Return the first JournalEntry filtered by the slug column
  * @method     JournalEntry findOneByText(string $text) Return the first JournalEntry filtered by the text column
  * @method     JournalEntry findOneByCreatedAt(string $created_at) Return the first JournalEntry filtered by the created_at column
  * @method     JournalEntry findOneByUpdatedAt(string $updated_at) Return the first JournalEntry filtered by the updated_at column
@@ -66,7 +66,7 @@
  * @method     array findById(int $id) Return JournalEntry objects filtered by the id column
  * @method     array findByJournalId(int $journal_id) Return JournalEntry objects filtered by the journal_id column
  * @method     array findByTitle(string $title) Return JournalEntry objects filtered by the title column
- * @method     array findByName(string $name) Return JournalEntry objects filtered by the name column
+ * @method     array findBySlug(string $slug) Return JournalEntry objects filtered by the slug column
  * @method     array findByText(string $text) Return JournalEntry objects filtered by the text column
  * @method     array findByCreatedAt(string $created_at) Return JournalEntry objects filtered by the created_at column
  * @method     array findByUpdatedAt(string $updated_at) Return JournalEntry objects filtered by the updated_at column
@@ -278,31 +278,31 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the name column
+     * Filter the query on the slug column
      *
      * Example usage:
      * <code>
-     * $query->filterByName('fooValue');   // WHERE name = 'fooValue'
-     * $query->filterByName('%fooValue%'); // WHERE name LIKE '%fooValue%'
+     * $query->filterBySlug('fooValue');   // WHERE slug = 'fooValue'
+     * $query->filterBySlug('%fooValue%'); // WHERE slug LIKE '%fooValue%'
      * </code>
      *
-     * @param     string $name The value to use as filter.
+     * @param     string $slug The value to use as filter.
      *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return    JournalEntryQuery The current query, for fluid interface
      */
-    public function filterByName($name = null, $comparison = null)
+    public function filterBySlug($slug = null, $comparison = null)
     {
         if (null === $comparison) {
-            if (is_array($name)) {
+            if (is_array($slug)) {
                 $comparison = Criteria::IN;
-            } elseif (preg_match('/[\%\*]/', $name)) {
-                $name = str_replace('*', '%', $name);
+            } elseif (preg_match('/[\%\*]/', $slug)) {
+                $slug = str_replace('*', '%', $slug);
                 $comparison = Criteria::LIKE;
             }
         }
-        return $this->addUsingAlias(JournalEntryPeer::NAME, $name, $comparison);
+        return $this->addUsingAlias(JournalEntryPeer::SLUG, $slug, $comparison);
     }
 
     /**

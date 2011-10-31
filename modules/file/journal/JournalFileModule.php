@@ -29,7 +29,7 @@ class JournalFileModule extends FileModule {
     $aJournalEntries = JournalEntryPeer::getMostRecentEntries(10);
     foreach($aJournalEntries as $oJournalEntry) {
       $oItem = $oDocument->createElement('item');
-      foreach($oJournalEntry->getRssAttributes($this->oJournalPage) as $sAttributeName => $mAttributeValue) {
+      foreach($oJournalEntry->getRssAttributes() as $sAttributeName => $mAttributeValue) {
         if(is_array($mAttributeValue)) {
           if(ArrayUtil::arrayIsAssociative($mAttributeValue)) {
             //Add one elements with attributes
