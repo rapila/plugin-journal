@@ -30,23 +30,23 @@
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.add_journal_entry_button = this.container.find('button[name="add_journal_entry"]').hide().click(this.add_journal_entry.bind(this));
 
-			this.page_type.callPageTypeMethod('listJournals', function(result) {
+			this.page_type.methods.listJournals(function(result) {
 				_this.journal_list.populate(result.options, result.current || '');
 			}.deferred(waiters));
 			
-			this.page_type.callPageTypeMethod('listTemplateSets', function(result) {
+			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.populate(result.options, result.current);
 			}.deferred(waiters));
 
-			this.page_type.callPageTypeMethod('listContainers', function(result) {
+			this.page_type.methods.listContainers(function(result) {
 				_this.container_list.populate(result.options, result.current);
 			}.deferred(waiters));
 			
-			this.page_type.callPageTypeMethod('currentMode', function(result) {
+			this.page_type.methods.currentMode(function(result) {
 				_this.mode_list.val(result);
 			}.deferred(waiters));
 			
-			this.page_type.callPageTypeMethod('currentCommentMode', function(result) {
+			this.page_type.methods.currentCommentMode(function(result) {
 				_this.comment_mode_list.val(result);
 			}.deferred(waiters));
 
@@ -59,7 +59,7 @@
 
 		add_journal_entry: function() {
 			var _this = this;
-			this.page_type.callPageTypeMethod('currentJournal', function(id) {
+			this.page_type.methods.currentJournal(function(id) {
 				if(id && _this.journal_entry_detail) {
 					_this.journal_entry_detail.setJournalId(id);
 					_this.journal_entry_detail.setEntryId(null);
@@ -73,14 +73,14 @@
 		journal_changed: function() {
 			var _this = this;
 			var value = this.journal_list.val() ? this.journal_list.val() : null;
-			this.page_type.callPageTypeMethod('setCurrentJournal', value, function() {
+			this.page_type.methods.setCurrentJournal(value, function() {
 				_this.reload();
 			});
 		},
 
 		reload: function() {
 			var _this = this;
-			this.page_type.callPageTypeMethod('journalProperties', function(result) {
+			this.page_type.methods.journalProperties(function(result) {
 				if(result) {
 					_this.name_input.val(result.Name);
 					_this.description_input.val(result.Description);
@@ -97,7 +97,7 @@
 
 		reload_entries: function() {
 			var _this = this;
-			this.page_type.callPageTypeMethod('listEntries', function(result) {
+			this.page_type.methods.listEntries(function(result) {
 				_this.entry_list.empty();
 				var journal_entry_row = jQuery.parseHTML('{{includeTemplate=journal_entry_row}}', null, 'tbody');
 				jQuery.each(result || [], function(i, entry) {
@@ -119,39 +119,42 @@
 
 		save: function() {
 			var _this = this;
-			this.page_type.callPageTypeMethod('saveJournal', this.form.serializeArrayKV(), function() {
+			this.page_type.methods.saveJournal(this.form.serializeArrayKV(), function() {
 				_this.container.empty();
 				_this.init();
 			});
 		}
 	});
 	
-	Widget.types.page_type.types['journal'] = {
+	var init_journal_controls = function(page_id, container, page_type) {
+		var controller = new JournalController(page_id, container, page_type);
+		controller.init();
+		return controller;
+	};
+	
+	Widget.types.page_type.types.journal = function(page_type, page_id, container) {
+		this.controller = null;
+	};
+
+	jQuery.extend(Widget.types.page_type.types.journal.prototype, {
 		handle_preview: function(page_id, page_type) {
 			var container = jQuery('<div/>');
 			var _this = this;
 			var save = jQuery('<button/>').text(window.AdminInterface.translations.okButtonText).button();
 			jQuery('#journal_contents').append(container, save);
-			var controller = this.init_journal_controls(page_id, container, page_type);
+			this.controller = init_journal_controls(page_id, container, page_type);
 			save.click(function() {
-				controller.save();
+				_this.controller.save();
 			});
 		},
 
 		handle_admin: function(page_id, container, page_type) {
-			this.init_journal_controls(page_id, container, page_type);
+			this.controller = init_journal_controls(page_id, container, page_type);
 		},
 
-		init_journal_controls: function(page_id, container, page_type) {
-			var controller = new JournalController(page_id, container, page_type);
-			container.data('journal-controller', controller);
-			controller.init();
-			return controller;
-		},
 
 		did_save: function(page_id, container, page_type) {
-			var controller = container.data('journal-controller');
-			controller.save();
+			this.controller.save();
 		}
-	};
+	});
 })();
