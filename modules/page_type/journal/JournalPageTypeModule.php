@@ -74,12 +74,12 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayNewest($oTemplate) {
-		$aEntries = JournalEntryPeer::getMostRecentEntries(1);
+		$aEntries = JournalEntryPeer::getMostRecentEntries(1, $this->iJournalId);
 		$this->displayJournalEntries($aEntries, $this->constructTemplate('short_entry'), $oTemplate);
 	}
 	
 	private function displayIndex($oTemplate) {
-		$aEntries = JournalEntryPeer::getMostRecentEntries(null);
+		$aEntries = JournalEntryPeer::getMostRecentEntries(null, $this->iJournalId);
 		$this->displayJournalEntries($aEntries, $this->constructTemplate('index_entry'), $oTemplate);
 	}
 	
@@ -113,7 +113,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	//For adding comments
 	private function displayComment($oTemplate) {
-		$oEntry = JournalEntryPeer::retrieveByPk($_REQUEST['comment']);
+		$oEntry = JournalEntryPeer::retrieveByPK($_REQUEST['comment']);
 		if(!isset($_POST['comment_name']) || $oEntry === null) {
 			LinkUtil::redirect($this->getLink('index'));
 		}
