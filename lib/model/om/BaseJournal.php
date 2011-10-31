@@ -519,6 +519,11 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 			$deleteQuery = JournalQuery::create()
 				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
+			// denyable behavior
+			if(!(JournalPeer::isIgnoringRights() || $this->mayOperate("delete"))) {
+				throw new PropelException(new NotPermittedException("delete.by_role", array("role_key" => "journals")));
+			}
+
 			if ($ret) {
 				$deleteQuery->delete($con);
 				$this->postDelete($con);
@@ -562,6 +567,11 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 			$ret = $this->preSave($con);
 			if ($isInsert) {
 				$ret = $ret && $this->preInsert($con);
+				// denyable behavior
+				if(!(JournalPeer::isIgnoringRights() || $this->mayOperate("insert"))) {
+					throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journals")));
+				}
+
 				// extended_timestampable behavior
 				if (!$this->isColumnModified(JournalPeer::CREATED_AT)) {
 					$this->setCreatedAt(time());
@@ -582,6 +592,11 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 
 			} else {
 				$ret = $ret && $this->preUpdate($con);
+				// denyable behavior
+				if(!(JournalPeer::isIgnoringRights() || $this->mayOperate("update"))) {
+					throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journals")));
+				}
+
 				// extended_timestampable behavior
 				if ($this->isModified() && !$this->isColumnModified(JournalPeer::UPDATED_AT)) {
 					$this->setUpdatedAt(time());
@@ -1443,6 +1458,26 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 		return (string) $this->exportTo(JournalPeer::DEFAULT_STRING_FORMAT);
 	}
 
+	// denyable behavior
+	public function mayOperate($sOperation, $oUser = false) {
+		if($oUser === false) {
+			$oUser = Session::getSession()->getUser();
+		}
+		if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalPeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
+			return true;
+		}
+		return JournalPeer::mayOperateOn($oUser, $this, $sOperation);
+	}
+	public function mayBeInserted($oUser = false) {
+		return $this->mayOperate("insert", $oUser);
+	}
+	public function mayBeUpdated($oUser = false) {
+		return $this->mayOperate("update", $oUser);
+	}
+	public function mayBeDeleted($oUser = false) {
+		return $this->mayOperate("delete", $oUser);
+	}
+
 	// extended_timestampable behavior
 	
 	/**
@@ -1461,7 +1496,7 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 	 */
 	public function getCreatedAtTimestamp()
 	{
-		return $this->getCreatedAt('U');
+		return (int)$this->getCreatedAt('U');
 	}
 	
 	/**
@@ -1480,7 +1515,7 @@ abstract class BaseJournal extends BaseObject  implements Persistent
 	 */
 	public function getUpdatedAtTimestamp()
 	{
-		return $this->getUpdatedAt('U');
+		return (int)$this->getUpdatedAt('U');
 	}
 	
 	/**

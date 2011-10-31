@@ -538,6 +538,11 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 			$deleteQuery = JournalEntryImageQuery::create()
 				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
+			// denyable behavior
+			if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("delete"))) {
+				throw new PropelException(new NotPermittedException("delete.by_role", array("role_key" => "journal_entry_images")));
+			}
+
 			if ($ret) {
 				$deleteQuery->delete($con);
 				$this->postDelete($con);
@@ -581,6 +586,11 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 			$ret = $this->preSave($con);
 			if ($isInsert) {
 				$ret = $ret && $this->preInsert($con);
+				// denyable behavior
+				if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("insert"))) {
+					throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journal_entry_images")));
+				}
+
 				// extended_timestampable behavior
 				if (!$this->isColumnModified(JournalEntryImagePeer::CREATED_AT)) {
 					$this->setCreatedAt(time());
@@ -601,6 +611,11 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 
 			} else {
 				$ret = $ret && $this->preUpdate($con);
+				// denyable behavior
+				if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("update"))) {
+					throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journal_entry_images")));
+				}
+
 				// extended_timestampable behavior
 				if ($this->isModified() && !$this->isColumnModified(JournalEntryImagePeer::UPDATED_AT)) {
 					$this->setUpdatedAt(time());
@@ -1356,6 +1371,26 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		return (string) $this->exportTo(JournalEntryImagePeer::DEFAULT_STRING_FORMAT);
 	}
 
+	// denyable behavior
+	public function mayOperate($sOperation, $oUser = false) {
+		if($oUser === false) {
+			$oUser = Session::getSession()->getUser();
+		}
+		if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryImagePeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
+			return true;
+		}
+		return JournalEntryImagePeer::mayOperateOn($oUser, $this, $sOperation);
+	}
+	public function mayBeInserted($oUser = false) {
+		return $this->mayOperate("insert", $oUser);
+	}
+	public function mayBeUpdated($oUser = false) {
+		return $this->mayOperate("update", $oUser);
+	}
+	public function mayBeDeleted($oUser = false) {
+		return $this->mayOperate("delete", $oUser);
+	}
+
 	// extended_timestampable behavior
 	
 	/**
@@ -1374,7 +1409,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 */
 	public function getCreatedAtTimestamp()
 	{
-		return $this->getCreatedAt('U');
+		return (int)$this->getCreatedAt('U');
 	}
 	
 	/**
@@ -1393,7 +1428,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 */
 	public function getUpdatedAtTimestamp()
 	{
-		return $this->getUpdatedAt('U');
+		return (int)$this->getUpdatedAt('U');
 	}
 	
 	/**
