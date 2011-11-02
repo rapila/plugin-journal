@@ -2,34 +2,18 @@ Widget.types['journal_entry_detail'] = {
 	initialize: function() {
 		this._element = jQuery.parseHTML('{{includeTemplate=edit}}');
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
-		
+		Widget.callStatic('detail', 'set_instance', this);
+	},
+
+	prepare: function() {
 		this.text_widget = this._element.find('.text-widget').attr('data-widget-session', this.settings.richtext_session);
 		this.text_widget.prepareWidget(function(text_widget) {
 			this.handle('saving', function(event, data) {
 				data.text = text_widget.get_data();
 			});
-		}.bind(this));	
-			
-		Widget.create('detail', function(widget) {
-			widget.set_instance(this);
-			jQuery.extend(widget.settings, {
-				title: "{{writeString=wns.journal_entry.create}}",
-				width: 800
-			});
-			if(this.auto_open) {
-				this.open();
-			}
 		}.bind(this));
 	},
 	
-	open: function() {
-		if(!this.detail_widget) {
-			this.auto_open = true;
-			return false;
-		}
-		this.detail_widget.open();
-	},
-
 	fill_data: function() {
 		this.loadData(function(data) {
 			var comment_list = this._element.find('ol.comments').empty();
@@ -47,19 +31,19 @@ Widget.types['journal_entry_detail'] = {
 					comm.click(txt.toggle.bind(txt));
 					comment_list.append(comm);
 				});
+			} else {
+				this.detail_widget.set_title('{{writeString=wns.journal.add_entry}}');
+				this.set_text('');
+				title.val('');
 			}
 		});
 	},
 
 	set_text: function(text) {
 		this.text_widget.ensureWidget(function(widget) {
-			console.log('ensureWidget', widget);
 			widget.set_data(text);
 		}.bind(this));
 	},
 	
-	close: function() {
-		this.detail_widget.close();
-		this.close_callback();
-	}
+	settings: {"detail_widget":{width: 800}}
 };

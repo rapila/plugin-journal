@@ -3,7 +3,7 @@
 		this.page_id = page_id;
 		this.container = container;
 		this.page_type = page_type;
-		page_type.callPageTypeMethod('detailWidget', function(session) {
+		page_type.methods.detailWidget(function(session) {
 			Widget.create('journal_entry_detail', function(detail) {
 				this.journal_entry_detail = detail;
 				detail.save_callback = this.reload_entries.bind(this);
@@ -103,6 +103,8 @@
 				this.page_type.methods.entryList(function(list) {
 					_this.entry_area.html(list);
 					_this.entry_area.widgetElements().prepareWidget(function(widget) {
+						widget.connected_detail = _this.journal_entry_detail;
+					}, function(widget) {
 						_this.entry_list = widget;
 					});
 				});

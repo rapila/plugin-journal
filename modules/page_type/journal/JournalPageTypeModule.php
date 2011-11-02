@@ -17,7 +17,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->updateFlagsFromProperties();
 		if(array_key_exists('entry', $_REQUEST)) {
 			$this->sMode = 'entry';
-			$this->oEntry = JournalEntryPeer::retrieveByName($_REQUEST['entry']);
+			$this->oEntry = JournalEntryQuery::create()->filterBySlug($_REQUEST['entry']);
 		} else if(array_key_exists('date', $_REQUEST)) {
 			$this->sMode = 'date';
 		} else if(array_key_exists('category', $_REQUEST)) {
@@ -165,13 +165,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		foreach($aEntries as $oEntry) {
 			$oEntryTemplate = clone $oEntryTemplatePrototype;
 			$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
+			$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
 			$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
 			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 			$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 			if($oEntryTemplate->hasIdentifier('text')) {
 				$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
 			}
-			$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink()));
+			$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
 			if($this->oEntry !== null && $this->oEntry == $oEntry) {
 				$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
 			}

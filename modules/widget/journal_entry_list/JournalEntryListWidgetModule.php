@@ -9,7 +9,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	
 	public function __construct() {
 		$this->oListWidget = new ListWidgetModule();
-		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "title", "asc");
+		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "created_at_formatted", "desc");
 		$this->oListWidget->setDelegate($this->oDelegateProxy);
 	}
 	
