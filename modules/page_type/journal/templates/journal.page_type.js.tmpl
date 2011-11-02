@@ -28,7 +28,7 @@
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
-			this.add_journal_entry_button = this.container.find('button[name="add_journal_entry"]').hide().click(this.add_journal_entry.bind(this));
+			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
 
 			this.page_type.methods.listJournals(function(result) {
 				_this.journal_list.populate(result.options, result.current || '');
