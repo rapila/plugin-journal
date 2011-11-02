@@ -26,7 +26,11 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		return array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'journal_name', 'delete');
+		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments');
+		if($this->oDelegateProxy->getJournalId() === null) {
+			$aColumns = array_merge($aColumns, array('journal_name'));
+		}
+		return array_merge($aColumns, array('delete'));
 	}
 	
 	public function getMetadataForColumn($sColumnIdentifier) {
