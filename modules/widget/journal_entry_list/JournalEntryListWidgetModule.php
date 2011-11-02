@@ -5,14 +5,20 @@
 class JournalEntryListWidgetModule extends WidgetModule {
 
 	private $oListWidget;
-	private $oLanguageFilter;
-	public $oDelegateProxy;
-	
+	private $oDelegateProxy;
 	
 	public function __construct() {
 		$this->oListWidget = new ListWidgetModule();
 		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "title", "asc");
 		$this->oListWidget->setDelegate($this->oDelegateProxy);
+	}
+	
+	public function getDelegate() {
+		return $this->oDelegateProxy;
+	}
+	
+	public function getList() {
+		return $this->oListWidget;
 	}
 	
 	public function doWidget() {

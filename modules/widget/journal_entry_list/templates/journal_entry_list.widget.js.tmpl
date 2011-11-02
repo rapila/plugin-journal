@@ -4,8 +4,8 @@ jQuery(document).ready(function() {
 			Widget.callStatic('detail', 'connect_detail_with_list', 'journal_entry', widget, 'setJournalEntryId');
 			widget.handle('list-cell_click', function(event, rowIndex, col, row, cell) {
 				if(col.identifier === 'delete') {
-					var file_name = widget.cell_for_identifier('name_truncated', row).text();
-					var delete_message = AdminInterface.strings.get_string('wns.link.delete_warning', { link_name: file_name});
+					var entry_name = widget.cell_for_identifier('title_truncated', row).text();
+					var delete_message = AdminInterface.strings.get_string('wns.journal_entry.delete_warning', { entry_name: entry_name});
 					Widget.confirm("{{writeString=wns.delete_warning_title}}", delete_message, function(confirmed) {
 						if(confirmed) {
 							this.delete_row(row);
@@ -18,7 +18,7 @@ jQuery(document).ready(function() {
 					event.stopPropagation();
 				}				
 			});
-			AdminInterface.strings.handle_strings_for_list_result('wns.links.no_result', ['link_category_name'], widget);
+			AdminInterface.strings.handle_strings_for_list_result('wns.journal_entries.no_result', ['journal_name'], widget);
 		});
 	});
 });

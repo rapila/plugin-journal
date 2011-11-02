@@ -1,7 +1,7 @@
 <?php
 class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	private $iJournalId;
-	private $iEntryId;
+	private $iJournalEntryId;
 	
 	public function __construct($sSessionKey = null, $oPage = null) {
 		parent::__construct($sSessionKey);
@@ -16,8 +16,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$this->iJournalId = $iJournalId;
 	}
 
-	public function setEntryId($iEntryId) {
-		$this->iEntryId = $iEntryId;
+	public function setJournalEntryId($iJournalEntryId) {
+		$this->iJournalEntryId = $iJournalEntryId;
 	}
 	
 	public function getElementType() {
@@ -25,21 +25,25 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 	
 	public function loadData() {
-		$aResult = JournalEntryPeer::retrieveByPK($this->iEntryId);
+		$aResult = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if(!$aResult) {
 			return;
 		}
 		$aResult = $aResult->toArray();
 		$aResult['Text'] = RichtextUtil::parseStorageForBackendOutput($aResult['Text'])->render();
 		$aResult['comments'] = array();
-		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iEntryId)->orderByCreatedAt()->find() as $oComment) {
-			$aResult['comments'][] = $oComment->toArray();
+		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
+			$aComment = array();
+			$aComment['CreatedAtFormatted'] = $oComment->getCreatedAtFormatted();
+			$aComment['Email'] = $oComment->getEmail();
+			$aComment['Text'] = $oComment->getText();
+			$aResult['comments'][] = $aComment;
 		}
 		return $aResult;
 	}
 	
 	public function saveData($aData) {
-		$oEntry = JournalEntryPeer::retrieveByPK($this->iEntryId);
+		$oEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if($oEntry === null) {
 			$oEntry = new JournalEntry();
 			$oEntry->setJournalId($this->iJournalId);

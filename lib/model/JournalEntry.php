@@ -4,14 +4,6 @@ require_once 'model/om/BaseJournalEntry.php';
 
 
 /**
- * Skeleton subclass for representing a row from the 'journal_entries' table.
- *
- * 
- *
- * You should add additional methods to this class to meet the
- * application requirements.  This class will only be generated as
- * long as it does not already exist in the output directory.
- *
  * @package model
  */	
 class JournalEntry extends BaseJournalEntry {
@@ -43,6 +35,25 @@ class JournalEntry extends BaseJournalEntry {
       $aResult['postid'] = $this->getId();
     }
     return $aResult;
+	}
+	
+	public function getCountComments() {
+		return $this->countJournalComments();
+	}
+	
+	public function getLatestCommentDate() {
+		
+	}
+	
+	public function getJournalName() {
+		if($oJournal = $this->getJournal()) {
+			return $oJournal->getName();
+		}
+		return null;
+	}
+	
+	public function getTitleTruncated($iTruncate = 50) {
+		return StringUtil::truncate($this->getTitle(), $iTruncate);
 	}
 
 	public function getLink($oPage = null) {

@@ -164,14 +164,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		foreach($aEntries as $oEntry) {
 			$oEntryTemplate = clone $oEntryTemplatePrototype;
-			$oEntryTemplate->replaceIdentifier('name', $oEntry->getName());
+			$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
 			$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
 			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 			$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 			if($oEntryTemplate->hasIdentifier('text')) {
 				$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
 			}
-			$oEntryTemplate->replaceIdentifier('link', $this->getLink('entry', $oEntry->getName()));
+			$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink()));
 			if($this->oEntry !== null && $this->oEntry == $oEntry) {
 				$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
 			}
@@ -252,10 +252,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oWidget->getSessionKey();
 	}
 	
-	public function setCurrentJournal($iJournalId) {
-		$this->iJournalId = $iJournalId;
-	}
-
 	public function currentMode() {
 		return $this->sMode;
 	}
@@ -300,17 +296,24 @@ class JournalPageTypeModule extends PageTypeModule {
 		return JournalPeer::retrieveByPK($this->iJournalId)->toArray();
 	}
 
-	public function listEntries() {
-		if($this->iJournalId === null) {
-			return null;
+	private $oJournalEntryList = null;
+	public function entryList() {
+		$this->oJournalEntryList = new JournalEntryListWidgetModule();
+		$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
+		
+		$oIncluder = new ResourceIncluder();
+		JournalEntryListWidgetModule::includeResources($oIncluder);
+
+		return $oIncluder->getIncludes()->render().$this->oJournalEntryList->doWidget()->render();
+		$oListWidget = $this->oJournalEntryList->getList();
+		return array($oListWidget->getModuleName(), $oListWidget->getSessionKey());
+	}
+
+	public function setCurrentJournal($iJournalId) {
+		$this->iJournalId = $iJournalId;
+		if($this->oJournalEntryList) {
+			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
 		}
-		$aResult = array();
-		foreach(JournalEntryQuery::create()->filterByJournalId($this->iJournalId)->orderByCreatedAt()->find() as $oEntry) {
-			$aJournalEntry = $oEntry->toArray();
-			$aJournalEntry['CountJournalComments'] = $oEntry->countJournalComments();
-			$aResult[] = $aJournalEntry;
-		}
-		return $aResult;
 	}
 
 	public function saveJournal($aData) {

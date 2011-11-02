@@ -39,7 +39,7 @@ class JournalEntriesAdminModule extends AdminModule {
 				$aResult['field_name'] = 'id';
 				break;
 			case 'name':
-				$aResult['heading'] = StringPeer::getString('wns.links.sidebar_heading');
+				$aResult['heading'] = StringPeer::getString('wns.journal_entries.sidebar_heading');
 				break;
 			case 'magic_column':
 				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_CLASSNAME;
