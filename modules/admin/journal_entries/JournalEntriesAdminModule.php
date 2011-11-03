@@ -10,13 +10,13 @@ class JournalEntriesAdminModule extends AdminModule {
 	public function __construct() {
 		$this->oListWidget = new JournalEntryListWidgetModule();
 		if(isset($_REQUEST['journal_id'])) {
-			$this->oListWidget->oDelegateProxy->setJournalId($_REQUEST['journal_id']);
+			$this->oListWidget->getDelegate()->setJournalId($_REQUEST['journal_id']);
 		}
 		
 		$this->oSidebarWidget = new ListWidgetModule();
 		$this->oSidebarWidget->setListTag(new TagWriter('ul'));
 		$this->oSidebarWidget->setDelegate(new CriteriaListWidgetDelegate($this, 'Journal', 'name'));
-    $this->oSidebarWidget->setSetting('initial_selection', array('journal_id' => $this->oListWidget->oDelegateProxy->getJournalId()));
+    $this->oSidebarWidget->setSetting('initial_selection', array('journal_id' => $this->oListWidget->getDelegate()->getJournalId()));
 	}
 	
 	public function mainContent() {
@@ -52,18 +52,19 @@ class JournalEntriesAdminModule extends AdminModule {
 	public function getCustomListElements() {
 		if(JournalQuery::create()->count() > 0) {
 			return array(
-								array('journal_id' => CriteriaListWidgetDelegate::SELECT_ALL,
-													'name' => StringPeer::getString('wns.sidebar.select_all'),
-													'magic_column' => 'all')
-						);
+			         array('journal_id' => CriteriaListWidgetDelegate::SELECT_ALL,
+			               'name' => StringPeer::getString('wns.sidebar.select_all'),
+			               'magic_column' => 'all'
+			         )
+			);
 		}
 		return array();
 	}
 
 	public function getCriteria() {
 		$oQuery = JournalEntryQuery::create();
-		if($this->oListWidget->oDelegateProxy->getJournalId() !== CriteriaListWidgetDelegate::SELECT_ALL) {
-			$oQuery->filterByJournalId($this->oListWidget->oDelegateProxy->getJournalId());
+		if($this->oListWidget->getDelegate()->getJournalId() !== CriteriaListWidgetDelegate::SELECT_ALL) {
+			$oQuery->filterByJournalId($this->oListWidget->getDelegate()->getJournalId());
 		}
 		return $oQuery;
 	}

@@ -27,7 +27,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 
 	public function getColumnIdentifiers() {
 		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments');
-		if($this->oDelegateProxy->getJournalId() === null) {
+		if($this->oDelegateProxy->getJournalId() === CriteriaListWidgetDelegate::SELECT_ALL) {
 			$aColumns = array_merge($aColumns, array('journal_name'));
 		}
 		return array_merge($aColumns, array('delete'));

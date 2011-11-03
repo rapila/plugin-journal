@@ -1,5 +1,6 @@
 <?php
 class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
+	private $oRichTextWidget;
 	private $iJournalId;
 	private $iJournalEntryId;
 	
@@ -18,6 +19,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	public function setJournalEntryId($iJournalEntryId) {
 		$this->iJournalEntryId = $iJournalEntryId;
+		// JournalEntryQuery::create()->filterById($this->iJournalEntryId)->clearSelectColumns()->addSelectColumn(JournalEntryPeer::JOURNAL_ID)->findOne();
+		
 	}
 	
 	public function getElementType() {
