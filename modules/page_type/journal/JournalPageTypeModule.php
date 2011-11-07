@@ -330,7 +330,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function saveJournal($aData) {
-		$oJournal = $this->iJournalId ? JournalPeer::retrieveByPK($this->iJournalId) : new Journal();
+		$oJournal = JournalPeer::retrieveByPK($this->iJournalId);
+		if($oJournal === null) {
+			$oJournal = new Journal();
+		}
 		$this->validate($aData);
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
