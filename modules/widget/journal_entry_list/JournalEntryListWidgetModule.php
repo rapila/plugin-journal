@@ -26,7 +26,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments');
+		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'is_published', 'count_comments');
 		if($this->oDelegateProxy->getJournalId() === CriteriaListWidgetDelegate::SELECT_ALL) {
 			$aColumns = array_merge($aColumns, array('journal_name'));
 		}
@@ -42,6 +42,9 @@ class JournalEntryListWidgetModule extends WidgetModule {
 				break;
 			case 'created_at_formatted':
 				$aResult['heading'] = StringPeer::getString('wns.date');
+				break;
+			case 'is_published':
+				$aResult['heading'] = StringPeer::getString('wns.journal_entry.is_published');
 				break;
 			case 'count_comments':
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_comments');

@@ -18,10 +18,12 @@ Widget.types['journal_entry_detail'] = {
 		this.loadData(function(data) {
 			var comment_list = this._element.find('ol.comments').empty();
 			var title = this._element.find('input[name="title"]');
+			var is_published = this._element.find('input[name="is_published"]');
 			if(data) {
 				this.detail_widget.set_title(data.Title);
 				this.set_text(data.Text);
 				title.val(data.Title);
+				is_published.prop('checked', data.IsPublished);
 				jQuery.each(data.comments, function(i, comment) {
 					var comm = jQuery('<li/>');
 					comm.text(comment.CreatedAtFormatted+' '+comment.Email);
