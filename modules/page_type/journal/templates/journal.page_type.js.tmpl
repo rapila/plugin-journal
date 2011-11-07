@@ -113,9 +113,17 @@
 
 		save: function() {
 			var _this = this;
-			this.page_type.methods.saveJournal(this.form.serializeArrayKV(), function() {
-				_this.container.empty();
-				_this.init();
+			this.page_type.methods.saveJournal(this.form.serializeArrayKV(), function(result, error) {
+				if(error) {
+					if(error.exception_type === 'ValidationException') {
+						Widget.callStatic('detail', 'validate_with', error.parameters, _this.form);
+					} else {
+						Widget.notifyUser(Widget.logSeverity.ALERT, error.message);
+					}
+				} else {
+					_this.container.empty();
+					_this.init();
+				}
 			});
 		}
 	});
