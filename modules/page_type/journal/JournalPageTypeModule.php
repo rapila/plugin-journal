@@ -321,9 +321,20 @@ class JournalPageTypeModule extends PageTypeModule {
 			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
 		}
 	}
+	
+	private function validate($aData) {
+		$oFlash = Flash::getFlash();
+		$oFlash->setArrayToCheck($aData);
+		$oFlash->checkForValue('journal_name', 'journal.name_required');
+		$oFlash->finishReporting();
+	}
 
 	public function saveJournal($aData) {
 		$oJournal = $this->iJournalId ? JournalPeer::retrieveByPK($this->iJournalId) : new Journal();
+		$this->validate($aData);
+		if(!Flash::noErrors()) {
+			throw new ValidationException();
+		}
 		$oJournal->setName($aData['journal_name']);
 		$oJournal->setDescription($aData['journal_description']);
 		$oJournal->save();

@@ -9,7 +9,7 @@
 		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
 	</ul>
 	<div id="journal-journal_config">
-		<label for="journal_name">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" /><br />
+		<label for="journal_name">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content validate-journal.name_required" /><br />
 		<label for="journal_description">{{writeString=wns.journal.description}}</label><textarea type="text" name="journal_description" class="ui-widget-content"></textarea>
 	</div>
 	<div id="journal-page_config">
@@ -39,6 +39,6 @@
 	<div id="journal-journal_entries">
 		<div class="journal-entries">
 		</div>
-		<a class="info-bar-button info-bar-element add-new-item add_journal_entry" title="{{writeString=wns.new_entry}}" accesskey="n">&nbsp;</a>
+		<a class="info-bar-button info-bar-element add-new-item add_journal_entry" title="{{writeString=wns.new_entry}}" accesskey="n">&nbsp;</a>		
 	</div>
 </div>
