@@ -26,19 +26,22 @@ abstract class BaseJournalEntryImagePeer {
 	const TM_CLASS = 'JournalEntryImageTableMap';
 
 	/** The total number of columns. */
-	const NUM_COLUMNS = 7;
+	const NUM_COLUMNS = 8;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
 
 	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 7;
+	const NUM_HYDRATE_COLUMNS = 8;
 
 	/** the column name for the JOURNAL_ENTRY_ID field */
 	const JOURNAL_ENTRY_ID = 'journal_entry_images.JOURNAL_ENTRY_ID';
 
 	/** the column name for the DOCUMENT_ID field */
 	const DOCUMENT_ID = 'journal_entry_images.DOCUMENT_ID';
+
+	/** the column name for the SORT field */
+	const SORT = 'journal_entry_images.SORT';
 
 	/** the column name for the LEGEND field */
 	const LEGEND = 'journal_entry_images.LEGEND';
@@ -76,12 +79,12 @@ abstract class BaseJournalEntryImagePeer {
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
 	protected static $fieldNames = array (
-		BasePeer::TYPE_PHPNAME => array ('JournalEntryId', 'DocumentId', 'Legend', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('journalEntryId', 'documentId', 'legend', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
-		BasePeer::TYPE_COLNAME => array (self::JOURNAL_ENTRY_ID, self::DOCUMENT_ID, self::LEGEND, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('JOURNAL_ENTRY_ID', 'DOCUMENT_ID', 'LEGEND', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
-		BasePeer::TYPE_FIELDNAME => array ('journal_entry_id', 'document_id', 'legend', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
-		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, )
+		BasePeer::TYPE_PHPNAME => array ('JournalEntryId', 'DocumentId', 'Sort', 'Legend', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('journalEntryId', 'documentId', 'sort', 'legend', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
+		BasePeer::TYPE_COLNAME => array (self::JOURNAL_ENTRY_ID, self::DOCUMENT_ID, self::SORT, self::LEGEND, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('JOURNAL_ENTRY_ID', 'DOCUMENT_ID', 'SORT', 'LEGEND', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
+		BasePeer::TYPE_FIELDNAME => array ('journal_entry_id', 'document_id', 'sort', 'legend', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
+		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
 	);
 
 	/**
@@ -91,12 +94,12 @@ abstract class BaseJournalEntryImagePeer {
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
 	protected static $fieldKeys = array (
-		BasePeer::TYPE_PHPNAME => array ('JournalEntryId' => 0, 'DocumentId' => 1, 'Legend' => 2, 'CreatedAt' => 3, 'UpdatedAt' => 4, 'CreatedBy' => 5, 'UpdatedBy' => 6, ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('journalEntryId' => 0, 'documentId' => 1, 'legend' => 2, 'createdAt' => 3, 'updatedAt' => 4, 'createdBy' => 5, 'updatedBy' => 6, ),
-		BasePeer::TYPE_COLNAME => array (self::JOURNAL_ENTRY_ID => 0, self::DOCUMENT_ID => 1, self::LEGEND => 2, self::CREATED_AT => 3, self::UPDATED_AT => 4, self::CREATED_BY => 5, self::UPDATED_BY => 6, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('JOURNAL_ENTRY_ID' => 0, 'DOCUMENT_ID' => 1, 'LEGEND' => 2, 'CREATED_AT' => 3, 'UPDATED_AT' => 4, 'CREATED_BY' => 5, 'UPDATED_BY' => 6, ),
-		BasePeer::TYPE_FIELDNAME => array ('journal_entry_id' => 0, 'document_id' => 1, 'legend' => 2, 'created_at' => 3, 'updated_at' => 4, 'created_by' => 5, 'updated_by' => 6, ),
-		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, )
+		BasePeer::TYPE_PHPNAME => array ('JournalEntryId' => 0, 'DocumentId' => 1, 'Sort' => 2, 'Legend' => 3, 'CreatedAt' => 4, 'UpdatedAt' => 5, 'CreatedBy' => 6, 'UpdatedBy' => 7, ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('journalEntryId' => 0, 'documentId' => 1, 'sort' => 2, 'legend' => 3, 'createdAt' => 4, 'updatedAt' => 5, 'createdBy' => 6, 'updatedBy' => 7, ),
+		BasePeer::TYPE_COLNAME => array (self::JOURNAL_ENTRY_ID => 0, self::DOCUMENT_ID => 1, self::SORT => 2, self::LEGEND => 3, self::CREATED_AT => 4, self::UPDATED_AT => 5, self::CREATED_BY => 6, self::UPDATED_BY => 7, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('JOURNAL_ENTRY_ID' => 0, 'DOCUMENT_ID' => 1, 'SORT' => 2, 'LEGEND' => 3, 'CREATED_AT' => 4, 'UPDATED_AT' => 5, 'CREATED_BY' => 6, 'UPDATED_BY' => 7, ),
+		BasePeer::TYPE_FIELDNAME => array ('journal_entry_id' => 0, 'document_id' => 1, 'sort' => 2, 'legend' => 3, 'created_at' => 4, 'updated_at' => 5, 'created_by' => 6, 'updated_by' => 7, ),
+		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
 	);
 
 	/**
@@ -170,6 +173,7 @@ abstract class BaseJournalEntryImagePeer {
 		if (null === $alias) {
 			$criteria->addSelectColumn(JournalEntryImagePeer::JOURNAL_ENTRY_ID);
 			$criteria->addSelectColumn(JournalEntryImagePeer::DOCUMENT_ID);
+			$criteria->addSelectColumn(JournalEntryImagePeer::SORT);
 			$criteria->addSelectColumn(JournalEntryImagePeer::LEGEND);
 			$criteria->addSelectColumn(JournalEntryImagePeer::CREATED_AT);
 			$criteria->addSelectColumn(JournalEntryImagePeer::UPDATED_AT);
@@ -178,6 +182,7 @@ abstract class BaseJournalEntryImagePeer {
 		} else {
 			$criteria->addSelectColumn($alias . '.JOURNAL_ENTRY_ID');
 			$criteria->addSelectColumn($alias . '.DOCUMENT_ID');
+			$criteria->addSelectColumn($alias . '.SORT');
 			$criteria->addSelectColumn($alias . '.LEGEND');
 			$criteria->addSelectColumn($alias . '.CREATED_AT');
 			$criteria->addSelectColumn($alias . '.UPDATED_AT');

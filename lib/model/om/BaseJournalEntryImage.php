@@ -37,6 +37,12 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	protected $document_id;
 
 	/**
+	 * The value for the sort field.
+	 * @var        int
+	 */
+	protected $sort;
+
+	/**
 	 * The value for the legend field.
 	 * @var        string
 	 */
@@ -118,6 +124,16 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	public function getDocumentId()
 	{
 		return $this->document_id;
+	}
+
+	/**
+	 * Get the [sort] column value.
+	 * 
+	 * @return     int
+	 */
+	public function getSort()
+	{
+		return $this->sort;
 	}
 
 	/**
@@ -275,6 +291,26 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	} // setDocumentId()
 
 	/**
+	 * Set the value of [sort] column.
+	 * 
+	 * @param      int $v new value
+	 * @return     JournalEntryImage The current object (for fluent API support)
+	 */
+	public function setSort($v)
+	{
+		if ($v !== null) {
+			$v = (int) $v;
+		}
+
+		if ($this->sort !== $v) {
+			$this->sort = $v;
+			$this->modifiedColumns[] = JournalEntryImagePeer::SORT;
+		}
+
+		return $this;
+	} // setSort()
+
+	/**
 	 * Set the value of [legend] column.
 	 * 
 	 * @param      string $v new value
@@ -420,11 +456,12 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 
 			$this->journal_entry_id = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
 			$this->document_id = ($row[$startcol + 1] !== null) ? (int) $row[$startcol + 1] : null;
-			$this->legend = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
-			$this->created_at = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
-			$this->updated_at = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
-			$this->created_by = ($row[$startcol + 5] !== null) ? (int) $row[$startcol + 5] : null;
-			$this->updated_by = ($row[$startcol + 6] !== null) ? (int) $row[$startcol + 6] : null;
+			$this->sort = ($row[$startcol + 2] !== null) ? (int) $row[$startcol + 2] : null;
+			$this->legend = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
+			$this->created_at = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
+			$this->updated_at = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
+			$this->created_by = ($row[$startcol + 6] !== null) ? (int) $row[$startcol + 6] : null;
+			$this->updated_by = ($row[$startcol + 7] !== null) ? (int) $row[$startcol + 7] : null;
 			$this->resetModified();
 
 			$this->setNew(false);
@@ -433,7 +470,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 7; // 7 = JournalEntryImagePeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 8; // 8 = JournalEntryImagePeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating JournalEntryImage object", $e);
@@ -854,18 +891,21 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 				return $this->getDocumentId();
 				break;
 			case 2:
-				return $this->getLegend();
+				return $this->getSort();
 				break;
 			case 3:
-				return $this->getCreatedAt();
+				return $this->getLegend();
 				break;
 			case 4:
-				return $this->getUpdatedAt();
+				return $this->getCreatedAt();
 				break;
 			case 5:
-				return $this->getCreatedBy();
+				return $this->getUpdatedAt();
 				break;
 			case 6:
+				return $this->getCreatedBy();
+				break;
+			case 7:
 				return $this->getUpdatedBy();
 				break;
 			default:
@@ -899,11 +939,12 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		$result = array(
 			$keys[0] => $this->getJournalEntryId(),
 			$keys[1] => $this->getDocumentId(),
-			$keys[2] => $this->getLegend(),
-			$keys[3] => $this->getCreatedAt(),
-			$keys[4] => $this->getUpdatedAt(),
-			$keys[5] => $this->getCreatedBy(),
-			$keys[6] => $this->getUpdatedBy(),
+			$keys[2] => $this->getSort(),
+			$keys[3] => $this->getLegend(),
+			$keys[4] => $this->getCreatedAt(),
+			$keys[5] => $this->getUpdatedAt(),
+			$keys[6] => $this->getCreatedBy(),
+			$keys[7] => $this->getUpdatedBy(),
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aJournalEntry) {
@@ -956,18 +997,21 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 				$this->setDocumentId($value);
 				break;
 			case 2:
-				$this->setLegend($value);
+				$this->setSort($value);
 				break;
 			case 3:
-				$this->setCreatedAt($value);
+				$this->setLegend($value);
 				break;
 			case 4:
-				$this->setUpdatedAt($value);
+				$this->setCreatedAt($value);
 				break;
 			case 5:
-				$this->setCreatedBy($value);
+				$this->setUpdatedAt($value);
 				break;
 			case 6:
+				$this->setCreatedBy($value);
+				break;
+			case 7:
 				$this->setUpdatedBy($value);
 				break;
 		} // switch()
@@ -996,11 +1040,12 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 
 		if (array_key_exists($keys[0], $arr)) $this->setJournalEntryId($arr[$keys[0]]);
 		if (array_key_exists($keys[1], $arr)) $this->setDocumentId($arr[$keys[1]]);
-		if (array_key_exists($keys[2], $arr)) $this->setLegend($arr[$keys[2]]);
-		if (array_key_exists($keys[3], $arr)) $this->setCreatedAt($arr[$keys[3]]);
-		if (array_key_exists($keys[4], $arr)) $this->setUpdatedAt($arr[$keys[4]]);
-		if (array_key_exists($keys[5], $arr)) $this->setCreatedBy($arr[$keys[5]]);
-		if (array_key_exists($keys[6], $arr)) $this->setUpdatedBy($arr[$keys[6]]);
+		if (array_key_exists($keys[2], $arr)) $this->setSort($arr[$keys[2]]);
+		if (array_key_exists($keys[3], $arr)) $this->setLegend($arr[$keys[3]]);
+		if (array_key_exists($keys[4], $arr)) $this->setCreatedAt($arr[$keys[4]]);
+		if (array_key_exists($keys[5], $arr)) $this->setUpdatedAt($arr[$keys[5]]);
+		if (array_key_exists($keys[6], $arr)) $this->setCreatedBy($arr[$keys[6]]);
+		if (array_key_exists($keys[7], $arr)) $this->setUpdatedBy($arr[$keys[7]]);
 	}
 
 	/**
@@ -1014,6 +1059,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 
 		if ($this->isColumnModified(JournalEntryImagePeer::JOURNAL_ENTRY_ID)) $criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $this->journal_entry_id);
 		if ($this->isColumnModified(JournalEntryImagePeer::DOCUMENT_ID)) $criteria->add(JournalEntryImagePeer::DOCUMENT_ID, $this->document_id);
+		if ($this->isColumnModified(JournalEntryImagePeer::SORT)) $criteria->add(JournalEntryImagePeer::SORT, $this->sort);
 		if ($this->isColumnModified(JournalEntryImagePeer::LEGEND)) $criteria->add(JournalEntryImagePeer::LEGEND, $this->legend);
 		if ($this->isColumnModified(JournalEntryImagePeer::CREATED_AT)) $criteria->add(JournalEntryImagePeer::CREATED_AT, $this->created_at);
 		if ($this->isColumnModified(JournalEntryImagePeer::UPDATED_AT)) $criteria->add(JournalEntryImagePeer::UPDATED_AT, $this->updated_at);
@@ -1090,6 +1136,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	{
 		$copyObj->setJournalEntryId($this->getJournalEntryId());
 		$copyObj->setDocumentId($this->getDocumentId());
+		$copyObj->setSort($this->getSort());
 		$copyObj->setLegend($this->getLegend());
 		$copyObj->setCreatedAt($this->getCreatedAt());
 		$copyObj->setUpdatedAt($this->getUpdatedAt());
@@ -1341,6 +1388,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	{
 		$this->journal_entry_id = null;
 		$this->document_id = null;
+		$this->sort = null;
 		$this->legend = null;
 		$this->created_at = null;
 		$this->updated_at = null;

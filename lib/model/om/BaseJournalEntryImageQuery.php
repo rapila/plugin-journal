@@ -8,6 +8,7 @@
  *
  * @method     JournalEntryImageQuery orderByJournalEntryId($order = Criteria::ASC) Order by the journal_entry_id column
  * @method     JournalEntryImageQuery orderByDocumentId($order = Criteria::ASC) Order by the document_id column
+ * @method     JournalEntryImageQuery orderBySort($order = Criteria::ASC) Order by the sort column
  * @method     JournalEntryImageQuery orderByLegend($order = Criteria::ASC) Order by the legend column
  * @method     JournalEntryImageQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     JournalEntryImageQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
@@ -16,6 +17,7 @@
  *
  * @method     JournalEntryImageQuery groupByJournalEntryId() Group by the journal_entry_id column
  * @method     JournalEntryImageQuery groupByDocumentId() Group by the document_id column
+ * @method     JournalEntryImageQuery groupBySort() Group by the sort column
  * @method     JournalEntryImageQuery groupByLegend() Group by the legend column
  * @method     JournalEntryImageQuery groupByCreatedAt() Group by the created_at column
  * @method     JournalEntryImageQuery groupByUpdatedAt() Group by the updated_at column
@@ -47,6 +49,7 @@
  *
  * @method     JournalEntryImage findOneByJournalEntryId(int $journal_entry_id) Return the first JournalEntryImage filtered by the journal_entry_id column
  * @method     JournalEntryImage findOneByDocumentId(int $document_id) Return the first JournalEntryImage filtered by the document_id column
+ * @method     JournalEntryImage findOneBySort(int $sort) Return the first JournalEntryImage filtered by the sort column
  * @method     JournalEntryImage findOneByLegend(string $legend) Return the first JournalEntryImage filtered by the legend column
  * @method     JournalEntryImage findOneByCreatedAt(string $created_at) Return the first JournalEntryImage filtered by the created_at column
  * @method     JournalEntryImage findOneByUpdatedAt(string $updated_at) Return the first JournalEntryImage filtered by the updated_at column
@@ -55,6 +58,7 @@
  *
  * @method     array findByJournalEntryId(int $journal_entry_id) Return JournalEntryImage objects filtered by the journal_entry_id column
  * @method     array findByDocumentId(int $document_id) Return JournalEntryImage objects filtered by the document_id column
+ * @method     array findBySort(int $sort) Return JournalEntryImage objects filtered by the sort column
  * @method     array findByLegend(string $legend) Return JournalEntryImage objects filtered by the legend column
  * @method     array findByCreatedAt(string $created_at) Return JournalEntryImage objects filtered by the created_at column
  * @method     array findByUpdatedAt(string $updated_at) Return JournalEntryImage objects filtered by the updated_at column
@@ -235,6 +239,46 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
             $comparison = Criteria::IN;
         }
         return $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId, $comparison);
+    }
+
+    /**
+     * Filter the query on the sort column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterBySort(1234); // WHERE sort = 1234
+     * $query->filterBySort(array(12, 34)); // WHERE sort IN (12, 34)
+     * $query->filterBySort(array('min' => 12)); // WHERE sort > 12
+     * </code>
+     *
+     * @param     mixed $sort The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return    JournalEntryImageQuery The current query, for fluid interface
+     */
+    public function filterBySort($sort = null, $comparison = null)
+    {
+        if (is_array($sort)) {
+            $useMinMax = false;
+            if (isset($sort['min'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::SORT, $sort['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($sort['max'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::SORT, $sort['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+        return $this->addUsingAlias(JournalEntryImagePeer::SORT, $sort, $comparison);
     }
 
     /**
