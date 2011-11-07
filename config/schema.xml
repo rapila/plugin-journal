@@ -33,7 +33,7 @@
   <foreign-key foreignTable="journal_entries" onDelete="cascade">
     <reference local="journal_entry_id" foreign="id" />
   </foreign-key>
-  <column name="document_id" type="integer" required="true"/>
+  <column name="document_id" type="integer" required="true" primaryKey="true" />
   <foreign-key foreignTable="documents" onDelete="cascade">
     <reference local="document_id" foreign="id" />
   </foreign-key>

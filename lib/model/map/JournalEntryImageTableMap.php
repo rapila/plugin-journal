@@ -39,7 +39,7 @@ class JournalEntryImageTableMap extends TableMap
 		$this->setUseIdGenerator(false);
 		// columns
 		$this->addForeignPrimaryKey('JOURNAL_ENTRY_ID', 'JournalEntryId', 'INTEGER' , 'journal_entries', 'ID', true, null, null);
-		$this->addForeignKey('DOCUMENT_ID', 'DocumentId', 'INTEGER', 'documents', 'ID', true, null, null);
+		$this->addForeignPrimaryKey('DOCUMENT_ID', 'DocumentId', 'INTEGER' , 'documents', 'ID', true, null, null);
 		$this->addColumn('LEGEND', 'Legend', 'VARCHAR', true, 180, null);
 		$this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
 		$this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);

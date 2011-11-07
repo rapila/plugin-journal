@@ -307,7 +307,7 @@ abstract class BaseJournalEntryImagePeer {
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
-				$key = (string) $obj->getJournalEntryId();
+				$key = serialize(array((string) $obj->getJournalEntryId(), (string) $obj->getDocumentId()));
 			} // if key === null
 			self::$instances[$key] = $obj;
 		}
@@ -327,10 +327,10 @@ abstract class BaseJournalEntryImagePeer {
 	{
 		if (Propel::isInstancePoolingEnabled() && $value !== null) {
 			if (is_object($value) && $value instanceof JournalEntryImage) {
-				$key = (string) $value->getJournalEntryId();
-			} elseif (is_scalar($value)) {
+				$key = serialize(array((string) $value->getJournalEntryId(), (string) $value->getDocumentId()));
+			} elseif (is_array($value) && count($value) === 2) {
 				// assume we've been passed a primary key
-				$key = (string) $value;
+				$key = serialize(array((string) $value[0], (string) $value[1]));
 			} else {
 				$e = new PropelException("Invalid value passed to removeInstanceFromPool().  Expected primary key or JournalEntryImage object; got " . (is_object($value) ? get_class($value) . ' object.' : var_export($value,true)));
 				throw $e;
@@ -391,10 +391,10 @@ abstract class BaseJournalEntryImagePeer {
 	public static function getPrimaryKeyHashFromRow($row, $startcol = 0)
 	{
 		// If the PK cannot be derived from the row, return NULL.
-		if ($row[$startcol] === null) {
+		if ($row[$startcol] === null && $row[$startcol + 1] === null) {
 			return null;
 		}
-		return (string) $row[$startcol];
+		return serialize(array((string) $row[$startcol], (string) $row[$startcol + 1]));
 	}
 
 	/**
@@ -408,7 +408,7 @@ abstract class BaseJournalEntryImagePeer {
 	 */
 	public static function getPrimaryKeyFromRow($row, $startcol = 0)
 	{
-		return (int) $row[$startcol];
+		return array((int) $row[$startcol], (int) $row[$startcol + 1]);
 	}
 	
 	/**
@@ -724,8 +724,7 @@ abstract class BaseJournalEntryImagePeer {
 				} // if obj2 already loaded
 
 				// Add the $obj1 (JournalEntryImage) to $obj2 (JournalEntry)
-				// one to one relationship
-				$obj1->setJournalEntry($obj2);
+				$obj2->addJournalEntryImage($obj1);
 
 			} // if joined row was not null
 
@@ -1063,7 +1062,7 @@ abstract class BaseJournalEntryImagePeer {
 				} // if obj2 loaded
 
 				// Add the $obj1 (JournalEntryImage) to the collection in $obj2 (JournalEntry)
-				$obj1->setJournalEntry($obj2);
+				$obj2->addJournalEntryImage($obj1);
 			} // if joined row not null
 
 			// Add objects for joined Document rows
@@ -1532,7 +1531,7 @@ abstract class BaseJournalEntryImagePeer {
 				} // if $obj2 already loaded
 
 				// Add the $obj1 (JournalEntryImage) to the collection in $obj2 (JournalEntry)
-				$obj1->setJournalEntry($obj2);
+				$obj2->addJournalEntryImage($obj1);
 
 			} // if joined row is not null
 
@@ -1648,7 +1647,7 @@ abstract class BaseJournalEntryImagePeer {
 				} // if $obj2 already loaded
 
 				// Add the $obj1 (JournalEntryImage) to the collection in $obj2 (JournalEntry)
-				$obj1->setJournalEntry($obj2);
+				$obj2->addJournalEntryImage($obj1);
 
 			} // if joined row is not null
 
@@ -1745,7 +1744,7 @@ abstract class BaseJournalEntryImagePeer {
 				} // if $obj2 already loaded
 
 				// Add the $obj1 (JournalEntryImage) to the collection in $obj2 (JournalEntry)
-				$obj1->setJournalEntry($obj2);
+				$obj2->addJournalEntryImage($obj1);
 
 			} // if joined row is not null
 
@@ -1881,6 +1880,14 @@ abstract class BaseJournalEntryImagePeer {
 				$selectCriteria->setPrimaryTableName(JournalEntryImagePeer::TABLE_NAME);
 			}
 
+			$comparison = $criteria->getComparison(JournalEntryImagePeer::DOCUMENT_ID);
+			$value = $criteria->remove(JournalEntryImagePeer::DOCUMENT_ID);
+			if ($value) {
+				$selectCriteria->add(JournalEntryImagePeer::DOCUMENT_ID, $value, $comparison);
+			} else {
+				$selectCriteria->setPrimaryTableName(JournalEntryImagePeer::TABLE_NAME);
+			}
+
 		} else { // $values is JournalEntryImage object
 			$criteria = $values->buildCriteria(); // gets full criteria
 			$selectCriteria = $values->buildPkeyCriteria(); // gets criteria w/ primary key(s)
@@ -1953,10 +1960,18 @@ abstract class BaseJournalEntryImagePeer {
 			$criteria = $values->buildPkeyCriteria();
 		} else { // it's a primary key, or an array of pks
 			$criteria = new Criteria(self::DATABASE_NAME);
-			$criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, (array) $values, Criteria::IN);
-			// invalidate the cache for this object(s)
-			foreach ((array) $values as $singleval) {
-				JournalEntryImagePeer::removeInstanceFromPool($singleval);
+			// primary key is composite; we therefore, expect
+			// the primary key passed to be an array of pkey values
+			if (count($values) == count($values, COUNT_RECURSIVE)) {
+				// array is not multi-dimensional
+				$values = array($values);
+			}
+			foreach ($values as $value) {
+				$criterion = $criteria->getNewCriterion(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $value[0]);
+				$criterion->addAnd($criteria->getNewCriterion(JournalEntryImagePeer::DOCUMENT_ID, $value[1]));
+				$criteria->addOr($criterion);
+				// we can invalidate the cache for this single PK
+				JournalEntryImagePeer::removeInstanceFromPool($value);
 			}
 		}
 
@@ -2018,56 +2033,28 @@ abstract class BaseJournalEntryImagePeer {
 	}
 
 	/**
-	 * Retrieve a single object by pkey.
-	 *
-	 * @param      int $pk the primary key.
-	 * @param      PropelPDO $con the connection to use
+	 * Retrieve object using using composite pkey values.
+	 * @param      int $journal_entry_id
+	 * @param      int $document_id
+	 * @param      PropelPDO $con
 	 * @return     JournalEntryImage
 	 */
-	public static function retrieveByPK($pk, PropelPDO $con = null)
-	{
-
-		if (null !== ($obj = JournalEntryImagePeer::getInstanceFromPool((string) $pk))) {
-			return $obj;
+	public static function retrieveByPK($journal_entry_id, $document_id, PropelPDO $con = null) {
+		$_instancePoolKey = serialize(array((string) $journal_entry_id, (string) $document_id));
+ 		if (null !== ($obj = JournalEntryImagePeer::getInstanceFromPool($_instancePoolKey))) {
+ 			return $obj;
 		}
 
 		if ($con === null) {
 			$con = Propel::getConnection(JournalEntryImagePeer::DATABASE_NAME, Propel::CONNECTION_READ);
 		}
-
 		$criteria = new Criteria(JournalEntryImagePeer::DATABASE_NAME);
-		$criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $pk);
-
+		$criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $journal_entry_id);
+		$criteria->add(JournalEntryImagePeer::DOCUMENT_ID, $document_id);
 		$v = JournalEntryImagePeer::doSelect($criteria, $con);
 
-		return !empty($v) > 0 ? $v[0] : null;
+		return !empty($v) ? $v[0] : null;
 	}
-
-	/**
-	 * Retrieve multiple objects by pkey.
-	 *
-	 * @param      array $pks List of primary keys
-	 * @param      PropelPDO $con the connection to use
-	 * @throws     PropelException Any exceptions caught during processing will be
-	 *		 rethrown wrapped into a PropelException.
-	 */
-	public static function retrieveByPKs($pks, PropelPDO $con = null)
-	{
-		if ($con === null) {
-			$con = Propel::getConnection(JournalEntryImagePeer::DATABASE_NAME, Propel::CONNECTION_READ);
-		}
-
-		$objs = null;
-		if (empty($pks)) {
-			$objs = array();
-		} else {
-			$criteria = new Criteria(JournalEntryImagePeer::DATABASE_NAME);
-			$criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $pks, Criteria::IN);
-			$objs = JournalEntryImagePeer::doSelect($criteria, $con);
-		}
-		return $objs;
-	}
-
 	// denyable behavior
 	public static function ignoreRights($bIgnore = true) {
 		self::$IGNORE_RIGHTS = $bIgnore;

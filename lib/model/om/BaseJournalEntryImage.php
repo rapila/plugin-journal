@@ -891,10 +891,10 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 */
 	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
 	{
-		if (isset($alreadyDumpedObjects['JournalEntryImage'][$this->getPrimaryKey()])) {
+		if (isset($alreadyDumpedObjects['JournalEntryImage'][serialize($this->getPrimaryKey())])) {
 			return '*RECURSION*';
 		}
-		$alreadyDumpedObjects['JournalEntryImage'][$this->getPrimaryKey()] = true;
+		$alreadyDumpedObjects['JournalEntryImage'][serialize($this->getPrimaryKey())] = true;
 		$keys = JournalEntryImagePeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getJournalEntryId(),
@@ -1035,28 +1035,35 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	{
 		$criteria = new Criteria(JournalEntryImagePeer::DATABASE_NAME);
 		$criteria->add(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $this->journal_entry_id);
+		$criteria->add(JournalEntryImagePeer::DOCUMENT_ID, $this->document_id);
 
 		return $criteria;
 	}
 
 	/**
-	 * Returns the primary key for this object (row).
-	 * @return     int
+	 * Returns the composite primary key for this object.
+	 * The array elements will be in same order as specified in XML.
+	 * @return     array
 	 */
 	public function getPrimaryKey()
 	{
-		return $this->getJournalEntryId();
+		$pks = array();
+		$pks[0] = $this->getJournalEntryId();
+		$pks[1] = $this->getDocumentId();
+
+		return $pks;
 	}
 
 	/**
-	 * Generic method to set the primary key (journal_entry_id column).
+	 * Set the [composite] primary key.
 	 *
-	 * @param      int $key Primary key.
+	 * @param      array $keys The elements of the composite key (order must match the order in XML file).
 	 * @return     void
 	 */
-	public function setPrimaryKey($key)
+	public function setPrimaryKey($keys)
 	{
-		$this->setJournalEntryId($key);
+		$this->setJournalEntryId($keys[0]);
+		$this->setDocumentId($keys[1]);
 	}
 
 	/**
@@ -1065,7 +1072,7 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	 */
 	public function isPrimaryKeyNull()
 	{
-		return null === $this->getJournalEntryId();
+		return (null === $this->getJournalEntryId()) && (null === $this->getDocumentId());
 	}
 
 	/**
@@ -1148,9 +1155,10 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 
 		$this->aJournalEntry = $v;
 
-		// Add binding for other direction of this 1:1 relationship.
+		// Add binding for other direction of this n:n relationship.
+		// If this object has already been added to the JournalEntry object, it will not be re-added.
 		if ($v !== null) {
-			$v->setJournalEntryImage($this);
+			$v->addJournalEntryImage($this);
 		}
 
 		return $this;
@@ -1168,8 +1176,13 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 	{
 		if ($this->aJournalEntry === null && ($this->journal_entry_id !== null)) {
 			$this->aJournalEntry = JournalEntryQuery::create()->findPk($this->journal_entry_id, $con);
-			// Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
-			$this->aJournalEntry->setJournalEntryImage($this);
+			/* The following can be used additionally to
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aJournalEntry->addJournalEntryImages($this);
+			 */
 		}
 		return $this->aJournalEntry;
 	}

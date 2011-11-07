@@ -60,7 +60,7 @@ class JournalEntryTableMap extends TableMap
 		$this->addRelation('UserRelatedByCreatedBy', 'User', RelationMap::MANY_TO_ONE, array('created_by' => 'id', ), 'SET NULL', null);
 		$this->addRelation('UserRelatedByUpdatedBy', 'User', RelationMap::MANY_TO_ONE, array('updated_by' => 'id', ), 'SET NULL', null);
 		$this->addRelation('JournalComment', 'JournalComment', RelationMap::ONE_TO_MANY, array('id' => 'journal_entry_id', ), 'CASCADE', null, 'JournalComments');
-		$this->addRelation('JournalEntryImage', 'JournalEntryImage', RelationMap::ONE_TO_ONE, array('id' => 'journal_entry_id', ), 'CASCADE', null);
+		$this->addRelation('JournalEntryImage', 'JournalEntryImage', RelationMap::ONE_TO_MANY, array('id' => 'journal_entry_id', ), 'CASCADE', null, 'JournalEntryImages');
 	} // buildRelations()
 
 	/**

@@ -106,9 +106,9 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	protected $collJournalComments;
 
 	/**
-	 * @var        JournalEntryImage one-to-one related JournalEntryImage object
+	 * @var        array JournalEntryImage[] Collection to store aggregation of JournalEntryImage objects.
 	 */
-	protected $singleJournalEntryImage;
+	protected $collJournalEntryImages;
 
 	/**
 	 * Flag to prevent endless save loop, if this object is referenced
@@ -655,7 +655,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->aUserRelatedByUpdatedBy = null;
 			$this->collJournalComments = null;
 
-			$this->singleJournalEntryImage = null;
+			$this->collJournalEntryImages = null;
 
 		} // if (deep)
 	}
@@ -868,9 +868,11 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				}
 			}
 
-			if ($this->singleJournalEntryImage !== null) {
-				if (!$this->singleJournalEntryImage->isDeleted()) {
-						$affectedRows += $this->singleJournalEntryImage->save($con);
+			if ($this->collJournalEntryImages !== null) {
+				foreach ($this->collJournalEntryImages as $referrerFK) {
+					if (!$referrerFK->isDeleted()) {
+						$affectedRows += $referrerFK->save($con);
+					}
 				}
 			}
 
@@ -977,9 +979,11 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 					}
 				}
 
-				if ($this->singleJournalEntryImage !== null) {
-					if (!$this->singleJournalEntryImage->validate($columns)) {
-						$failureMap = array_merge($failureMap, $this->singleJournalEntryImage->getValidationFailures());
+				if ($this->collJournalEntryImages !== null) {
+					foreach ($this->collJournalEntryImages as $referrerFK) {
+						if (!$referrerFK->validate($columns)) {
+							$failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+						}
 					}
 				}
 
@@ -1099,8 +1103,8 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			if (null !== $this->collJournalComments) {
 				$result['JournalComments'] = $this->collJournalComments->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
 			}
-			if (null !== $this->singleJournalEntryImage) {
-				$result['JournalEntryImage'] = $this->singleJournalEntryImage->toArray($keyType, $includeLazyLoadColumns, $alreadyDumpedObjects, true);
+			if (null !== $this->collJournalEntryImages) {
+				$result['JournalEntryImages'] = $this->collJournalEntryImages->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
 			}
 		}
 		return $result;
@@ -1301,9 +1305,10 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				}
 			}
 
-			$relObj = $this->getJournalEntryImage();
-			if ($relObj) {
-				$copyObj->setJournalEntryImage($relObj->copy($deepCopy));
+			foreach ($this->getJournalEntryImages() as $relObj) {
+				if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+					$copyObj->addJournalEntryImage($relObj->copy($deepCopy));
+				}
 			}
 
 		} // if ($deepCopy)
@@ -1513,6 +1518,9 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if ('JournalComment' == $relationName) {
 			return $this->initJournalComments();
 		}
+		if ('JournalEntryImage' == $relationName) {
+			return $this->initJournalEntryImages();
+		}
 	}
 
 	/**
@@ -1682,39 +1690,194 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Gets a single JournalEntryImage object, which is related to this object by a one-to-one relationship.
+	 * Clears out the collJournalEntryImages collection
 	 *
-	 * @param      PropelPDO $con optional connection object
-	 * @return     JournalEntryImage
-	 * @throws     PropelException
+	 * This does not modify the database; however, it will remove any associated objects, causing
+	 * them to be refetched by subsequent calls to accessor method.
+	 *
+	 * @return     void
+	 * @see        addJournalEntryImages()
 	 */
-	public function getJournalEntryImage(PropelPDO $con = null)
+	public function clearJournalEntryImages()
 	{
-
-		if ($this->singleJournalEntryImage === null && !$this->isNew()) {
-			$this->singleJournalEntryImage = JournalEntryImageQuery::create()->findPk($this->getPrimaryKey(), $con);
-		}
-
-		return $this->singleJournalEntryImage;
+		$this->collJournalEntryImages = null; // important to set this to NULL since that means it is uninitialized
 	}
 
 	/**
-	 * Sets a single JournalEntryImage object as related to this object by a one-to-one relationship.
+	 * Initializes the collJournalEntryImages collection.
 	 *
-	 * @param      JournalEntryImage $v JournalEntryImage
-	 * @return     JournalEntry The current object (for fluent API support)
+	 * By default this just sets the collJournalEntryImages collection to an empty array (like clearcollJournalEntryImages());
+	 * however, you may wish to override this method in your stub class to provide setting appropriate
+	 * to your application -- for example, setting the initial array to the values stored in database.
+	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
+	 * @return     void
+	 */
+	public function initJournalEntryImages($overrideExisting = true)
+	{
+		if (null !== $this->collJournalEntryImages && !$overrideExisting) {
+			return;
+		}
+		$this->collJournalEntryImages = new PropelObjectCollection();
+		$this->collJournalEntryImages->setModel('JournalEntryImage');
+	}
+
+	/**
+	 * Gets an array of JournalEntryImage objects which contain a foreign key that references this object.
+	 *
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this JournalEntry is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array JournalEntryImage[] List of JournalEntryImage objects
 	 * @throws     PropelException
 	 */
-	public function setJournalEntryImage(JournalEntryImage $v = null)
+	public function getJournalEntryImages($criteria = null, PropelPDO $con = null)
 	{
-		$this->singleJournalEntryImage = $v;
+		if(null === $this->collJournalEntryImages || null !== $criteria) {
+			if ($this->isNew() && null === $this->collJournalEntryImages) {
+				// return empty collection
+				$this->initJournalEntryImages();
+			} else {
+				$collJournalEntryImages = JournalEntryImageQuery::create(null, $criteria)
+					->filterByJournalEntry($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collJournalEntryImages;
+				}
+				$this->collJournalEntryImages = $collJournalEntryImages;
+			}
+		}
+		return $this->collJournalEntryImages;
+	}
 
-		// Make sure that that the passed-in JournalEntryImage isn't already associated with this object
-		if ($v !== null && $v->getJournalEntry() === null) {
-			$v->setJournalEntry($this);
+	/**
+	 * Returns the number of related JournalEntryImage objects.
+	 *
+	 * @param      Criteria $criteria
+	 * @param      boolean $distinct
+	 * @param      PropelPDO $con
+	 * @return     int Count of related JournalEntryImage objects.
+	 * @throws     PropelException
+	 */
+	public function countJournalEntryImages(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
+	{
+		if(null === $this->collJournalEntryImages || null !== $criteria) {
+			if ($this->isNew() && null === $this->collJournalEntryImages) {
+				return 0;
+			} else {
+				$query = JournalEntryImageQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
+				}
+				return $query
+					->filterByJournalEntry($this)
+					->count($con);
+			}
+		} else {
+			return count($this->collJournalEntryImages);
+		}
+	}
+
+	/**
+	 * Method called to associate a JournalEntryImage object to this object
+	 * through the JournalEntryImage foreign key attribute.
+	 *
+	 * @param      JournalEntryImage $l JournalEntryImage
+	 * @return     JournalEntry The current object (for fluent API support)
+	 */
+	public function addJournalEntryImage(JournalEntryImage $l)
+	{
+		if ($this->collJournalEntryImages === null) {
+			$this->initJournalEntryImages();
+		}
+		if (!$this->collJournalEntryImages->contains($l)) { // only add it if the **same** object is not already associated
+			$this->collJournalEntryImages[]= $l;
+			$l->setJournalEntry($this);
 		}
 
 		return $this;
+	}
+
+
+	/**
+	 * If this collection has already been initialized with
+	 * an identical criteria, it returns the collection.
+	 * Otherwise if this JournalEntry is new, it will return
+	 * an empty collection; or if this JournalEntry has previously
+	 * been saved, it will retrieve related JournalEntryImages from storage.
+	 *
+	 * This method is protected by default in order to keep the public
+	 * api reasonable.  You can provide public methods for those you
+	 * actually need in JournalEntry.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array JournalEntryImage[] List of JournalEntryImage objects
+	 */
+	public function getJournalEntryImagesJoinDocument($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+	{
+		$query = JournalEntryImageQuery::create(null, $criteria);
+		$query->joinWith('Document', $join_behavior);
+
+		return $this->getJournalEntryImages($query, $con);
+	}
+
+
+	/**
+	 * If this collection has already been initialized with
+	 * an identical criteria, it returns the collection.
+	 * Otherwise if this JournalEntry is new, it will return
+	 * an empty collection; or if this JournalEntry has previously
+	 * been saved, it will retrieve related JournalEntryImages from storage.
+	 *
+	 * This method is protected by default in order to keep the public
+	 * api reasonable.  You can provide public methods for those you
+	 * actually need in JournalEntry.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array JournalEntryImage[] List of JournalEntryImage objects
+	 */
+	public function getJournalEntryImagesJoinUserRelatedByCreatedBy($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+	{
+		$query = JournalEntryImageQuery::create(null, $criteria);
+		$query->joinWith('UserRelatedByCreatedBy', $join_behavior);
+
+		return $this->getJournalEntryImages($query, $con);
+	}
+
+
+	/**
+	 * If this collection has already been initialized with
+	 * an identical criteria, it returns the collection.
+	 * Otherwise if this JournalEntry is new, it will return
+	 * an empty collection; or if this JournalEntry has previously
+	 * been saved, it will retrieve related JournalEntryImages from storage.
+	 *
+	 * This method is protected by default in order to keep the public
+	 * api reasonable.  You can provide public methods for those you
+	 * actually need in JournalEntry.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array JournalEntryImage[] List of JournalEntryImage objects
+	 */
+	public function getJournalEntryImagesJoinUserRelatedByUpdatedBy($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+	{
+		$query = JournalEntryImageQuery::create(null, $criteria);
+		$query->joinWith('UserRelatedByUpdatedBy', $join_behavior);
+
+		return $this->getJournalEntryImages($query, $con);
 	}
 
 	/**
@@ -1758,8 +1921,10 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 					$o->clearAllReferences($deep);
 				}
 			}
-			if ($this->singleJournalEntryImage) {
-				$this->singleJournalEntryImage->clearAllReferences($deep);
+			if ($this->collJournalEntryImages) {
+				foreach ($this->collJournalEntryImages as $o) {
+					$o->clearAllReferences($deep);
+				}
 			}
 		} // if ($deep)
 
@@ -1767,10 +1932,10 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->collJournalComments->clearIterator();
 		}
 		$this->collJournalComments = null;
-		if ($this->singleJournalEntryImage instanceof PropelCollection) {
-			$this->singleJournalEntryImage->clearIterator();
+		if ($this->collJournalEntryImages instanceof PropelCollection) {
+			$this->collJournalEntryImages->clearIterator();
 		}
-		$this->singleJournalEntryImage = null;
+		$this->collJournalEntryImages = null;
 		$this->aJournal = null;
 		$this->aUserRelatedByCreatedBy = null;
 		$this->aUserRelatedByUpdatedBy = null;

@@ -103,18 +103,17 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
 
     /**
      * Find object by primary key
-     * Use instance pooling to avoid a database query if the object exists
      * <code>
-     * $obj  = $c->findPk(12, $con);
+     * $obj = $c->findPk(array(12, 34), $con);
      * </code>
-     * @param     mixed $key Primary key to use for the query
+     * @param     array[$journal_entry_id, $document_id] $key Primary key to use for the query
      * @param     PropelPDO $con an optional connection object
      *
      * @return    JournalEntryImage|array|mixed the result, formatted by the current formatter
      */
     public function findPk($key, $con = null)
     {
-        if ((null !== ($obj = JournalEntryImagePeer::getInstanceFromPool((string) $key))) && $this->getFormatter()->isObjectFormatter()) {
+        if ((null !== ($obj = JournalEntryImagePeer::getInstanceFromPool(serialize(array((string) $key[0], (string) $key[1]))))) && $this->getFormatter()->isObjectFormatter()) {
             // the object is alredy in the instance pool
             return $obj;
         } else {
@@ -130,7 +129,7 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
     /**
      * Find objects by primary key
      * <code>
-     * $objs = $c->findPks(array(12, 56, 832), $con);
+     * $objs = $c->findPks(array(array(12, 56), array(832, 123), array(123, 456)), $con);
      * </code>
      * @param     array $keys Primary keys to use for the query
      * @param     PropelPDO $con an optional connection object
@@ -154,7 +153,10 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      */
     public function filterByPrimaryKey($key)
     {
-        return $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $key, Criteria::EQUAL);
+        $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $key[0], Criteria::EQUAL);
+        $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $key[1], Criteria::EQUAL);
+
+        return $this;
     }
 
     /**
@@ -166,7 +168,17 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      */
     public function filterByPrimaryKeys($keys)
     {
-        return $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $keys, Criteria::IN);
+        if (empty($keys)) {
+            return $this->add(null, '1<>1', Criteria::CUSTOM);
+        }
+        foreach ($keys as $key) {
+            $cton0 = $this->getNewCriterion(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $key[0], Criteria::EQUAL);
+            $cton1 = $this->getNewCriterion(JournalEntryImagePeer::DOCUMENT_ID, $key[1], Criteria::EQUAL);
+            $cton0->addAnd($cton1);
+            $this->addOr($cton0);
+        }
+
+        return $this;
     }
 
     /**
@@ -219,22 +231,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      */
     public function filterByDocumentId($documentId = null, $comparison = null)
     {
-        if (is_array($documentId)) {
-            $useMinMax = false;
-            if (isset($documentId['min'])) {
-                $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId['min'], Criteria::GREATER_EQUAL);
-                $useMinMax = true;
-            }
-            if (isset($documentId['max'])) {
-                $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId['max'], Criteria::LESS_EQUAL);
-                $useMinMax = true;
-            }
-            if ($useMinMax) {
-                return $this;
-            }
-            if (null === $comparison) {
-                $comparison = Criteria::IN;
-            }
+        if (is_array($documentId) && null === $comparison) {
+            $comparison = Criteria::IN;
         }
         return $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId, $comparison);
     }
@@ -741,7 +739,9 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
     public function prune($journalEntryImage = null)
     {
         if ($journalEntryImage) {
-            $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $journalEntryImage->getJournalEntryId(), Criteria::NOT_EQUAL);
+            $this->addCond('pruneCond0', $this->getAliasedColName(JournalEntryImagePeer::JOURNAL_ENTRY_ID), $journalEntryImage->getJournalEntryId(), Criteria::NOT_EQUAL);
+            $this->addCond('pruneCond1', $this->getAliasedColName(JournalEntryImagePeer::DOCUMENT_ID), $journalEntryImage->getDocumentId(), Criteria::NOT_EQUAL);
+            $this->combine(array('pruneCond0', 'pruneCond1'), Criteria::LOGICAL_OR);
         }
 
         return $this;
