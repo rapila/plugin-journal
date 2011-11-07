@@ -11,6 +11,7 @@
  * @method     JournalEntryQuery orderByTitle($order = Criteria::ASC) Order by the title column
  * @method     JournalEntryQuery orderBySlug($order = Criteria::ASC) Order by the slug column
  * @method     JournalEntryQuery orderByText($order = Criteria::ASC) Order by the text column
+ * @method     JournalEntryQuery orderByIsPublished($order = Criteria::ASC) Order by the is_published column
  * @method     JournalEntryQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     JournalEntryQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  * @method     JournalEntryQuery orderByCreatedBy($order = Criteria::ASC) Order by the created_by column
@@ -21,6 +22,7 @@
  * @method     JournalEntryQuery groupByTitle() Group by the title column
  * @method     JournalEntryQuery groupBySlug() Group by the slug column
  * @method     JournalEntryQuery groupByText() Group by the text column
+ * @method     JournalEntryQuery groupByIsPublished() Group by the is_published column
  * @method     JournalEntryQuery groupByCreatedAt() Group by the created_at column
  * @method     JournalEntryQuery groupByUpdatedAt() Group by the updated_at column
  * @method     JournalEntryQuery groupByCreatedBy() Group by the created_by column
@@ -58,6 +60,7 @@
  * @method     JournalEntry findOneByTitle(string $title) Return the first JournalEntry filtered by the title column
  * @method     JournalEntry findOneBySlug(string $slug) Return the first JournalEntry filtered by the slug column
  * @method     JournalEntry findOneByText(string $text) Return the first JournalEntry filtered by the text column
+ * @method     JournalEntry findOneByIsPublished(boolean $is_published) Return the first JournalEntry filtered by the is_published column
  * @method     JournalEntry findOneByCreatedAt(string $created_at) Return the first JournalEntry filtered by the created_at column
  * @method     JournalEntry findOneByUpdatedAt(string $updated_at) Return the first JournalEntry filtered by the updated_at column
  * @method     JournalEntry findOneByCreatedBy(int $created_by) Return the first JournalEntry filtered by the created_by column
@@ -68,6 +71,7 @@
  * @method     array findByTitle(string $title) Return JournalEntry objects filtered by the title column
  * @method     array findBySlug(string $slug) Return JournalEntry objects filtered by the slug column
  * @method     array findByText(string $text) Return JournalEntry objects filtered by the text column
+ * @method     array findByIsPublished(boolean $is_published) Return JournalEntry objects filtered by the is_published column
  * @method     array findByCreatedAt(string $created_at) Return JournalEntry objects filtered by the created_at column
  * @method     array findByUpdatedAt(string $updated_at) Return JournalEntry objects filtered by the updated_at column
  * @method     array findByCreatedBy(int $created_by) Return JournalEntry objects filtered by the created_by column
@@ -331,6 +335,32 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
             }
         }
         return $this->addUsingAlias(JournalEntryPeer::TEXT, $text, $comparison);
+    }
+
+    /**
+     * Filter the query on the is_published column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByIsPublished(true); // WHERE is_published = true
+     * $query->filterByIsPublished('yes'); // WHERE is_published = true
+     * </code>
+     *
+     * @param     boolean|string $isPublished The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return    JournalEntryQuery The current query, for fluid interface
+     */
+    public function filterByIsPublished($isPublished = null, $comparison = null)
+    {
+        if (is_string($isPublished)) {
+            $is_published = in_array(strtolower($isPublished), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+        return $this->addUsingAlias(JournalEntryPeer::IS_PUBLISHED, $isPublished, $comparison);
     }
 
     /**
