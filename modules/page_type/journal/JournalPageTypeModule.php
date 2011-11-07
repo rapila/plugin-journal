@@ -291,10 +291,15 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function journalProperties() {
-		if($this->iJournalId === null) {
+		if($this->iJournalId === CriteriaListWidgetDelegate::SELECT_WITHOUT) {
 			return null;
 		}
-		return JournalPeer::retrieveByPK($this->iJournalId)->toArray();
+		$oJounal = JournalPeer::retrieveByPK($this->iJournalId);
+		if($oJounal) {
+			return $oJounal->toArray();
+		}
+		// should never happen...
+		return null;
 	}
 
 	private $oJournalEntryList = null;
@@ -311,7 +316,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function setCurrentJournal($iJournalId) {
-		$this->iJournalId = $iJournalId;
+		$this->iJournalId = $iJournalId === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $iJournalId;
 		if($this->oJournalEntryList) {
 			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
 		}
