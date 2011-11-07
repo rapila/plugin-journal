@@ -2,33 +2,6 @@
 <div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}</div>
 <div class="journal_content">
   {{text}}
-	<br style="clear:left;"/>{{identifierContext=start;name=gallery_link}}
-	<a href="{{gallery_link}}">Mehr Bilder [{{image_count}}]</a>
-	{{identifierContext=end;name=gallery_link}}
 </div>
-<a class="anchor_style" name="comments"></a>
-<div class="comments">
-  {{comments}}
-</div>
-
-<form class="leave_comment" action="{{comment_action}}#add_a_comment" method="post">
-	<fieldset class="journal_comment"><legend>{{writeString=journal.add}}</legend>
-  <p><label for="comment_name">{{writeString=name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=name\}\}}}
-  <p>{{writeFlashValue=name}}</p>
-  {{endIf}}
-  <p><label for="comment_email">{{writeString=email}}</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=email\}\}}}
-  <p>{{writeFlashValue=email}}</p>
-  {{endIf}}
-  <p><label for="comment_text">{{writeString=journal.form.comment}}</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
-  {{if=ne;1=\{\{writeFlashValue\=comment\}\}}}
-  <p>{{writeFlashValue=comment}}</p>
-  {{endIf}}
-  <p>{{captcha}}</p>
-  {{if=ne;1=\{\{writeFlashValue\=captcha\}\}}}
-  <p>{{writeFlashValue=captcha}}</p>
-  {{endIf}}
-  <p><label>&nbsp;</label> <input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /></p>
-	</fieldset>
-</form>
+{{journal_gallery}}
+{{journal_comments}}

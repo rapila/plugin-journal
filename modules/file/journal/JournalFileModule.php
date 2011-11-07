@@ -1,16 +1,22 @@
 <?php
 class JournalFileModule extends FileModule {
   private $oJournalPage;
+  private $iJournalId;
   
-  public function __construct($aRequestPath) {
-    parent::__construct($aRequestPath);
-    Manager::usePath(); //the “journal” bit
+  public function __construct($aRequestPath, Page $oJournalPage = null, $iJournalId = null) {
+		if($aRequestPath === false) {
+			$this->oJournalPage = $oJournalPage;
+			$this->iJournalId = $iJournalId;
+		} else {
+			parent::__construct($aRequestPath);
+			Manager::usePath(); //the “journal” bit
+			$this->oJournalPage = PagePeer::getRootPage()->getPageOfType('journal');
+			$sLanguageId = Manager::usePath();
+			if(LanguagePeer::languageIsActive($sLanguageId)) {
+				Session::getSession()->setLanguage($sLanguageId);
+			}
+		}
     header("Content-Type: application/rss+xml;charset=".Settings::getSetting('encoding', 'db', 'utf-8'));
-    $this->oJournalPage = PagePeer::getRootPage()->getPageOfType('journal');
-    $sLanguageId = Manager::usePath();
-    if(LanguagePeer::languageIsActive($sLanguageId)) {
-      Session::getSession()->setLanguage($sLanguageId);
-    }
     RichtextUtil::$USE_ABSOLUTE_LINKS = true;
   }
   
@@ -20,16 +26,24 @@ class JournalFileModule extends FileModule {
     $oRoot->setAttribute('version', "2.0");
     $oDocument->appendChild($oRoot);
     $oChannel = $oDocument->createElement("channel");
-    self::addSimpleAttribute($oDocument, $oChannel, 'title', $this->oJournalPage->getPageTitle());
-    self::addSimpleAttribute($oDocument, $oChannel, 'description', $this->oJournalPage->getPageTitle());
-    self::addSimpleAttribute($oDocument, $oChannel, 'link', LinkUtil::absoluteLink(LinkUtil::link('', 'FrontendManager')));
+		$oQuery = JournalEntryQuery::create()->mostRecent(10);
+		if($this->iJournalId) {
+			$oQuery->filterByJournalId($this->iJournalId);
+			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
+			self::addSimpleAttribute($oDocument, $oChannel, 'title', $oJournal->getName());
+			self::addSimpleAttribute($oDocument, $oChannel, 'description', $oJournal->getDescription());
+		} else {
+			self::addSimpleAttribute($oDocument, $oChannel, 'title', $this->oJournalPage->getPageTitle());
+			self::addSimpleAttribute($oDocument, $oChannel, 'description', $this->oJournalPage->getDescription());
+		}
+    self::addSimpleAttribute($oDocument, $oChannel, 'link', LinkUtil::absoluteLink(LinkUtil::link($this->oJournalPage->getFullPathArray(), 'FrontendManager')));
     self::addSimpleAttribute($oDocument, $oChannel, 'language', Session::language());
     self::addSimpleAttribute($oDocument, $oChannel, 'ttl', "15");
     $oRoot->appendChild($oChannel);
-    $aJournalEntries = JournalEntryPeer::getMostRecentEntries(10);
+    $aJournalEntries = $oQuery->excludeDraft()->find();
     foreach($aJournalEntries as $oJournalEntry) {
       $oItem = $oDocument->createElement('item');
-      foreach($oJournalEntry->getRssAttributes() as $sAttributeName => $mAttributeValue) {
+      foreach($oJournalEntry->getRssAttributes($this->iJournalId ? $this->oJournalPage : null) as $sAttributeName => $mAttributeValue) {
         if(is_array($mAttributeValue)) {
           if(ArrayUtil::arrayIsAssociative($mAttributeValue)) {
             //Add one elements with attributes

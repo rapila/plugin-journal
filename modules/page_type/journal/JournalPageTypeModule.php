@@ -3,34 +3,29 @@
 require_once('htmlpurifier/HTMLPurifier.standalone.php');
 
 class JournalPageTypeModule extends PageTypeModule {
-	private $sMode;
+	private $sCommentMode;
+	private $sOverviewMode;
+	private $iJournalId = null;
 	private $sTemplateSet;
 	private $sContainerName;
 	private $sRecentPostContainerName;
-	private $iJournalId;
+
+	/**
+	 * @var JournalEntry the entry to be viewed
+	 */
 	private $oEntry;
 	
 	private static $PAGE_DEFAULT_ACTIONS = array('newest', 'index', 'entry');
 	
-	public function __construct(Page $oPage) {
-		parent::__construct($oPage);
-		$this->updateFlagsFromProperties();
-		if(array_key_exists('entry', $_REQUEST)) {
-			$this->sMode = 'entry';
-			$this->oEntry = JournalEntryQuery::create()->filterBySlug($_REQUEST['entry']);
-		} else if(array_key_exists('date', $_REQUEST)) {
-			$this->sMode = 'date';
-		} else if(array_key_exists('category', $_REQUEST)) {
-			$this->sMode = 'category';
-		} else if(array_key_exists('index', $_REQUEST)) {
-			$this->sMode = 'index';
-		} else if(array_key_exists('comment', $_REQUEST)) {
-			$this->sMode = 'comment';
+	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null) {
+		parent::__construct($oPage, $oNavigationItem);
+		if($oPage) {
+			$this->updateFlagsFromProperties();
 		}
 	}
 
 	public function updateFlagsFromProperties() {
-		$this->sMode = $this->oPage->getPagePropertyValue('blog_action', 'entry');
+		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'overview');
 		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
@@ -43,7 +38,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {
-		$sMethod = StringUtil::camelize("display_$this->sMode");
 		$this->fillAuxilliaryContainers($oTemplate);
 		if(!$oTemplate->hasIdentifier('container', $this->sContainerName)) {
 			return;
@@ -53,63 +47,142 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainerName);
 			return;
 		}
+		$sMethod = 'overview';
+		if($this->oNavigationItem instanceof VirtualNavigationItem) {
+			$sMethod = substr($this->oNavigationItem->getType(), strlen('journal-'));
+			if($this->oNavigationItem->getData() instanceof JournalEntry) {
+				$this->oEntry = $this->oNavigationItem->getData();
+			}
+		}
+		$sMethod = StringUtil::camelize("display_$sMethod");
 		return $this->$sMethod($oTemplate);
 	}
 	
-	public static function displayForHome($oPage, $oItemTemplate) {
-		$oModule = new JournalPageTypeModule($oPage);
-		$aEntries = JournalEntryPeer::getMostRecentEntries(5);
-		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', $oModule->sContainerName), null, true);
-		$oModule->displayJournalEntries($aEntries, $oItemTemplate, $oTemplate);
+	public static function displayForHome($oItemTemplate) {
+		$oModule = new JournalPageTypeModule();
+		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
+		$oModule->renderJournalEntries(JournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
 		return $oTemplate;
 	}
-	
-	private function fillAuxilliaryContainers($oTemplate) {
+
+	private function renderJournalEntries(JournalEntryQuery $oQuery, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
+		if($sContainerName === null) {
+			$sContainerName = $this->sContainerName;
+		}
+		if($this->iJournalId) {
+			$oQuery->filterByJournalId($this->iJournalId);
+		}
+		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->excludeDraft()->find() as $oEntry) {
+			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
+		}
+	}
+
+	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
+		$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
+		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
+		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
+		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
+		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
+		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments());
+		$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
+		
+		if($oEntryTemplate->hasIdentifier('text')) {
+			$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
+		}
+		
+		if($this->oEntry !== null && $this->oEntry == $oEntry) {
+			$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
+		}
+
+		if($oEntryTemplate->hasIdentifier('journal_comments')) {
+			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry));
+		}
+		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
+			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
+		}
+		
+		return $oEntryTemplate;
+	}
+
+	private function renderGallery(JournalEntry $oEntry) {
+		$oEntryTemplate = $this->constructTemplate('journal_gallery');
+
+		$oListTemplate = new Template('helpers/gallery');
+		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
+
+		foreach($this->oEntry->getJournalEntryImages() as $oJournalEntryImage) {
+			$oDocument = $oJournalEntryImage->getDocument();
+			$oItemTemplate = new Template('helpers/gallery_item');
+			$oDocument->renderListItem($oItemTemplate);
+			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
+		}
+		
+		$oEntryTemplate->replaceIdentifier('gallery', $oListTemplate);
+		return $oEntryTemplate;
+	}
+
+
+	private function renderComments(JournalEntry $oEntry) {
+		$oEntryTemplate = $this->constructTemplate('comments');
+		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments());
+		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
+		foreach($oEntry->getJournalComments() as $iCounter => $oComment) {
+			$oEntryTemplate->replaceIdentifierMultiple('comments', $this->renderComment($oComment, clone $oCommentTemplatePrototype, $iCounter), null, Template::LEAVE_IDENTIFIERS);
+		}
+		if($oEntryTemplate->hasIdentifier('leave_comment')) {
+			$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
+			switch($this->sCommentMode) {
+				case "moderated":
+					$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
+				case "on":
+					$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
+					$oLeaveCommentTemplate->replaceIdentifier('comment_action', $oEntry->getLink($this->oPage));
+					break;
+				default:
+					$oLeaveCommentTemplate = null;
+			}
+			$oEntryTemplate->replaceIdentifier('leave_comment', $oLeaveCommentTemplate);
+		}
+		return $oEntryTemplate;
+	}
+
+	private function renderComment(JournalComment $oComment, Template $oCommentTemplate, $iCounter) {
+		$oCommentTemplate->replaceIdentifier('author', $oComment->getUsername());
+		$oCommentTemplate->replaceIdentifier('counter', $iCounter+1);
+		$oCommentTemplate->replaceIdentifier('email', $oComment->getEmail());
+		$oCommentTemplate->replaceIdentifier('email_hash', md5($oComment->getEmail()));
+		$oCommentTemplate->replaceIdentifier('id', $oComment->getId());
+		$oCommentTemplate->replaceIdentifier('text', $oComment->getText(), null, Template::NO_HTML_ESCAPE);
+		if($oComment->getCreatedAtTimestamp() !== null) {
+			$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getCreatedAtTimestamp()));
+		}
+		return $oCommentTemplate;
+	}
+
+
+	private function fillAuxilliaryContainers(Template $oTemplate) {
 		if($oTemplate->hasIdentifier('container', $this->sRecentPostContainerName) && $this->sRecentPostContainerName !== null) {
 			$aEntries = JournalEntryPeer::getMostRecentEntries(null);
 			// $oTemplate->replaceIdentifierMultiple('container', TagWriter::quickTag('h3', null, StringPeer::getString('journal.recent')), $this->sRecentPostContainerName);
-			$this->displayJournalEntries($aEntries, $this->constructTemplate('index_entry'), $oTemplate, null, $this->sRecentPostContainerName);
+			$this->renderJournalEntries($aEntries, $this->constructTemplate('index_entry'), $oTemplate, null, $this->sRecentPostContainerName);
 		}
 	}
 	
-	private function displayNewest($oTemplate) {
-		$aEntries = JournalEntryPeer::getMostRecentEntries(1, $this->iJournalId);
-		$this->displayJournalEntries($aEntries, $this->constructTemplate('short_entry'), $oTemplate);
+	private function displayList($oTemplate) {
+		$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(20), $this->constructTemplate('index_entry'), $oTemplate);
 	}
 	
-	private function displayIndex($oTemplate) {
-		$aEntries = JournalEntryPeer::getMostRecentEntries(null, $this->iJournalId);
-		$this->displayJournalEntries($aEntries, $this->constructTemplate('index_entry'), $oTemplate);
+	private function displayOverview($oTemplate) {
+		$this->renderJournalEntries(JournalEntryQuery::create(), $this->constructTemplate('short_entry'), $oTemplate);
 	}
 	
 	private function displayEntry($oTemplate) {
 		if($this->oEntry === null) {
-			$this->oEntry = JournalEntryPeer::getMostRecentEntry();
-		}
-		if($this->oEntry === null) {
 			LinkUtil::redirect($this->getLink('index'));
 		}
-		
-		// get gallery_images
-		$oCriteria = new Criteria();
-		$sNameStartsWith = 'ca_'.$this->oEntry->getId();
-		$oCriteria->add(DocumentPeer::NAME, "$sNameStartsWith%", Criteria::LIKE);
-		$oCriteria->addAscendingOrderByColumn(DocumentPeer::NAME);
-		$aImages = DocumentPeer::doSelect($oCriteria);
-		$iCountImages = count($aImages);
-		if(!isset($_REQUEST['gallery'])) {
-			$oEntryTemplatePrototype = $this->constructTemplate('full_entry');
-			if($iCountImages) {
-				$oEntryTemplatePrototype->replaceIdentifier('gallery_link', LinkUtil::linkToSelf(null, array('gallery' => $this->oEntry->getId())));
-				$oEntryTemplatePrototype->replaceIdentifier('image_count', $iCountImages);
-			}
-			$oEntryTemplatePrototype->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
-			$this->displayJournalEntries(array($this->oEntry), $oEntryTemplatePrototype, $oTemplate, $this->constructTemplate('full_comment'));
-		} else {
-			$this->displayJournalImages($aImages, $oTemplate);
-		}
+		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainerName);
 	}
-	
+
 	//For adding comments
 	private function displayComment($oTemplate) {
 		$oEntry = JournalEntryPeer::retrieveByPK($_REQUEST['comment']);
@@ -118,7 +191,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$oFlash = Flash::getFlash();
 		$oComment = new JournalComment();
-		$oComment->setUser($_POST['comment_name']);
+		$oComment->setUsername($_POST['comment_name']);
 		$oFlash->checkForValue('comment_name', 'name');
 		$oComment->setEmail($_POST['comment_email']);
 		$oFlash->checkForEmail('comment_email', 'email');
@@ -140,103 +213,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->displayEntry($oTemplate);
 	}
 	
-	private function displayJournalImages($aImages, $oTemplate) {
-		$oListTemplate = new Template('helpers/gallery');
-		if($this->oEntry) {
-			$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
-		}
-
-		foreach($aImages as $oDocument) {
-			$oItemTemplate = new Template('helpers/gallery_item');
-			$oItemTemplate->replaceIdentifier('url', $oDocument->getDisplayUrl());
-			$oItemTemplate->replaceIdentifier('name', $oDocument->getName());
-			$oItemTemplate->replaceIdentifier('description', $oDocument->getDescription());
-			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
-		}
-		$oTemplate->replaceIdentifierMultiple('container', $oListTemplate, 'content');
-
-		return $oTemplate;
-	}
-	
-	private function displayJournalEntries($aEntries, $oEntryTemplatePrototype, $oFullTemplate, $oCommentTemplate = null, $sContainerName = null) { 
-		if($sContainerName === null) {
-			$sContainerName = $this->sContainerName;
-		}
-		foreach($aEntries as $oEntry) {
-			$oEntryTemplate = clone $oEntryTemplatePrototype;
-			$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
-			$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
-			$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
-			$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
-			$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
-			if($oEntryTemplate->hasIdentifier('text')) {
-				$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
-			}
-			$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
-			if($this->oEntry !== null && $this->oEntry == $oEntry) {
-				$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
-			}
-			 
-			$oEntryTemplate->replaceIdentifier('comment_action', $this->getLink('comment', $oEntry->getId()));
-			$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments());
-			if($oEntryTemplate->hasIdentifier('comments') && $oCommentTemplate !== null) {
-				$this->displayJournalComments($oEntry, $oEntryTemplate, $oCommentTemplate);
-			}
-			$oFullTemplate->replaceIdentifierMultiple('container', $oEntryTemplate, $sContainerName);
-		}
-	}
-	
-	private function displayJournalComments($oEntry, $oEntryTemplate, $oCommentTemplatePrototype) {
-		foreach($oEntry->getJournalComments() as $iCounter => $oComment) {
-			$oCommentTemplate = clone $oCommentTemplatePrototype;
-			$oCommentTemplate->replaceIdentifier('author', $oComment->getUsername());
-			$oCommentTemplate->replaceIdentifier('counter', $iCounter+1);
-			$oCommentTemplate->replaceIdentifier('email', $oComment->getEmail());
-			$oCommentTemplate->replaceIdentifier('email_hash', md5($oComment->getEmail()));
-			$oCommentTemplate->replaceIdentifier('id', $oComment->getId());
-			$oCommentTemplate->replaceIdentifier('text', $oComment->getText(), null, Template::NO_HTML_ESCAPE);
-			if($oComment->getCreatedAtTimestamp() !== null) {
-				$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getCreatedAtTimestamp()));
-			}
-			$oEntryTemplate->replaceIdentifierMultiple('comments', $oCommentTemplate, null, Template::LEAVE_IDENTIFIERS);
-		}
-	}
-	
-	public static function getJournalLink($oPage, $oEntry) {
-		return self::getActionLink($oPage, 'entry', $oEntry->getName());
-	}
-	
-	private static function getActionLink($oBlogPage, $sAction, $sValue) {
-		if($oBlogPage->getPagePropertyValue('blog_action', null) !== $sAction) {
-			$oCriteria = new Criteria();
-			$oCriteria->add(PagePeer::PAGE_TYPE, 'journal');
-			$oNullPage = $oBlogPage;
-			foreach(PagePeer::doSelect($oCriteria) as $oBlogPage) {
-				$sPropertyAction = $oBlogPage->getPagePropertyValue('blog_action', null);
-				if($sPropertyAction === $sAction) {
-					$oNullPage = null;
-					break;
-				} else if($sPropertyAction === null) {
-					$oNullPage = $oBlogPage;
-				}
-			}
-			if($oNullPage !== null) {
-				$oBlogPage = $oNullPage;
-			}
-		}
-		$aLink = $oBlogPage->getFullPathArray();
-		array_push($aLink, $sAction);
-		if($sValue !== null) {
-			array_push($aLink, $sValue);
-		}
-		return LinkUtil::link($aLink, 'FrontendManager');
-	}
-	
-	private function getLink($sAction, $sValue = null) {
-		$oBlogPage = $this->oPage;
-		return self::getActionLink($oBlogPage, $sAction, $sValue);
-	}
-
 	//Override from parent
 	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
 		if($this->sTemplateSet) {
@@ -246,15 +222,26 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', 'default'));
 	}
+
+
+
+
+
+
+
+
+
 	
-	//Admin methods
+	/*
+		***** Admin Methods *****
+	*/
 	public function detailWidget() {
 		$oWidget = WidgetModule::getWidget('journal_entry_detail', null, $this->oPage);
 		return $oWidget->getSessionKey();
 	}
 	
 	public function currentMode() {
-		return $this->sMode;
+		return $this->sOverviewMode;
 	}
 
 	public function currentCommentMode() {
@@ -342,7 +329,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oJournal->setDescription($aData['journal_description']);
 		$oJournal->save();
 		$this->iJournalId = $oJournal->getId();
-		$this->oPage->updatePageProperty('blog_action', $aData['mode']);
+		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);

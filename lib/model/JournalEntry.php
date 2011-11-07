@@ -60,7 +60,7 @@ class JournalEntry extends BaseJournalEntry {
 		if($oPage === null) {
 			$oPage = $this->getJournal()->getJournalPage();
 		}
-		return array_merge($oPage->getLinkArray(), array($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug()));
+		return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug());
 	}
 
 	public function setTitle($sTitle) {
