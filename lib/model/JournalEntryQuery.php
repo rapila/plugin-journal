@@ -33,6 +33,9 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		}
 		return $this;
 	}
-
+	
+	public function excludeDraft() {
+		return $this->filterByIsPublished(true);
+	}
 }
 
