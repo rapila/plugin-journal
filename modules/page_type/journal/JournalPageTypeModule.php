@@ -162,9 +162,7 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function fillAuxilliaryContainers(Template $oTemplate) {
 		if($oTemplate->hasIdentifier('container', $this->sRecentPostContainerName) && $this->sRecentPostContainerName !== null) {
-			$aEntries = JournalEntryPeer::getMostRecentEntries(null);
-			// $oTemplate->replaceIdentifierMultiple('container', TagWriter::quickTag('h3', null, StringPeer::getString('journal.recent')), $this->sRecentPostContainerName);
-			$this->renderJournalEntries($aEntries, $this->constructTemplate('index_entry'), $oTemplate, null, $this->sRecentPostContainerName);
+			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(null), $this->constructTemplate('index_entry'), $oTemplate, null, $this->sRecentPostContainerName);
 		}
 	}
 	
