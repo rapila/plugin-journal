@@ -21,7 +21,11 @@ class JournalEntry extends BaseJournalEntry {
     $aResult = array();
     $aResult['title'] = $this->getTitle();
     $aResult['link'] = LinkUtil::absoluteLink(LinkUtil::link($this->getLink($oJournalPage), 'FrontendManager'));
-    $aResult['description'] = RichtextUtil::parseStorageForFrontendOutput($this->getText())->render();
+		if($bIsForRpc) {
+			$aResult['description'] = RichtextUtil::parseStorageForBackendOutput($this->getText())->render();
+		} else {
+			$aResult['description'] = RichtextUtil::parseStorageForFrontendOutput($this->getText())->render();
+		}
     $aResult['author'] = $this->getUserRelatedByCreatedBy()->getEmail().' ('.$this->getUserRelatedByCreatedBy()->getFullName().')';
     $aTags = TagPeer::tagInstancesForObject($this);
     $aCategories = array();
@@ -30,7 +34,7 @@ class JournalEntry extends BaseJournalEntry {
     }
     $aResult[$bIsForRpc ? 'categories' : 'category'] = $aCategories;
     $aResult['guid'] = $aResult['link'];
-    $aResult['pubDate'] = date(DATE_RFC2822, $this->getCreatedAtTimestamp());
+    $aResult['pubDate'] = date(DATE_RSS, (int)$this->getCreatedAtTimestamp());
     if($bIsForRpc) {
       $aResult['postid'] = $this->getId();
     }
