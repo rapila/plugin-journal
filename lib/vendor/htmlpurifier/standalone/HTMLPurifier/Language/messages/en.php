@@ -23,6 +23,7 @@ $messages = array(
 'Lexer: Missing gt'            => 'Missing greater-than sign (>), previous less-than sign (<) should be escaped',
 'Lexer: Missing attribute key' => 'Attribute declaration has no key',
 'Lexer: Missing end quote'     => 'Attribute declaration has no end quote',
+'Lexer: Extracted body'        => 'Removed document metadata tags',
 
 'Strategy_RemoveForeignElements: Tag transform'              => '<$1> element transformed into $CurrentToken.Serialized',
 'Strategy_RemoveForeignElements: Missing required attribute' => '$CurrentToken.Compact element missing required attribute $1',
@@ -37,6 +38,7 @@ $messages = array(
 'Strategy_MakeWellFormed: Unnecessary end tag removed' => 'Unnecessary $CurrentToken.Serialized tag removed',
 'Strategy_MakeWellFormed: Unnecessary end tag to text' => 'Unnecessary $CurrentToken.Serialized tag converted to text',
 'Strategy_MakeWellFormed: Tag auto closed'             => '$1.Compact started on line $1.Line auto-closed by $CurrentToken.Compact',
+'Strategy_MakeWellFormed: Tag carryover'               => '$1.Compact started on line $1.Line auto-continued into $CurrentToken.Compact',
 'Strategy_MakeWellFormed: Stray end tag removed'       => 'Stray $CurrentToken.Serialized tag removed',
 'Strategy_MakeWellFormed: Stray end tag to text'       => 'Stray $CurrentToken.Serialized tag converted to text',
 'Strategy_MakeWellFormed: Tag closed by element end'   => '$1.Compact tag started on line $1.Line closed by end of $CurrentToken.Serialized',
@@ -58,3 +60,4 @@ $errorNames = array(
     E_NOTICE  => 'Notice'
 );
 
+// vim: et sw=4 sts=4
