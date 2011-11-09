@@ -1,4 +1,8 @@
 <?php
+/**
+* Implements the MetaWeblog API for all journals on the current site. Point your blog editor to the MetaWeblog endpoint of /get_file/journal_api to use this.
+* @todo implement metaWeblog.newMediaObject
+*/
 class JournalApiFileModule extends FileModule {
 	private $oServer;
 	
@@ -16,8 +20,8 @@ class JournalApiFileModule extends FileModule {
 		                                         'metaWeblog.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
 		                                         'metaWeblog.getCategories' => array('function' => 'JournalApiFileModule::getCategories'),
 		                                         'blogger.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
-		                                         'metaWeblog.getUsersBlogs' => array('function' => 'JournalApiFileModule::getUsersBlogs'),
-		                                         'blogger.getUsersBlogs' => array('function' => 'JournalApiFileModule::getUsersBlogs')
+		                                         'blogger.getUsersBlogs' => array('function' => 'JournalApiFileModule::getUsersBlogs'),
+		                                         'blogger.deletePost' => array('function' => 'JournalApiFileModule::deletePost')
 		                                         ), false
 		                                  );
 		
@@ -53,6 +57,17 @@ class JournalApiFileModule extends FileModule {
 		$oJournalEntry->fillFromRssAttributes($aPublish);
 		$oJournalEntry->save();
 		return true;
+	}
+	
+	public static function deletePost($sApiKey, $iJournalEntryId, $sUserName, $sPassword) {
+		if(!self::checkLogin($sUserName, $sPassword)) {
+			return self::loginError();
+		}
+		$oJournalEntry = JournalEntryPeer::retrieveByPk($iJournalEntryId);
+		if($oJournalEntry === null) {
+			return self::error("No Entry with id $iJournalEntryId", 2);
+		}
+		return $oJournalEntry->delete();
 	}
 	
 	public static function getPost($iJournalEntryId, $sUserName, $sPassword) {

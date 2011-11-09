@@ -36,6 +36,8 @@ class JournalEntry extends BaseJournalEntry {
     $aResult['guid'] = $aResult['link'];
     $aResult['pubDate'] = date(DATE_RSS, (int)$this->getCreatedAtTimestamp());
     if($bIsForRpc) {
+			$aResult['dateCreated'] = new xmlrpcval(iso8601_encode((int)$this->getCreatedAtTimestamp()), 'dateTime.iso8601');
+			$aResult['date_created_gmt'] = new xmlrpcval(iso8601_encode((int)$this->getCreatedAtTimestamp(), 1), 'dateTime.iso8601');
       $aResult['postid'] = $this->getId();
     }
     return $aResult;
@@ -79,7 +81,7 @@ class JournalEntry extends BaseJournalEntry {
       $aTags = $aAttributes['categories'];
       $aTagInstances = TagPeer::tagInstancesForObject($this);
       $aOldTags = array();
-      foreach($oTagInstances as $oTagInstance) {
+      foreach($aTagInstances as $oTagInstance) {
         if(!in_array($oTagInstance->getTagName(), $aTags)) {
           $oTagInstance->delete();
         } else {
