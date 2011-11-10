@@ -13,5 +13,7 @@
  * @package    propel.generator.model
  */
 class JournalCommentQuery extends BaseJournalCommentQuery {
-
+	public function excludeUnverified() {
+		return $this->filterByIsPublished(true);
+	}
 } // JournalCommentQuery

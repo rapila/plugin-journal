@@ -1,5 +1,5 @@
-<form class="leave_comment" action="{{comment_action}}#add_a_comment" method="post">
-	<fieldset class="journal_comment"><legend>{{writeString=journal.add}}</legend>
+<form class="leave_comment" action="{{comment_action}}" method="post">
+	<fieldset class="journal_comment"><legend>{{writeString=journal.comment.add}}</legend>
   <p><label for="comment_name">{{writeString=wns.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
   {{if=ne;1=\{\{writeFlashValue\=name\}\}}}
   <p>{{writeFlashValue=name}}</p>
@@ -16,6 +16,6 @@
   {{if=ne;1=\{\{writeFlashValue\=captcha\}\}}}
   <p>{{writeFlashValue=captcha}}</p>
   {{endIf}}
-  <p><label>&nbsp;</label> <input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /></p>
+  <p><input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /> <input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /></p>
 	</fieldset>
 </form>

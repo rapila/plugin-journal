@@ -43,6 +43,8 @@ class JournalCommentTableMap extends TableMap
 		$this->addColumn('EMAIL', 'Email', 'VARCHAR', true, 200, null);
 		$this->addColumn('TEXT', 'Text', 'LONGVARCHAR', true, null, null);
 		$this->addForeignKey('JOURNAL_ENTRY_ID', 'JournalEntryId', 'INTEGER', 'journal_entries', 'ID', true, null, null);
+		$this->addColumn('IS_PUBLISHED', 'IsPublished', 'BOOLEAN', false, 1, true);
+		$this->addColumn('ACTIVATION_HASH', 'ActivationHash', 'VARCHAR', false, 50, null);
 		$this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
 		$this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);
 		$this->addForeignKey('CREATED_BY', 'CreatedBy', 'INTEGER', 'users', 'ID', false, null, null);

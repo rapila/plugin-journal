@@ -78,12 +78,13 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
+		$oCommentQuery = JournalCommentQuery::create()->excludeUnverified();
 		$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
-		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments());
+		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments($oCommentQuery));
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
 		
 		if($oEntryTemplate->hasIdentifier('text')) {
@@ -95,7 +96,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
-			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry));
+			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
 		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
@@ -122,28 +123,38 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 
-	private function renderComments(JournalEntry $oEntry) {
+	private function renderComments($aComments, JournalEntry $oEntry = null) {
 		$oEntryTemplate = $this->constructTemplate('comments');
-		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments());
+		$oEntryTemplate->replaceIdentifier('comment_count', count($aComments));
 		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
-		foreach($oEntry->getJournalComments() as $iCounter => $oComment) {
+		foreach($aComments as $iCounter => $oComment) {
 			$oEntryTemplate->replaceIdentifierMultiple('comments', $this->renderComment($oComment, clone $oCommentTemplatePrototype, $iCounter), null, Template::LEAVE_IDENTIFIERS);
 		}
 		if($oEntryTemplate->hasIdentifier('leave_comment')) {
-			$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
-			switch($this->sCommentMode) {
-				case "moderated":
-					$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
-				case "on":
-					$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
-					$oLeaveCommentTemplate->replaceIdentifier('comment_action', $oEntry->getLink($this->oPage));
-					break;
-				default:
-					$oLeaveCommentTemplate = null;
-			}
-			$oEntryTemplate->replaceIdentifier('leave_comment', $oLeaveCommentTemplate);
+			$oEntryTemplate->replaceIdentifier('leave_comment', $this->renderAddComment($oEntry));
 		}
 		return $oEntryTemplate;
+	}
+
+	private function renderAddComment(JournalEntry $oEntry = null) {
+		if($oEntry === null) {
+			$oEntry = $this->oEntry;
+		}
+		if($this->sCommentMode === 'off') {
+			return null;
+		}
+		$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
+		switch($this->sCommentMode) {
+			case "moderated":
+				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
+			case "on":
+				$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
+				$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
+				break;
+			default:
+				$oLeaveCommentTemplate = null;
+		}
+		return $oLeaveCommentTemplate;
 	}
 
 	private function renderComment(JournalComment $oComment, Template $oCommentTemplate, $iCounter) {
@@ -176,39 +187,71 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private function displayEntry($oTemplate) {
 		if($this->oEntry === null) {
-			LinkUtil::redirect($this->getLink('index'));
+			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray(), 'FrontendManager'));
 		}
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainerName);
 	}
 
 	//For adding comments
-	private function displayComment($oTemplate) {
-		$oEntry = JournalEntryPeer::retrieveByPK($_REQUEST['comment']);
-		if(!isset($_POST['comment_name']) || $oEntry === null) {
-			LinkUtil::redirect($this->getLink('index'));
+	private function displayAddComment($oTemplate) {
+		if($this->oEntry === null) {
+			return $this->displayEntry($oTemplate);
 		}
-		$oFlash = Flash::getFlash();
-		$oComment = new JournalComment();
-		$oComment->setUsername($_POST['comment_name']);
-		$oFlash->checkForValue('comment_name', 'name');
-		$oComment->setEmail($_POST['comment_email']);
-		$oFlash->checkForEmail('comment_email', 'email');
-		if(!FormFrontendModule::validateRecaptchaInput()) {
-			$oFlash->addMessage('captcha');
+		if($this->sCommentMode === 'off') {
+			LinkUtil::redirect(LinkUtil::link($oEntry->getLink()));
 		}
-		$oPurifierConfig = HTMLPurifier_Config::createDefault();
-		$oPurifierConfig->set('Cache', 'SerializerPath', MAIN_DIR.'/'.DIRNAME_GENERATED.'/'.DIRNAME_CACHES.'/purifier');
-		$oPurifier = new HTMLPurifier($oPurifierConfig);
-		$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
-		$oComment->setText($_POST['comment_text']);
-		$oFlash->checkForValue('comment_text', 'comment');
-		$oFlash->finishReporting();
-		if(Flash::noErrors()) {
-			$oEntry->addJournalComment($oComment);
-			$oComment->save();
-			LinkUtil::redirect($this->getLink('entry', $oEntry->getName())."#comments");
+		if(Manager::isPost()) {
+			$oFlash = Flash::getFlash();
+			$oComment = new JournalComment();
+			$oComment->setUsername($_POST['comment_name']);
+			$oFlash->checkForValue('comment_name', 'name');
+			$oComment->setEmail($_POST['comment_email']);
+			$oFlash->checkForEmail('comment_email', 'email');
+			if(!FormFrontendModule::validateRecaptchaInput()) {
+				$oFlash->addMessage('captcha');
+			}
+			$oPurifierConfig = HTMLPurifier_Config::createDefault();
+			$oPurifierConfig->set('Cache.SerializerPath', MAIN_DIR.'/'.DIRNAME_GENERATED.'/'.DIRNAME_CACHES.'/purifier');
+			$oPurifierConfig->set('HTML.Doctype', 'XHTML 1.0 Transitional');
+			$oPurifierConfig->set('AutoFormat.AutoParagraph', true);
+			$oPurifier = new HTMLPurifier($oPurifierConfig);
+			$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
+			$oComment->setText($_POST['comment_text']);
+			$oFlash->checkForValue('comment_text', 'comment');
+			$oFlash->finishReporting();
+			if(isset($_POST['preview'])) {
+				$oComment->setCreatedAt(date('c'));
+				$oTemplate->replaceIdentifier('container', $this->renderComments(array($oComment), $this->oEntry), $this->sContainerName);
+				return;
+			}
+			if(Flash::noErrors()) {
+				$this->oEntry->addJournalComment($oComment);
+				if($this->sCommentMode === 'moderated') {
+					$oComment->setIsPublished(false);
+				}
+				$oComment->save();
+				switch($this->sCommentMode) {
+					case "moderated":
+					case "notified":
+						$oEmailContent = $this->constructTemplate('e_mail_comment_'.$this->sCommentMode);
+						$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
+						$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
+						$oEmailContent->replaceIdentifier('comment', $oComment->getText());
+						$oEmailContent->replaceIdentifier('entry', $this->oEntry->getTitle());
+						$oEmailContent->replaceIdentifier('journal', $this->oEntry->getJournal()->getName());
+						$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($this->oEntry->getLink())));
+						$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array($oComment->getActivationHash(), 'deactivate'))));
+						$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array($oComment->getActivationHash(), 'activate'))));
+						$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array($oComment->getActivationHash(), 'delete'))));
+						$oEmail = new EMail("New comment on your journal entry ".$this->oEntry->getTitle(), $oEmailContent);
+						$oSender = $this->oEntry->getUserRelatedByCreatedBy();
+						$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
+						$oEmail->send();
+				}
+				LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink())."#comments");
+			}
 		}
-		$this->displayEntry($oTemplate);
+		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainerName);
 	}
 	
 	//Override from parent

@@ -19,16 +19,22 @@ class Journal extends BaseJournal {
 		return PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('journal_id')->filterByValue($this->getId())->endUse()->findOne();
 	}
 
-	public function possibleYears() {
-		$oQuery = JournalEntryQuery::create()->distinct();
+	public function possibleYears($bExcludeDraft = true) {
+		$oQuery = JournalEntryQuery::create()->distinct()->filterByJournal($this);
+		if($bExcludeDraft) {
+			$oQuery->excludeDraft();
+		}
 		$oQuery->clearSelectColumns()->addSelectColumn('YEAR('.JournalEntryPeer::CREATED_AT.')');
 		$oQuery->addAsColumn('YEAR', 'YEAR('.JournalEntryPeer::CREATED_AT.')');
 		$oQuery->orderBy('YEAR', Criteria::ASC);
 		return JournalEntryPeer::doSelectStmt($oQuery)->fetchAll(PDO::FETCH_COLUMN);
 	}
 
-	public function possibleMonths($iYear) {
-		$oQuery = JournalEntryQuery::create()->distinct();
+	public function possibleMonths($iYear, $bExcludeDraft = true) {
+		$oQuery = JournalEntryQuery::create()->distinct()->filterByJournal($this);
+		if($bExcludeDraft) {
+			$oQuery->excludeDraft();
+		}
 		$oQuery->clearSelectColumns()->addSelectColumn('MONTH('.JournalEntryPeer::CREATED_AT.')');
 		$oQuery->addAsColumn('MONTH', 'MONTH('.JournalEntryPeer::CREATED_AT.')');
 		$oYearInterval = new DateInterval('P1Y');
@@ -38,8 +44,11 @@ class Journal extends BaseJournal {
 		return JournalEntryPeer::doSelectStmt($oQuery)->fetchAll(PDO::FETCH_COLUMN);
 	}
 
-	public function possibleDays($iYear, $iMonth) {
-		$oQuery = JournalEntryQuery::create()->distinct();
+	public function possibleDays($iYear, $iMonth, $bExcludeDraft = true) {
+		$oQuery = JournalEntryQuery::create()->distinct()->filterByJournal($this);
+		if($bExcludeDraft) {
+			$oQuery->excludeDraft();
+		}
 		$oQuery->clearSelectColumns()->addSelectColumn('DAY('.JournalEntryPeer::CREATED_AT.')');
 		$oQuery->addAsColumn('DAY', 'DAY('.JournalEntryPeer::CREATED_AT.')');
 		$oMonthInterval = new DateInterval('P1M');
