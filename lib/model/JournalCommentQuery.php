@@ -16,4 +16,8 @@ class JournalCommentQuery extends BaseJournalCommentQuery {
 	public function excludeUnverified() {
 		return $this->filterByIsPublished(true);
 	}
+
+	public function findHash($sHash) {
+		return $this->filterByActivationHash($sHash)->findOne();
+	}
 } // JournalCommentQuery
