@@ -240,9 +240,9 @@ class JournalPageTypeModule extends PageTypeModule {
 						$oEmailContent->replaceIdentifier('entry', $this->oEntry->getTitle());
 						$oEmailContent->replaceIdentifier('journal', $this->oEntry->getJournal()->getName());
 						$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($this->oEntry->getLink())));
-						$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'))));
-						$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'))));
-						$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'))));
+						$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager')));
+						$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager')));
+						$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager')));
 						$oEmail = new EMail("New comment on your journal entry ".$this->oEntry->getTitle(), $oEmailContent);
 						$oSender = $this->oEntry->getUserRelatedByCreatedBy();
 						$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
