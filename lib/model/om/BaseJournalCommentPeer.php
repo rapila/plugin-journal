@@ -1711,10 +1711,10 @@ abstract class BaseJournalCommentPeer {
 		if($oUser->getIsAdmin()) {
 			return true;
 		}
-		return $oUser->hasRole("journal_comments");
+		return $oUser->hasRole("journal");
 	}
 	public static function mayOperateOnOwn($oUser, $mObject, $sOperation) {
-		return $oUser->hasRole("journal_comments-own");
+		return true;
 	}
 
 } // BaseJournalCommentPeer

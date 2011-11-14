@@ -1349,10 +1349,10 @@ abstract class BaseJournalPeer {
 		if($oUser->getIsAdmin()) {
 			return true;
 		}
-		return $oUser->hasRole("journals");
+		return $oUser->hasRole("journal");
 	}
 	public static function mayOperateOnOwn($oUser, $mObject, $sOperation) {
-		return $oUser->hasRole("journals-own");
+		return $oUser->hasRole("journal-own");
 	}
 
 } // BaseJournalPeer

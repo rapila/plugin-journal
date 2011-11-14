@@ -1781,10 +1781,10 @@ abstract class BaseJournalEntryPeer {
 		if($oUser->getIsAdmin()) {
 			return true;
 		}
-		return $oUser->hasRole("journal_entries");
+		return $oUser->hasRole("journal");
 	}
 	public static function mayOperateOnOwn($oUser, $mObject, $sOperation) {
-		return $oUser->hasRole("journal_entries-own");
+		return $oUser->hasRole("journal-own");
 	}
 
 } // BaseJournalEntryPeer
