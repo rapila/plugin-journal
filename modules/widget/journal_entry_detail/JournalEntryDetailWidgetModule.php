@@ -111,7 +111,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oEntry->setIsPublished($aData['is_published']);
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
-		$oEntry->setText($oRichtextUtil->parseInputFromMce($aData['text']));
+		$oEntry->setText($oRichtextUtil->parseInputFromEditor($aData['text']));
 		return $oEntry->save();
 	}
 }
