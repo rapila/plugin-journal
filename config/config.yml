@@ -9,4 +9,7 @@ journal:
       -
         - ["Subscript", "Superscript", "-", "Maximize"]
         - ["Source"]
+        
+journal:
+  externally_managed_images_category: 1
 

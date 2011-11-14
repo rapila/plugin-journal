@@ -11,6 +11,9 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$this->oRichTextWidget->setTemplate($oPage->getTemplateNameUsed());
 		}
 		$this->setSetting('richtext_session', $this->oRichTextWidget->getSessionKey());
+		
+		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
+		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
 	}
 
 	public function setJournalId($iJournalId) {
@@ -45,6 +48,59 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		return $aResult;
 	}
 	
+	public function addJournalEntryImage($iDocumentId) {
+	  if($this->iJournalEntryId === null) {
+	    $this->aUnsavedDocuments[] = $iDocumentId;
+	    return;
+	  }
+	  if(JournalEntryImagePeer::retrieveByPK($this->iJournalEntryId, $iDocumentId)) {
+	    return;
+	  }
+	  $oJournalEntryImage = new JournalEntryImage();
+	  $oJournalEntryImage->setJournalEntryId($this->iJournalEntryId);
+	  $oJournalEntryImage->setDocumentId($iDocumentId);
+	  return $oJournalEntryImage->save();
+	}
+	
+	public function allDocuments($iThumbnailSize = 180) {
+	  $aDocuments = JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->joinDocument()->orderBySort()->find();
+	  $aResult = array();
+	  foreach($aDocuments as $oEntryDocument) {
+	    $aResult[] = $this->rowData($oEntryDocument->getDocument(), $iThumbnailSize);
+	  }
+	  return $aResult;
+	}
+	
+	public function rowData($oDocument, $iThumbnailSize = 180) {
+		return array( 'Name' => $oDocument->getName(), 
+								  'Id' => $oDocument->getId(), 
+								  'Preview' => $oDocument->getPreview($iThumbnailSize)
+								);
+	}
+	
+	public function getSingleDocument($iDocumentId, $iThumbnailSize) {
+		$oDokument = DocumentPeer::retrieveByPK($iDocumentId);
+		if($oDokument) {
+			return $this->rowData($oDokument, $iThumbnailSize);
+		}
+		return null;
+	}
+	
+	public function deleteDocument($iDocumentId) {
+		$oDocument = DocumentPeer::retrieveByPK($iDocumentId);
+		if($oDocument && JournalEntryImageQuery::create()->filterByDocument($oDocument)->filterByJournalEntryId($this->iJournalEntryId)->findOne()) {
+			return $oDocument->delete();
+		}
+	}
+	
+	public function reorderDocuments($aDocumentIds) {
+		foreach($aDocumentIds as $iCount => $iDocumentId) {
+			$oDocument = JournalEntryImagePeer::retrieveByPK($this->iJournalEntryId, $iDocumentId);
+			$oDocument->setSort($iCount+1);
+			$oDocument->save();
+		}
+	}
+
 	public function saveData($aData) {
 		$oEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if($oEntry === null) {
