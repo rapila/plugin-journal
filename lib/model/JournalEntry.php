@@ -44,7 +44,11 @@ class JournalEntry extends BaseJournalEntry {
 	}
 	
 	public function getCountComments() {
-		return $this->countJournalComments();
+		$iCount = $this->countJournalComments();
+		if($iCount > 0) {
+			return $iCount;
+		}
+		return '-';
 	}
 	
 	public function getLatestCommentDate() {
