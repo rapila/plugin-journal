@@ -21,6 +21,7 @@
 			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
 			this.template_list = this.container.find('select[name="template_set"]');
 			this.container_list = this.container.find('select[name="container"]');
+			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.comment_mode_list = this.container.find('select[name="comment_mode"]');
@@ -41,6 +42,7 @@
 
 			this.page_type.methods.listContainers(function(result) {
 				_this.container_list.populate(result.options, result.current);
+				_this.auxiliary_container_list.populate(result.options, result.current_auxiliary);
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentMode(function(result) {
