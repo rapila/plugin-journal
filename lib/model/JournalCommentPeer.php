@@ -19,5 +19,11 @@
  * @package model
  */	
 class JournalCommentPeer extends BaseJournalCommentPeer {
+	public static function mayOperateOn($oUser, $mObject, $sOperation) {
+		if(parent::mayOperateOn($oUser, $mObject, $sOperation)) {
+			return true;
+		}
+		return $mObject->isNew();
+	}
 
 } // JournalCommentPeer

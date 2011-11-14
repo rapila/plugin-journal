@@ -2,6 +2,9 @@
 	<column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
 	<column name="name" type="varchar" size="200" required="true" />
 	<column name="description" type="varchar" size="255" />
+	<behavior name="denyable">
+		<parameter name="role_key" value="journal" />
+	</behavior>
 </table>
 
 <table name="journal_entries" phpName="JournalEntry">
@@ -15,6 +18,9 @@
 	<column name="text" type="longvarchar" required="true" />
 	<column name="is_published" type="boolean" size="1" default="0" />
 	<behavior name="taggable" />
+	<behavior name="denyable">
+		<parameter name="role_key" value="journal" />
+	</behavior>
 </table>
 
 <table name="journal_comments" phpName="JournalComment">
@@ -28,6 +34,10 @@
 	</foreign-key>
 	<column name="is_published" type="boolean" size="1" default="1" />
 	<column name="activation_hash" type="varchar" size="50" />
+	<behavior name="denyable">
+		<parameter name="role_key" value="journal" />
+		<parameter name="owner_allowed" value="true" />
+	</behavior>
 </table>
 
 <table name="journal_entry_images" phpName="JournalEntryImage">
@@ -41,4 +51,7 @@
 	</foreign-key>
 	<column name="sort" type="integer" />
 	<column name="legend" type="varchar" size="180" required="true"/>
+	<behavior name="denyable">
+		<parameter name="role_key" value="journal" />
+	</behavior>
 </table>

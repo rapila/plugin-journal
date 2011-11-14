@@ -709,7 +709,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 			$ret = $this->preDelete($con);
 			// denyable behavior
 			if(!(JournalCommentPeer::isIgnoringRights() || $this->mayOperate("delete"))) {
-				throw new PropelException(new NotPermittedException("delete.by_role", array("role_key" => "journal_comments")));
+				throw new PropelException(new NotPermittedException("delete.by_role", array("role_key" => "journal")));
 			}
 
 			if ($ret) {
@@ -757,7 +757,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				$ret = $ret && $this->preInsert($con);
 				// denyable behavior
 				if(!(JournalCommentPeer::isIgnoringRights() || $this->mayOperate("insert"))) {
-					throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journal_comments")));
+					throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journal")));
 				}
 
 				// extended_timestampable behavior
@@ -782,7 +782,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				$ret = $ret && $this->preUpdate($con);
 				// denyable behavior
 				if(!(JournalCommentPeer::isIgnoringRights() || $this->mayOperate("update"))) {
-					throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journal_comments")));
+					throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journal")));
 				}
 
 				// extended_timestampable behavior

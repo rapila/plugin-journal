@@ -2074,10 +2074,10 @@ abstract class BaseJournalEntryImagePeer {
 		if($oUser->getIsAdmin()) {
 			return true;
 		}
-		return $oUser->hasRole("journal_entry_images");
+		return $oUser->hasRole("journal");
 	}
 	public static function mayOperateOnOwn($oUser, $mObject, $sOperation) {
-		return $oUser->hasRole("journal_entry_images-own");
+		return $oUser->hasRole("journal-own");
 	}
 
 } // BaseJournalEntryImagePeer
