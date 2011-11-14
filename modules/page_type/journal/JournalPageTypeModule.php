@@ -8,7 +8,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $iJournalId = null;
 	private $sTemplateSet;
 	private $sContainerName;
-	private $sRecentPostContainerName;
+	private $sAuxiliaryContainer;
 	private $bDatesHidden;
 
 	/**
@@ -31,7 +31,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
-		$this->sRecentPostContainerName = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
+		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
 		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
 	}
 	
@@ -173,8 +173,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	private function fillAuxilliaryContainers(Template $oTemplate) {
-		if($oTemplate->hasIdentifier('container', $this->sRecentPostContainerName) && $this->sRecentPostContainerName !== null) {
-			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, $this->sRecentPostContainerName);
+		if($this->sAuxiliaryContainer && $oTemplate->hasIdentifier('container', $this->sAuxiliaryContainer)) {
+			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, $this->sAuxiliaryContainer);
 		}
 	}
 	
@@ -320,7 +320,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		foreach($aContainers as $oContainer) {
 			$aResult[] = $oContainer->getValue();
 		}
-		return array('options' => $aResult, 'current' => $this->sContainerName);
+		return array('options' => $aResult, 'current' => $this->sContainerName, 'current_auxiliary' => $this->sAuxiliaryContainer);
 	}
 
 	public function journalProperties() {
@@ -379,6 +379,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
+		$this->oPage->updatePageProperty('recent_blogpost_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
 		$this->oPage->updatePageProperty('blog_dates_hidden', isset($aData['dates_hidden']) ? 'true' : '');
 		$this->updateFlagsFromProperties();
