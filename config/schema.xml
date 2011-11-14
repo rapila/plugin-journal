@@ -26,6 +26,8 @@
 	<foreign-key foreignTable="journal_entries" onDelete="cascade">
 		<reference local="journal_entry_id" foreign="id" />
 	</foreign-key>
+	<column name="is_published" type="boolean" size="1" default="1" />
+	<column name="activation_hash" type="varchar" size="50" />
 </table>
 
 <table name="journal_entry_images" phpName="JournalEntryImage">

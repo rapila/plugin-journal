@@ -62,9 +62,12 @@ class JournalEntry extends BaseJournalEntry {
 		return StringUtil::truncate($this->getTitle(), $iTruncate);
 	}
 
-	public function getLink($oPage = null) {
+	public function getLink($oPage = null, $sSubpage = null) {
 		if($oPage === null) {
 			$oPage = $this->getJournal()->getJournalPage();
+		}
+		if($sSubpage) {
+			return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug(), $sSubpage);
 		}
 		return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug());
 	}

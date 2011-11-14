@@ -55,6 +55,19 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	protected $journal_entry_id;
 
 	/**
+	 * The value for the is_published field.
+	 * Note: this column has a database default value of: true
+	 * @var        boolean
+	 */
+	protected $is_published;
+
+	/**
+	 * The value for the activation_hash field.
+	 * @var        string
+	 */
+	protected $activation_hash;
+
+	/**
 	 * The value for the created_at field.
 	 * @var        string
 	 */
@@ -108,6 +121,27 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	protected $alreadyInValidation = false;
 
 	/**
+	 * Applies default values to this object.
+	 * This method should be called from the object's constructor (or
+	 * equivalent initialization method).
+	 * @see        __construct()
+	 */
+	public function applyDefaultValues()
+	{
+		$this->is_published = true;
+	}
+
+	/**
+	 * Initializes internal state of BaseJournalComment object.
+	 * @see        applyDefaults()
+	 */
+	public function __construct()
+	{
+		parent::__construct();
+		$this->applyDefaultValues();
+	}
+
+	/**
 	 * Get the [id] column value.
 	 * 
 	 * @return     int
@@ -155,6 +189,26 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	public function getJournalEntryId()
 	{
 		return $this->journal_entry_id;
+	}
+
+	/**
+	 * Get the [is_published] column value.
+	 * 
+	 * @return     boolean
+	 */
+	public function getIsPublished()
+	{
+		return $this->is_published;
+	}
+
+	/**
+	 * Get the [activation_hash] column value.
+	 * 
+	 * @return     string
+	 */
+	public function getActivationHash()
+	{
+		return $this->activation_hash;
 	}
 
 	/**
@@ -358,6 +412,54 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	} // setJournalEntryId()
 
 	/**
+	 * Sets the value of the [is_published] column.
+	 * Non-boolean arguments are converted using the following rules:
+	 *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+	 *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+	 * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+	 * 
+	 * @param      boolean|integer|string $v The new value
+	 * @return     JournalComment The current object (for fluent API support)
+	 */
+	public function setIsPublished($v)
+	{
+		if ($v !== null) {
+			if (is_string($v)) {
+				$v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+			} else {
+				$v = (boolean) $v;
+			}
+		}
+
+		if ($this->is_published !== $v) {
+			$this->is_published = $v;
+			$this->modifiedColumns[] = JournalCommentPeer::IS_PUBLISHED;
+		}
+
+		return $this;
+	} // setIsPublished()
+
+	/**
+	 * Set the value of [activation_hash] column.
+	 * 
+	 * @param      string $v new value
+	 * @return     JournalComment The current object (for fluent API support)
+	 */
+	public function setActivationHash($v)
+	{
+		if ($v !== null) {
+			$v = (string) $v;
+		}
+
+		if ($this->activation_hash !== $v) {
+			$this->activation_hash = $v;
+			$this->modifiedColumns[] = JournalCommentPeer::ACTIVATION_HASH;
+		}
+
+		return $this;
+	} // setActivationHash()
+
+	/**
 	 * Sets the value of [created_at] column to a normalized version of the date/time value specified.
 	 * 
 	 * @param      mixed $v string, integer (timestamp), or DateTime value.
@@ -459,6 +561,10 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	 */
 	public function hasOnlyDefaultValues()
 	{
+			if ($this->is_published !== true) {
+				return false;
+			}
+
 		// otherwise, everything was equal, so return TRUE
 		return true;
 	} // hasOnlyDefaultValues()
@@ -486,10 +592,12 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 			$this->email = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
 			$this->text = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
 			$this->journal_entry_id = ($row[$startcol + 4] !== null) ? (int) $row[$startcol + 4] : null;
-			$this->created_at = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
-			$this->updated_at = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
-			$this->created_by = ($row[$startcol + 7] !== null) ? (int) $row[$startcol + 7] : null;
-			$this->updated_by = ($row[$startcol + 8] !== null) ? (int) $row[$startcol + 8] : null;
+			$this->is_published = ($row[$startcol + 5] !== null) ? (boolean) $row[$startcol + 5] : null;
+			$this->activation_hash = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
+			$this->created_at = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
+			$this->updated_at = ($row[$startcol + 8] !== null) ? (string) $row[$startcol + 8] : null;
+			$this->created_by = ($row[$startcol + 9] !== null) ? (int) $row[$startcol + 9] : null;
+			$this->updated_by = ($row[$startcol + 10] !== null) ? (int) $row[$startcol + 10] : null;
 			$this->resetModified();
 
 			$this->setNew(false);
@@ -498,7 +606,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 9; // 9 = JournalCommentPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 11; // 11 = JournalCommentPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating JournalComment object", $e);
@@ -919,15 +1027,21 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				return $this->getJournalEntryId();
 				break;
 			case 5:
-				return $this->getCreatedAt();
+				return $this->getIsPublished();
 				break;
 			case 6:
-				return $this->getUpdatedAt();
+				return $this->getActivationHash();
 				break;
 			case 7:
-				return $this->getCreatedBy();
+				return $this->getCreatedAt();
 				break;
 			case 8:
+				return $this->getUpdatedAt();
+				break;
+			case 9:
+				return $this->getCreatedBy();
+				break;
+			case 10:
 				return $this->getUpdatedBy();
 				break;
 			default:
@@ -964,10 +1078,12 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 			$keys[2] => $this->getEmail(),
 			$keys[3] => $this->getText(),
 			$keys[4] => $this->getJournalEntryId(),
-			$keys[5] => $this->getCreatedAt(),
-			$keys[6] => $this->getUpdatedAt(),
-			$keys[7] => $this->getCreatedBy(),
-			$keys[8] => $this->getUpdatedBy(),
+			$keys[5] => $this->getIsPublished(),
+			$keys[6] => $this->getActivationHash(),
+			$keys[7] => $this->getCreatedAt(),
+			$keys[8] => $this->getUpdatedAt(),
+			$keys[9] => $this->getCreatedBy(),
+			$keys[10] => $this->getUpdatedBy(),
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aJournalEntry) {
@@ -1026,15 +1142,21 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				$this->setJournalEntryId($value);
 				break;
 			case 5:
-				$this->setCreatedAt($value);
+				$this->setIsPublished($value);
 				break;
 			case 6:
-				$this->setUpdatedAt($value);
+				$this->setActivationHash($value);
 				break;
 			case 7:
-				$this->setCreatedBy($value);
+				$this->setCreatedAt($value);
 				break;
 			case 8:
+				$this->setUpdatedAt($value);
+				break;
+			case 9:
+				$this->setCreatedBy($value);
+				break;
+			case 10:
 				$this->setUpdatedBy($value);
 				break;
 		} // switch()
@@ -1066,10 +1188,12 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		if (array_key_exists($keys[2], $arr)) $this->setEmail($arr[$keys[2]]);
 		if (array_key_exists($keys[3], $arr)) $this->setText($arr[$keys[3]]);
 		if (array_key_exists($keys[4], $arr)) $this->setJournalEntryId($arr[$keys[4]]);
-		if (array_key_exists($keys[5], $arr)) $this->setCreatedAt($arr[$keys[5]]);
-		if (array_key_exists($keys[6], $arr)) $this->setUpdatedAt($arr[$keys[6]]);
-		if (array_key_exists($keys[7], $arr)) $this->setCreatedBy($arr[$keys[7]]);
-		if (array_key_exists($keys[8], $arr)) $this->setUpdatedBy($arr[$keys[8]]);
+		if (array_key_exists($keys[5], $arr)) $this->setIsPublished($arr[$keys[5]]);
+		if (array_key_exists($keys[6], $arr)) $this->setActivationHash($arr[$keys[6]]);
+		if (array_key_exists($keys[7], $arr)) $this->setCreatedAt($arr[$keys[7]]);
+		if (array_key_exists($keys[8], $arr)) $this->setUpdatedAt($arr[$keys[8]]);
+		if (array_key_exists($keys[9], $arr)) $this->setCreatedBy($arr[$keys[9]]);
+		if (array_key_exists($keys[10], $arr)) $this->setUpdatedBy($arr[$keys[10]]);
 	}
 
 	/**
@@ -1086,6 +1210,8 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		if ($this->isColumnModified(JournalCommentPeer::EMAIL)) $criteria->add(JournalCommentPeer::EMAIL, $this->email);
 		if ($this->isColumnModified(JournalCommentPeer::TEXT)) $criteria->add(JournalCommentPeer::TEXT, $this->text);
 		if ($this->isColumnModified(JournalCommentPeer::JOURNAL_ENTRY_ID)) $criteria->add(JournalCommentPeer::JOURNAL_ENTRY_ID, $this->journal_entry_id);
+		if ($this->isColumnModified(JournalCommentPeer::IS_PUBLISHED)) $criteria->add(JournalCommentPeer::IS_PUBLISHED, $this->is_published);
+		if ($this->isColumnModified(JournalCommentPeer::ACTIVATION_HASH)) $criteria->add(JournalCommentPeer::ACTIVATION_HASH, $this->activation_hash);
 		if ($this->isColumnModified(JournalCommentPeer::CREATED_AT)) $criteria->add(JournalCommentPeer::CREATED_AT, $this->created_at);
 		if ($this->isColumnModified(JournalCommentPeer::UPDATED_AT)) $criteria->add(JournalCommentPeer::UPDATED_AT, $this->updated_at);
 		if ($this->isColumnModified(JournalCommentPeer::CREATED_BY)) $criteria->add(JournalCommentPeer::CREATED_BY, $this->created_by);
@@ -1156,6 +1282,8 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		$copyObj->setEmail($this->getEmail());
 		$copyObj->setText($this->getText());
 		$copyObj->setJournalEntryId($this->getJournalEntryId());
+		$copyObj->setIsPublished($this->getIsPublished());
+		$copyObj->setActivationHash($this->getActivationHash());
 		$copyObj->setCreatedAt($this->getCreatedAt());
 		$copyObj->setUpdatedAt($this->getUpdatedAt());
 		$copyObj->setCreatedBy($this->getCreatedBy());
@@ -1361,6 +1489,8 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		$this->email = null;
 		$this->text = null;
 		$this->journal_entry_id = null;
+		$this->is_published = null;
+		$this->activation_hash = null;
 		$this->created_at = null;
 		$this->updated_at = null;
 		$this->created_by = null;
@@ -1368,6 +1498,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		$this->alreadyInSave = false;
 		$this->alreadyInValidation = false;
 		$this->clearAllReferences();
+		$this->applyDefaultValues();
 		$this->resetModified();
 		$this->setNew(true);
 		$this->setDeleted(false);

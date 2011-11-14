@@ -15,4 +15,10 @@ require_once 'model/om/BaseJournalComment.php';
  * @package model
  */	
 class JournalComment extends BaseJournalComment {
+	public function preSave(PropelPDO $oConnection = null) {
+		if($this->isNew()) {
+			$this->setActivationHash(Util::uuid());
+		}
+		return parent::preSave($oConnection);
+	}
 } // JournalComment

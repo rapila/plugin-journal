@@ -11,6 +11,8 @@
  * @method     JournalCommentQuery orderByEmail($order = Criteria::ASC) Order by the email column
  * @method     JournalCommentQuery orderByText($order = Criteria::ASC) Order by the text column
  * @method     JournalCommentQuery orderByJournalEntryId($order = Criteria::ASC) Order by the journal_entry_id column
+ * @method     JournalCommentQuery orderByIsPublished($order = Criteria::ASC) Order by the is_published column
+ * @method     JournalCommentQuery orderByActivationHash($order = Criteria::ASC) Order by the activation_hash column
  * @method     JournalCommentQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     JournalCommentQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  * @method     JournalCommentQuery orderByCreatedBy($order = Criteria::ASC) Order by the created_by column
@@ -21,6 +23,8 @@
  * @method     JournalCommentQuery groupByEmail() Group by the email column
  * @method     JournalCommentQuery groupByText() Group by the text column
  * @method     JournalCommentQuery groupByJournalEntryId() Group by the journal_entry_id column
+ * @method     JournalCommentQuery groupByIsPublished() Group by the is_published column
+ * @method     JournalCommentQuery groupByActivationHash() Group by the activation_hash column
  * @method     JournalCommentQuery groupByCreatedAt() Group by the created_at column
  * @method     JournalCommentQuery groupByUpdatedAt() Group by the updated_at column
  * @method     JournalCommentQuery groupByCreatedBy() Group by the created_by column
@@ -50,6 +54,8 @@
  * @method     JournalComment findOneByEmail(string $email) Return the first JournalComment filtered by the email column
  * @method     JournalComment findOneByText(string $text) Return the first JournalComment filtered by the text column
  * @method     JournalComment findOneByJournalEntryId(int $journal_entry_id) Return the first JournalComment filtered by the journal_entry_id column
+ * @method     JournalComment findOneByIsPublished(boolean $is_published) Return the first JournalComment filtered by the is_published column
+ * @method     JournalComment findOneByActivationHash(string $activation_hash) Return the first JournalComment filtered by the activation_hash column
  * @method     JournalComment findOneByCreatedAt(string $created_at) Return the first JournalComment filtered by the created_at column
  * @method     JournalComment findOneByUpdatedAt(string $updated_at) Return the first JournalComment filtered by the updated_at column
  * @method     JournalComment findOneByCreatedBy(int $created_by) Return the first JournalComment filtered by the created_by column
@@ -60,6 +66,8 @@
  * @method     array findByEmail(string $email) Return JournalComment objects filtered by the email column
  * @method     array findByText(string $text) Return JournalComment objects filtered by the text column
  * @method     array findByJournalEntryId(int $journal_entry_id) Return JournalComment objects filtered by the journal_entry_id column
+ * @method     array findByIsPublished(boolean $is_published) Return JournalComment objects filtered by the is_published column
+ * @method     array findByActivationHash(string $activation_hash) Return JournalComment objects filtered by the activation_hash column
  * @method     array findByCreatedAt(string $created_at) Return JournalComment objects filtered by the created_at column
  * @method     array findByUpdatedAt(string $updated_at) Return JournalComment objects filtered by the updated_at column
  * @method     array findByCreatedBy(int $created_by) Return JournalComment objects filtered by the created_by column
@@ -323,6 +331,60 @@ abstract class BaseJournalCommentQuery extends ModelCriteria
             }
         }
         return $this->addUsingAlias(JournalCommentPeer::JOURNAL_ENTRY_ID, $journalEntryId, $comparison);
+    }
+
+    /**
+     * Filter the query on the is_published column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByIsPublished(true); // WHERE is_published = true
+     * $query->filterByIsPublished('yes'); // WHERE is_published = true
+     * </code>
+     *
+     * @param     boolean|string $isPublished The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return    JournalCommentQuery The current query, for fluid interface
+     */
+    public function filterByIsPublished($isPublished = null, $comparison = null)
+    {
+        if (is_string($isPublished)) {
+            $is_published = in_array(strtolower($isPublished), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+        return $this->addUsingAlias(JournalCommentPeer::IS_PUBLISHED, $isPublished, $comparison);
+    }
+
+    /**
+     * Filter the query on the activation_hash column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByActivationHash('fooValue');   // WHERE activation_hash = 'fooValue'
+     * $query->filterByActivationHash('%fooValue%'); // WHERE activation_hash LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $activationHash The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return    JournalCommentQuery The current query, for fluid interface
+     */
+    public function filterByActivationHash($activationHash = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($activationHash)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $activationHash)) {
+                $activationHash = str_replace('*', '%', $activationHash);
+                $comparison = Criteria::LIKE;
+            }
+        }
+        return $this->addUsingAlias(JournalCommentPeer::ACTIVATION_HASH, $activationHash, $comparison);
     }
 
     /**
