@@ -9,6 +9,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sTemplateSet;
 	private $sContainerName;
 	private $sRecentPostContainerName;
+	private $bDatesHidden;
 
 	/**
 	 * @var JournalEntry the entry to be viewed
@@ -31,6 +32,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sRecentPostContainerName = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
+		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
 	}
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
@@ -292,6 +294,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function currentJournal() {
 		return $this->iJournalId;
 	}
+
+	public function datesHidden() {
+		return $this->bDatesHidden;
+	}
 	
 	public function listJournals() {
 		$aJournals = array();
@@ -375,6 +381,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
+		$this->oPage->updatePageProperty('blog_dates_hidden', isset($aData['dates_hidden']) ? 'true' : '');
 		$this->updateFlagsFromProperties();
 	}
 }

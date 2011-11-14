@@ -35,6 +35,8 @@ class JournalFilterModule extends FilterModule {
 		if($oNavigationItem instanceof PageNavigationItem && $oNavigationItem->getMe()->isOfType('journal')) {
 			//Append virtual navigation items for year, overview and feed
 			$oJournal = JournalQuery::create()->findPk($oNavigationItem->getMe()->getPagePropertyValue('journal_id', null));
+			$bDatesHidden = !!$oNavigationItem->getMe()->getPagePropertyValue('blog_dates_hidden', null);
+			$sDateNavigationItemClass = $bDatesHidden ? 'HiddenVirtualFolderNavigationItem' : 'FolderVirtualNavigationItem';
 			$iJournalId = $oJournal->getId();
 			//feed
 			$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $iJournalId);
@@ -44,23 +46,24 @@ class JournalFilterModule extends FilterModule {
 			$oNavigationItem->addChild($oOverviewItem);
 			//year
 			foreach($oJournal->possibleYears() as $iYear) {
-				$oItem = new FolderVirtualNavigationItem('journal-year', $iYear, StringPeer::getString('wns.journal.year', null, $iYear, array('year' => $iYear)), null, array($iJournalId, $iYear));
+				$oItem = new $sDateNavigationItemClass('journal-year', $iYear, StringPeer::getString('wns.journal.year', null, $iYear, array('year' => $iYear)), null, array($iJournalId, $iYear));
 				$oNavigationItem->addChild($oItem);
 			}
 		} else if($oNavigationItem instanceof VirtualNavigationItem) {
 			$aData = $oNavigationItem->getData();
+			$sDateNavigationItemClass = get_class($oNavigationItem);
 			if($oNavigationItem->getType() === 'journal-year') {
 				list($iJournalId, $iYear) = $aData;
 				$oJournal = JournalQuery::create()->findPk($iJournalId);
 				foreach($oJournal->possibleMonths($iYear) as $iMonth) {
-					$oItem = new FolderVirtualNavigationItem('journal-month', $iMonth, StringPeer::getString('wns.journal.month', null, $iMonth, array('year' => $iYear, 'month' => $iMonth)), null, array($iJournalId, $iYear, $iMonth));
+					$oItem = new $sDateNavigationItemClass('journal-month', $iMonth, StringPeer::getString('wns.journal.month', null, $iMonth, array('year' => $iYear, 'month' => $iMonth)), null, array($iJournalId, $iYear, $iMonth));
 					$oNavigationItem->addChild($oItem);
 				}
 			} else if($oNavigationItem->getType() === 'journal-month') {
 				list($iJournalId, $iYear, $iMonth) = $aData;
 				$oJournal = JournalQuery::create()->findPk($iJournalId);
 				foreach($oJournal->possibleDays($iYear, $iMonth) as $iDay) {
-					$oItem = new FolderVirtualNavigationItem('journal-day', $iDay, StringPeer::getString('wns.journal.day', null, $iDay, array('year' => $iYear, 'month' => $iMonth, 'day' => $iDay)), null, array($iJournalId, $iYear, $iMonth, $iDay));
+					$oItem = new $sDateNavigationItemClass('journal-day', $iDay, StringPeer::getString('wns.journal.day', null, $iDay, array('year' => $iYear, 'month' => $iMonth, 'day' => $iDay)), null, array($iJournalId, $iYear, $iMonth, $iDay));
 					$oNavigationItem->addChild($oItem);
 				}
 			} else if($oNavigationItem->getType() === 'journal-day') {
