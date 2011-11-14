@@ -172,10 +172,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oCommentTemplate;
 	}
 
-
 	private function fillAuxilliaryContainers(Template $oTemplate) {
 		if($oTemplate->hasIdentifier('container', $this->sRecentPostContainerName) && $this->sRecentPostContainerName !== null) {
-			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(null), $this->constructTemplate('list_entry'), $oTemplate, null, $this->sRecentPostContainerName);
+			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, $this->sRecentPostContainerName);
 		}
 	}
 	

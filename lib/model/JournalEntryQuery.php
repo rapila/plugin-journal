@@ -6,9 +6,11 @@
  */
 class JournalEntryQuery extends BaseJournalEntryQuery {
 
-	public function mostRecent($iNum) {
-    $this->addDescendingOrderByColumn(JournalEntryPeer::CREATED_AT);
-		$this->setLimit($iNum);
+	public function mostRecent($iLimit = null) {
+		$this->addDescendingOrderByColumn(JournalEntryPeer::CREATED_AT);
+		if($iLimit) {
+			$this->setLimit($iLimit);
+		}
 		return $this;
 	}
 	

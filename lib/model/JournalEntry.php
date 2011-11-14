@@ -67,9 +67,9 @@ class JournalEntry extends BaseJournalEntry {
 			$oPage = $this->getJournal()->getJournalPage();
 		}
 		if($sSubpage) {
-			return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug(), $sSubpage);
+			return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('n'), $this->getCreatedAt('j'), $this->getSlug(), $sSubpage);
 		}
-		return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('m'), $this->getCreatedAt('d'), $this->getSlug());
+		return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('n'), $this->getCreatedAt('j'), $this->getSlug());
 	}
 
 	public function setTitle($sTitle) {
