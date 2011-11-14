@@ -70,7 +70,7 @@ class JournalEntry extends BaseJournalEntry {
 	}
 
 	public function setTitle($sTitle) {
-		if($this->isNew()) {
+		if($this->isNew() || $this->getSlug() == null) {
 			$this->setSlug(StringUtil::truncate(trim(StringUtil::normalize($sTitle), '-_'), 50, '', 0));
 		}
 		return parent::setTitle($sTitle);
