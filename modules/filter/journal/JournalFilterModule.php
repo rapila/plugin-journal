@@ -40,6 +40,7 @@ class JournalFilterModule extends FilterModule {
 			$iJournalId = $oJournal->getId();
 			//feed
 			$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $iJournalId);
+			$oFeedItem->bIsIndexed = false; //Don’t index the feed item or else you’ll be exit()-ed before finishing the index
 			$oNavigationItem->addChild($oFeedItem);
 			//overview
 			$oOverviewItem = new VirtualNavigationItem('journal-list', 'list', StringPeer::getString('wns.journal.list'), null, $iJournalId);

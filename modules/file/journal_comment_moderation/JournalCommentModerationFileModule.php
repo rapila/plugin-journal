@@ -14,6 +14,7 @@ class JournalCommentModerationFileModule extends FileModule {
 		if($this->oJournalComment === null) {
 			throw new Exception('Hash invalid');
 		}
+		JournalCommentPeer::ignoreRights(true);
 		$sAction = StringUtil::camelize("comment_$this->sAction");
 		$this->$sAction();
 		echo 'done';
