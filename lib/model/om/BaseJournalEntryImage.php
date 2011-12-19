@@ -1440,7 +1440,12 @@ abstract class BaseJournalEntryImage extends BaseObject  implements Persistent
 		if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryImagePeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
 			return true;
 		}
-		return JournalEntryImagePeer::mayOperateOn($oUser, $this, $sOperation);
+		if(JournalEntryImagePeer::mayOperateOn($oUser, $this, $sOperation)) {
+			return true;
+		}
+		$bIsAllowed = false;
+		FilterModule::getFilters()->handleOperationIsDenied($sOperation, $this, $oUser, array(&$bIsAllowed));
+		return $bIsAllowed;
 	}
 	public function mayBeInserted($oUser = false) {
 		return $this->mayOperate("insert", $oUser);
