@@ -25,6 +25,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	protected static $peer;
 
 	/**
+	 * The flag var to prevent infinit loop in deep copy
+	 * @var       boolean
+	 */
+	protected $startCopy = false;
+
+	/**
 	 * The value for the id field.
 	 * @var        int
 	 */
@@ -123,6 +129,18 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $journalCommentsScheduledForDeletion = null;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $journalEntryImagesScheduledForDeletion = null;
 
 	/**
 	 * Applies default values to this object.
@@ -697,7 +715,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -788,7 +806,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -837,27 +855,24 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				$this->setUserRelatedByUpdatedBy($this->aUserRelatedByUpdatedBy);
 			}
 
-			if ($this->isNew() ) {
-				$this->modifiedColumns[] = JournalEntryPeer::ID;
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
+				if ($this->isNew()) {
+					$this->doInsert($con);
+				} else {
+					$this->doUpdate($con);
+				}
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
-				if ($this->isNew()) {
-					$criteria = $this->buildCriteria();
-					if ($criteria->keyContainsValue(JournalEntryPeer::ID) ) {
-						throw new PropelException('Cannot insert a value for auto-increment primary key ('.JournalEntryPeer::ID.')');
-					}
-
-					$pk = BasePeer::doInsert($criteria, $con);
-					$affectedRows += 1;
-					$this->setId($pk);  //[IMV] update autoincrement primary key
-					$this->setNew(false);
-				} else {
-					$affectedRows += JournalEntryPeer::doUpdate($this, $con);
+			if ($this->journalCommentsScheduledForDeletion !== null) {
+				if (!$this->journalCommentsScheduledForDeletion->isEmpty()) {
+					JournalCommentQuery::create()
+						->filterByPrimaryKeys($this->journalCommentsScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->journalCommentsScheduledForDeletion = null;
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collJournalComments !== null) {
@@ -865,6 +880,15 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
+				}
+			}
+
+			if ($this->journalEntryImagesScheduledForDeletion !== null) {
+				if (!$this->journalEntryImagesScheduledForDeletion->isEmpty()) {
+					JournalEntryImageQuery::create()
+						->filterByPrimaryKeys($this->journalEntryImagesScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->journalEntryImagesScheduledForDeletion = null;
 				}
 			}
 
@@ -881,6 +905,128 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+		$this->modifiedColumns[] = JournalEntryPeer::ID;
+		if (null !== $this->id) {
+			throw new PropelException('Cannot insert a value for auto-increment primary key (' . JournalEntryPeer::ID . ')');
+		}
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(JournalEntryPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::JOURNAL_ID)) {
+			$modifiedColumns[':p' . $index++]  = '`JOURNAL_ID`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::TITLE)) {
+			$modifiedColumns[':p' . $index++]  = '`TITLE`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::SLUG)) {
+			$modifiedColumns[':p' . $index++]  = '`SLUG`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::TEXT)) {
+			$modifiedColumns[':p' . $index++]  = '`TEXT`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::IS_PUBLISHED)) {
+			$modifiedColumns[':p' . $index++]  = '`IS_PUBLISHED`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::CREATED_AT)) {
+			$modifiedColumns[':p' . $index++]  = '`CREATED_AT`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::UPDATED_AT)) {
+			$modifiedColumns[':p' . $index++]  = '`UPDATED_AT`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::CREATED_BY)) {
+			$modifiedColumns[':p' . $index++]  = '`CREATED_BY`';
+		}
+		if ($this->isColumnModified(JournalEntryPeer::UPDATED_BY)) {
+			$modifiedColumns[':p' . $index++]  = '`UPDATED_BY`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `journal_entries` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`JOURNAL_ID`':
+						$stmt->bindValue($identifier, $this->journal_id, PDO::PARAM_INT);
+						break;
+					case '`TITLE`':
+						$stmt->bindValue($identifier, $this->title, PDO::PARAM_STR);
+						break;
+					case '`SLUG`':
+						$stmt->bindValue($identifier, $this->slug, PDO::PARAM_STR);
+						break;
+					case '`TEXT`':
+						$stmt->bindValue($identifier, $this->text, PDO::PARAM_STR);
+						break;
+					case '`IS_PUBLISHED`':
+						$stmt->bindValue($identifier, (int) $this->is_published, PDO::PARAM_INT);
+						break;
+					case '`CREATED_AT`':
+						$stmt->bindValue($identifier, $this->created_at, PDO::PARAM_STR);
+						break;
+					case '`UPDATED_AT`':
+						$stmt->bindValue($identifier, $this->updated_at, PDO::PARAM_STR);
+						break;
+					case '`CREATED_BY`':
+						$stmt->bindValue($identifier, $this->created_by, PDO::PARAM_INT);
+						break;
+					case '`UPDATED_BY`':
+						$stmt->bindValue($identifier, $this->updated_by, PDO::PARAM_INT);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		try {
+			$pk = $con->lastInsertId();
+		} catch (Exception $e) {
+			throw new PropelException('Unable to get autoincrement id.', $e);
+		}
+		$this->setId($pk);
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -1294,10 +1440,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		$copyObj->setCreatedBy($this->getCreatedBy());
 		$copyObj->setUpdatedBy($this->getUpdatedBy());
 
-		if ($deepCopy) {
+		if ($deepCopy && !$this->startCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
 			// the getter/setter methods for fkey referrer objects.
 			$copyObj->setNew(false);
+			// store object hash to prevent cycle
+			$this->startCopy = true;
 
 			foreach ($this->getJournalComments() as $relObj) {
 				if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
@@ -1311,6 +1459,8 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				}
 			}
 
+			//unflag object copy
+			$this->startCopy = false;
 		} // if ($deepCopy)
 
 		if ($makeNew) {
@@ -1592,6 +1742,30 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	}
 
 	/**
+	 * Sets a collection of JournalComment objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $journalComments A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setJournalComments(PropelCollection $journalComments, PropelPDO $con = null)
+	{
+		$this->journalCommentsScheduledForDeletion = $this->getJournalComments(new Criteria(), $con)->diff($journalComments);
+
+		foreach ($journalComments as $journalComment) {
+			// Fix issue with collection modified by reference
+			if ($journalComment->isNew()) {
+				$journalComment->setJournalEntry($this);
+			}
+			$this->addJournalComment($journalComment);
+		}
+
+		$this->collJournalComments = $journalComments;
+	}
+
+	/**
 	 * Returns the number of related JournalComment objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1632,11 +1806,19 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->initJournalComments();
 		}
 		if (!$this->collJournalComments->contains($l)) { // only add it if the **same** object is not already associated
-			$this->collJournalComments[]= $l;
-			$l->setJournalEntry($this);
+			$this->doAddJournalComment($l);
 		}
 
 		return $this;
+	}
+
+	/**
+	 * @param	JournalComment $journalComment The journalComment object to add.
+	 */
+	protected function doAddJournalComment($journalComment)
+	{
+		$this->collJournalComments[]= $journalComment;
+		$journalComment->setJournalEntry($this);
 	}
 
 
@@ -1758,6 +1940,30 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	}
 
 	/**
+	 * Sets a collection of JournalEntryImage objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $journalEntryImages A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setJournalEntryImages(PropelCollection $journalEntryImages, PropelPDO $con = null)
+	{
+		$this->journalEntryImagesScheduledForDeletion = $this->getJournalEntryImages(new Criteria(), $con)->diff($journalEntryImages);
+
+		foreach ($journalEntryImages as $journalEntryImage) {
+			// Fix issue with collection modified by reference
+			if ($journalEntryImage->isNew()) {
+				$journalEntryImage->setJournalEntry($this);
+			}
+			$this->addJournalEntryImage($journalEntryImage);
+		}
+
+		$this->collJournalEntryImages = $journalEntryImages;
+	}
+
+	/**
 	 * Returns the number of related JournalEntryImage objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1798,11 +2004,19 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->initJournalEntryImages();
 		}
 		if (!$this->collJournalEntryImages->contains($l)) { // only add it if the **same** object is not already associated
-			$this->collJournalEntryImages[]= $l;
-			$l->setJournalEntry($this);
+			$this->doAddJournalEntryImage($l);
 		}
 
 		return $this;
+	}
+
+	/**
+	 * @param	JournalEntryImage $journalEntryImage The journalEntryImage object to add.
+	 */
+	protected function doAddJournalEntryImage($journalEntryImage)
+	{
+		$this->collJournalEntryImages[]= $journalEntryImage;
+		$journalEntryImage->setJournalEntry($this);
 	}
 
 

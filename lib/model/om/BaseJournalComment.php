@@ -25,6 +25,12 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 	protected static $peer;
 
 	/**
+	 * The flag var to prevent infinit loop in deep copy
+	 * @var       boolean
+	 */
+	protected $startCopy = false;
+
+	/**
 	 * The value for the id field.
 	 * @var        int
 	 */
@@ -720,7 +726,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -811,7 +817,7 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -860,27 +866,15 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 				$this->setUserRelatedByUpdatedBy($this->aUserRelatedByUpdatedBy);
 			}
 
-			if ($this->isNew() ) {
-				$this->modifiedColumns[] = JournalCommentPeer::ID;
-			}
-
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
 				if ($this->isNew()) {
-					$criteria = $this->buildCriteria();
-					if ($criteria->keyContainsValue(JournalCommentPeer::ID) ) {
-						throw new PropelException('Cannot insert a value for auto-increment primary key ('.JournalCommentPeer::ID.')');
-					}
-
-					$pk = BasePeer::doInsert($criteria, $con);
-					$affectedRows += 1;
-					$this->setId($pk);  //[IMV] update autoincrement primary key
-					$this->setNew(false);
+					$this->doInsert($con);
 				} else {
-					$affectedRows += JournalCommentPeer::doUpdate($this, $con);
+					$this->doUpdate($con);
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
 			$this->alreadyInSave = false;
@@ -888,6 +882,134 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+		$this->modifiedColumns[] = JournalCommentPeer::ID;
+		if (null !== $this->id) {
+			throw new PropelException('Cannot insert a value for auto-increment primary key (' . JournalCommentPeer::ID . ')');
+		}
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(JournalCommentPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::USER)) {
+			$modifiedColumns[':p' . $index++]  = '`USER`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::EMAIL)) {
+			$modifiedColumns[':p' . $index++]  = '`EMAIL`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::TEXT)) {
+			$modifiedColumns[':p' . $index++]  = '`TEXT`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::JOURNAL_ENTRY_ID)) {
+			$modifiedColumns[':p' . $index++]  = '`JOURNAL_ENTRY_ID`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::IS_PUBLISHED)) {
+			$modifiedColumns[':p' . $index++]  = '`IS_PUBLISHED`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::ACTIVATION_HASH)) {
+			$modifiedColumns[':p' . $index++]  = '`ACTIVATION_HASH`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::CREATED_AT)) {
+			$modifiedColumns[':p' . $index++]  = '`CREATED_AT`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::UPDATED_AT)) {
+			$modifiedColumns[':p' . $index++]  = '`UPDATED_AT`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::CREATED_BY)) {
+			$modifiedColumns[':p' . $index++]  = '`CREATED_BY`';
+		}
+		if ($this->isColumnModified(JournalCommentPeer::UPDATED_BY)) {
+			$modifiedColumns[':p' . $index++]  = '`UPDATED_BY`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `journal_comments` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`USER`':
+						$stmt->bindValue($identifier, $this->user, PDO::PARAM_STR);
+						break;
+					case '`EMAIL`':
+						$stmt->bindValue($identifier, $this->email, PDO::PARAM_STR);
+						break;
+					case '`TEXT`':
+						$stmt->bindValue($identifier, $this->text, PDO::PARAM_STR);
+						break;
+					case '`JOURNAL_ENTRY_ID`':
+						$stmt->bindValue($identifier, $this->journal_entry_id, PDO::PARAM_INT);
+						break;
+					case '`IS_PUBLISHED`':
+						$stmt->bindValue($identifier, (int) $this->is_published, PDO::PARAM_INT);
+						break;
+					case '`ACTIVATION_HASH`':
+						$stmt->bindValue($identifier, $this->activation_hash, PDO::PARAM_STR);
+						break;
+					case '`CREATED_AT`':
+						$stmt->bindValue($identifier, $this->created_at, PDO::PARAM_STR);
+						break;
+					case '`UPDATED_AT`':
+						$stmt->bindValue($identifier, $this->updated_at, PDO::PARAM_STR);
+						break;
+					case '`CREATED_BY`':
+						$stmt->bindValue($identifier, $this->created_by, PDO::PARAM_INT);
+						break;
+					case '`UPDATED_BY`':
+						$stmt->bindValue($identifier, $this->updated_by, PDO::PARAM_INT);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		try {
+			$pk = $con->lastInsertId();
+		} catch (Exception $e) {
+			throw new PropelException('Unable to get autoincrement id.', $e);
+		}
+		$this->setId($pk);
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -1288,6 +1410,18 @@ abstract class BaseJournalComment extends BaseObject  implements Persistent
 		$copyObj->setUpdatedAt($this->getUpdatedAt());
 		$copyObj->setCreatedBy($this->getCreatedBy());
 		$copyObj->setUpdatedBy($this->getUpdatedBy());
+
+		if ($deepCopy && !$this->startCopy) {
+			// important: temporarily setNew(false) because this affects the behavior of
+			// the getter/setter methods for fkey referrer objects.
+			$copyObj->setNew(false);
+			// store object hash to prevent cycle
+			$this->startCopy = true;
+
+			//unflag object copy
+			$this->startCopy = false;
+		} // if ($deepCopy)
+
 		if ($makeNew) {
 			$copyObj->setNew(true);
 			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
