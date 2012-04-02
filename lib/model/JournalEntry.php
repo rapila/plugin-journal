@@ -51,10 +51,6 @@ class JournalEntry extends BaseJournalEntry {
 		return '-';
 	}
 	
-	public function getLatestCommentDate() {
-		
-	}
-	
 	public function getJournalName() {
 		if($oJournal = $this->getJournal()) {
 			return $oJournal->getName();
