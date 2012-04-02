@@ -1,8 +1,8 @@
-<h2 class="journal_title"><a href="{{link}}">{{title}}</a></h2>
+<h2 class="journal_title"><a rel="internal" href="{{link}}">{{title}}</a></h2>
 <div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}</div>
 <div class="journal_content">
   {{text}}
 </div>
 <div class="journal_info info">
-	<a href="{{link}}#comments">{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}</a>
+	<a rel="internal" href="{{link}}#comments">{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}</a>
 </div>
