@@ -24,5 +24,14 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	public function excludeDraft() {
 		return $this->filterByIsPublished(true);
 	}
+	
+	public function mostRecentByJournalId($mJournalId = null) {
+		$this->filterByIsPublished(true)->filterByText('', Criteria::NOT_EQUAL);
+		if($mJournalId) {
+			$mJournalId = is_array($mJournalId) ? $mJournalId : array($mJournalId);
+			$this->filterByJournalId($mJournalId, Criteria::IN);
+		}
+		return $this->orderByUpdatedAt(Criteria::DESC);
+	}
 }
 
