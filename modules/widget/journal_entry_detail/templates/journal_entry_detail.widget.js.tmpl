@@ -37,6 +37,9 @@ Widget.types['journal_entry_detail'] = {
 	fill_data: function() {
 		var _this = this;
 		this.loadData(function(data) {
+			if(data === null) {
+				return false;
+			}
 			_this.current_detail_id = data.Id;
 			var comment_list = this._element.find('ol.comments').empty();
 			var title = this._element.find('input[name="title"]');
