@@ -344,8 +344,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		JournalEntryListWidgetModule::includeResources($oIncluder);
 
 		return $oIncluder->getIncludes()->render().$this->oJournalEntryList->doWidget()->render();
-		$oListWidget = $this->oJournalEntryList->getList();
-		return array($oListWidget->getModuleName(), $oListWidget->getSessionKey());
 	}
 
 	public function setCurrentJournal($iJournalId) {
