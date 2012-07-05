@@ -1,6 +1,6 @@
 journal:
   text_module:
-    toolbar: 
+    toolbar:
       - 
         - ["Bold", "Italic"]
         - ["Link", "Unlink", "Anchor", "-", "Image"]
@@ -9,7 +9,5 @@ journal:
       -
         - ["Subscript", "Superscript", "-", "Maximize"]
         - ["Source"]
-        
-journal:
   externally_managed_images_category: 1
 
