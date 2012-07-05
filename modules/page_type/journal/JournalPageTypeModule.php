@@ -81,12 +81,14 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
 		$oCommentQuery = JournalCommentQuery::create()->excludeUnverified();
+		$oEntryTemplate->replaceIdentifier('journal_title', $oEntry->getJournal()->getName());
 		$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
-		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments($oCommentQuery));
+		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
+		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
 		
 		if($oEntryTemplate->hasIdentifier('text')) {
