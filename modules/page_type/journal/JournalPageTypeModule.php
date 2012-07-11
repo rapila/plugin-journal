@@ -210,15 +210,53 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function renderCalendarWidget() {
+		// prepare
 		$oQuery=JournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->filterByIsPublished(true)->clearSelectColumns();
 		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
 		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
 		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
 		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		
 		$oTemplate = $this->constructTemplate('calendar');
-		$oItemPrototype = $this->constructTemplate('calendar_item');
+		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
+		$oYearPrototype = $this->constructTemplate('calendar_item_year');
+		$oDayPrototype = $this->constructTemplate('calendar_item');
+		$sYearDummy = null;
+		$sMonthDummy = null;
+		$bYearHasChanged = false;
+		// foreach($aResult as $aDate) {
+		// 	// make year template whenever the year changes and add it to main template
+		// 	if($aDate['Year'] !== $sYearDummy) {
+		// 		$bYearHasChanged = true;
+		// 		$sYearDummy = $aDate['Year'];
+		// 		$oYearTemplate = clone $oYearPrototype;
+		// 		$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
+		// 		$oYearTemplate->replaceIdentifier('link', $this->oPage->getLinkArray($aDate['Year']));
+		// 		$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+		// 	} else {
+		// 		$bYearHasChanged = false;
+		// 	}
+		// 	// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
+		// 	// and add it to year template
+		// 	if($bYearHasChanged || $aDate['Month'] !== $sMonthDummy) {
+		// 		$sMonthDummy = $aDate['Month'];
+		// 		$oMonthTemplate = clone $oMonthPrototype;
+		// 		$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
+		// 		$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
+		// 		$oMonthTemplate->replaceIdentifier('link', $this->oPage->getLinkArray($aDate['Year'], $aDate['Month']));
+		// 		$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+		// 	} 			
+		// 	// make day item template and add it to month template
+		// 	$oDayTemplate = clone $oDayPrototype;
+		// 	$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
+		// 	$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
+		// 	$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
+		// 	$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+		// 	$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
+		// }
+
 		foreach($aResult as $aDate) {
-			$oItemTemplate = clone $oItemPrototype;
+			$oItemTemplate = clone $oDayPrototype;
 			$oItemTemplate->replaceIdentifier('year', $aDate['Year']);
 			$oItemTemplate->replaceIdentifier('month', $aDate['Month']);
 			$oItemTemplate->replaceIdentifier('day', $aDate['Day']);
@@ -258,9 +296,6 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
 		}
 		return $oTemplate;
-	}
-	
-	private function renderSearchWidget() {
 	}
 	
 	private function displayList($oTemplate) {
