@@ -33,5 +33,17 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		}
 		return $this->orderByUpdatedAt(Criteria::DESC);
 	}
+
+	public function orderByYearMonthDay() {
+		parent::orderByYear(Criteria::DESC)->orderByMonth(Criteria::DESC)->orderByDay(Criteria::DESC);
+		return $this;
+	}
+	
+	public function filterByTagName($sTagName) {
+		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select('TaggedItemId')->find();
+		$this->filterById($aTaggedItems, Criteria::IN);
+		return $this;
+	}
+
 }
 

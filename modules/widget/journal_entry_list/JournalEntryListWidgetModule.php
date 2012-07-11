@@ -11,6 +11,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		$this->oListWidget = new ListWidgetModule();
 		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "created_at_formatted", "desc");
 		$this->oListWidget->setDelegate($this->oDelegateProxy);
+		$this->oListWidget->setSetting('row_model_drag_and_drop_identifier', "id");
 	}
 	
 	public function getDelegate() {
