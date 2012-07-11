@@ -10,6 +10,12 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sContainerName;
 	private $sAuxiliaryContainer;
 	private $bDatesHidden;
+	private $aWidgets;
+	private $sTag;
+	private $iPage;
+	
+	const ALLOWED_POINTER_PAGE = 'page';
+	const ALLOWED_POINTER_TAG = 'tag';
 
 	/**
 	 * @var JournalEntry the entry to be viewed
@@ -23,6 +29,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oPage) {
 			$this->updateFlagsFromProperties();
 		}
+		if(isset($_REQUEST[self::ALLOWED_POINTER_TAG])) {
+			$this->sTag = $_REQUEST[self::ALLOWED_POINTER_TAG];
+		}
 	}
 
 	public function updateFlagsFromProperties() {
@@ -33,10 +42,17 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
 		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
+		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
+		if($this->aWidgets === '') {
+			$this->aWidgets = array();
+		} else {
+			$this->aWidgets = explode(',', $this->aWidgets);
+		}
 	}
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
 		$bIsDynamic = true;
+		$aAllowedParams = array('tag', 'page');
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {
@@ -74,6 +90,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->iJournalId) {
 			$oQuery->filterByJournalId($this->iJournalId);
 		}
+		if($this->sTag) {
+			$oQuery->filterByTagName($this->sTag);
+		}
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->excludeDraft()->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
 		}
@@ -84,6 +103,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('journal_title', $oEntry->getJournal()->getName());
 		$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
+		$oEntryTemplate->replaceIdentifier('user_name', $oEntry->getUserRelatedByCreatedBy()->getFullName());
 		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
@@ -176,8 +196,71 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function fillAuxilliaryContainers(Template $oTemplate) {
 		if($this->sAuxiliaryContainer && $oTemplate->hasIdentifier('container', $this->sAuxiliaryContainer)) {
-			$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, $this->sAuxiliaryContainer);
+			foreach($this->aWidgets as $sWidget) {
+				$sMethodName = "render".StringUtil::camelize($sWidget, true)."Widget";
+				$oTemplate->replaceIdentifierMultiple('container', $this->$sMethodName(), $this->sAuxiliaryContainer);
+			}
 		}
+	}
+	
+	private function renderRecentEntriesWidget() {
+		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
+		$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, 'entries');
+		return $oTemplate;
+	}
+	
+	private function renderCalendarWidget() {
+		$oQuery=JournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->filterByIsPublished(true)->clearSelectColumns();
+		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
+		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
+		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
+		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		$oTemplate = $this->constructTemplate('calendar');
+		$oItemPrototype = $this->constructTemplate('calendar_item');
+		foreach($aResult as $aDate) {
+			$oItemTemplate = clone $oItemPrototype;
+			$oItemTemplate->replaceIdentifier('year', $aDate['Year']);
+			$oItemTemplate->replaceIdentifier('month', $aDate['Month']);
+			$oItemTemplate->replaceIdentifier('day', $aDate['Day']);
+			$oItemTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+			$oTemplate->replaceIdentifierMultiple('calendar_item', $oItemTemplate);
+		}
+		return $oTemplate;
+	}
+	
+	private function renderTagCloudWidget() {
+		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
+		
+		// Calculation of font-size
+		$iMin = min($aTags);
+		$iMax = max($aTags);
+		$iDiff = $iMax - $iMin;
+		$iMinPixelFontSize = 10;
+		$iMaxPixelFontSize = 20;
+		if(array_sum($aTags) > 40) {
+			$iMaxPixelFontSize = 30;
+		}
+		$iPixelStep = ($iMaxPixelFontSize - $iMinPixelFontSize) / $iDiff;
+		$oTemplate = $this->constructTemplate('tag');
+		$oItemPrototype = $this->constructTemplate('tag_item');
+		$sLabelEntry = StringPeer::getString('wns.');
+		foreach($aTags as $sName => $iCount) {
+			$oItemTemplate = clone $oItemPrototype;
+			$iFontSize = (int) ceil($iMinPixelFontSize + (($iCount - $iMin) * $iPixelStep));
+			$oItemTemplate->replaceIdentifier('font_size', $iFontSize);
+			$oItemTemplate->replaceIdentifier('line_height', ceil($iFontSize * 1.2));
+			$oItemTemplate->replaceIdentifier('count_title', StringPeer::getString($iCount === 1 ? 'tag.label_entry' : 'tag.label_entries'));
+			if(($this->sTag == $sName)) {
+				$oItemTemplate->replaceIdentifier('class_active', ' active');
+			}
+			$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link(array_merge($this->oPage->getLinkArray(self::ALLOWED_POINTER_TAG, $sName))));
+			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
+			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
+		}
+		return $oTemplate;
+	}
+	
+	private function renderSearchWidget() {
 	}
 	
 	private function displayList($oTemplate) {
@@ -324,6 +407,20 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return array('options' => $aResult, 'current' => $this->sContainerName, 'current_auxiliary' => $this->sAuxiliaryContainer);
 	}
+	
+	public function listWidgets() {
+		$aWidgetTypes = array();
+		foreach(get_class_methods($this) as $sMethodName) {
+			if(StringUtil::startsWith($sMethodName, 'render') && StringUtil::endsWith($sMethodName, 'Widget')) {
+				$oWidget = new StdClass();
+				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
+				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
+				$oWidget->title = StringUtil::makeReadableName($oWidget->name);
+				$aWidgetTypes[] = $oWidget;
+			}
+		}
+		return $aWidgetTypes;
+	}
 
 	public function journalProperties() {
 		if($this->iJournalId === CriteriaListWidgetDelegate::SELECT_WITHOUT) {
@@ -384,6 +481,13 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('recent_blogpost_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
 		$this->oPage->updatePageProperty('blog_dates_hidden', isset($aData['dates_hidden']) ? 'true' : '');
+		$aWidgets =  array();
+		foreach($aData['widgets'] as $sWidgetName) {
+			if($sWidgetName !== false) {
+				$aWidgets[] = $sWidgetName;
+			}
+		}
+		$this->oPage->updatePageProperty('blog_widgets', implode(',', $aWidgets));
 		$this->updateFlagsFromProperties();
 	}
 }

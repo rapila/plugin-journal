@@ -4,9 +4,9 @@
 </select>
 <div class="journal_detail">
 	<ul>
+		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
 		<li><a href="#journal-journal_config">{{writeString=wns.journal.journal_config}}</a></li>
 		<li><a href="#journal-page_config">{{writeString=wns.journal.page_config}}</a></li>
-		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
 	</ul>
 	<div id="journal-journal_config">
 		<label for="journal_name" class="validate-journal.name_required">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" /><br />
@@ -25,6 +25,9 @@
 		</div>
 		<div class="group_fields">
 			<label for="auxiliary_container">{{writeString=wns.journal.auxiliary_container}}</label><select name="auxiliary_container" class="ui-widget-content"><option value="">--</option></select>
+		</div>
+		<div class="group_fields">
+			<label>{{writeString=wns.journal.widgets}}</label><div class="journal-widgets ui-widget-content"></div>
 		</div>
 		<br />
 		<div class="group_fields">

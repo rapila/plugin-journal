@@ -1,9 +1,25 @@
 Widget.types['journal_entry_detail'] = {
 	initialize: function() {
 		var _this = this;
+		this.init_content();
+		Widget.callStatic('detail', 'set_instance', this);
+		this.current_detail_id = null;
+	},
+	
+	init_content: function() {
+		var _this = this;
 		this._element = jQuery.parseHTML('{{includeTemplate=edit}}');
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
-
+		Widget.createWithElement('tag_area', function(widget) {
+			_this.tag_area = widget;
+			widget.settings.auto_load = false;
+			widget.settings.dnd = false;
+			widget.settings.deletable = true;
+			widget.setModelName('JournalEntry');
+			widget.handle('element_set', function(event, element) {
+				_this._element.find('div.general_info').prepend(element);
+			});
+		}, jQuery.noop);
 		this.uploader = Widget.create('file_upload');
 		this.droppable_area = this._element.find('.droppable_area');
 		this.droppable_area.sortable({
@@ -20,9 +36,6 @@ Widget.types['journal_entry_detail'] = {
 		this.uploader.allow_drag_to(this.droppable_area, null, function(target, file) {
 			return { document_category_id: _this.settings.journal_entry_images_category_id, callback: _this.upload_success.bind(_this), error: _this.upload_error.bind(_this)};
 		});
-
-		Widget.callStatic('detail', 'set_instance', this);
-		this.current_detail_id = null;
 	},
 
 	prepare: function() {
@@ -46,6 +59,10 @@ Widget.types['journal_entry_detail'] = {
 				this.set_text(data.Text);
 				title.val(data.Title);
 				is_published.prop('checked', data.IsPublished);
+				if(data.Id) {
+					this.tag_area.setTaggedItemId(data.Id);
+					this.tag_area.reload_tags();
+				}
 				jQuery.each(data.comments, function(i, comment) {
 					var comm = jQuery('<li/>');
 					comm.text(comment.CreatedAtFormatted+' '+comment.Email);
