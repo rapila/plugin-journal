@@ -40,7 +40,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
-		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('recent_blogpost_container', null);
+		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
@@ -478,7 +478,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
-		$this->oPage->updatePageProperty('recent_blogpost_container', $aData['auxiliary_container']);
+		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
 		$this->oPage->updatePageProperty('blog_dates_hidden', isset($aData['dates_hidden']) ? 'true' : '');
 		$aWidgets =  array();
