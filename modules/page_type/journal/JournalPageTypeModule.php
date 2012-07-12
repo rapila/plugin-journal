@@ -6,13 +6,13 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sCommentMode;
 	private $sOverviewMode;
 	private $iJournalId = null;
+	private $sTag = null;
+	private $iPage = null;
 	private $sTemplateSet;
 	private $sContainerName;
 	private $sAuxiliaryContainer;
 	private $bDatesHidden;
 	private $aWidgets;
-	private $sTag;
-	private $iPage;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 	const ALLOWED_POINTER_TAG = 'tag';
@@ -131,7 +131,6 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function renderGallery(JournalEntry $oEntry) {
 		$oEntryTemplate = $this->constructTemplate('journal_gallery');
-
 		$oListTemplate = new Template('helpers/gallery');
 		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
 
@@ -224,8 +223,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		$sYearDummy = null;
 		$sMonthDummy = null;
 		$bYearHasChanged = false;
-		// foreach($aResult as $aDate) {
-		// 	// make year template whenever the year changes and add it to main template
+
+		foreach($aResult as $aDate) {
+			// make year template whenever the year changes and add it to main template
 		// 	if($aDate['Year'] !== $sYearDummy) {
 		// 		$bYearHasChanged = true;
 		// 		$sYearDummy = $aDate['Year'];
