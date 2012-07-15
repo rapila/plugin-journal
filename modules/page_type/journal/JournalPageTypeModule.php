@@ -224,7 +224,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$sMonthDummy = null;
 		$bYearHasChanged = false;
 
-		foreach($aResult as $aDate) {
+		// foreach($aResult as $aDate) {
 			// make year template whenever the year changes and add it to main template
 		// 	if($aDate['Year'] !== $sYearDummy) {
 		// 		$bYearHasChanged = true;
