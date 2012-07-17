@@ -48,16 +48,12 @@ Widget.types['journal_entry_detail'] = {
 	},
 	
 	fill_data: function() {
-		var _this = this;
 		this.loadData(function(data) {
-			if(data === null) {
-				return false;
-			}
-			_this.current_detail_id = data.Id;
 			var comment_list = this._element.find('ol.comments').empty();
 			var title = this._element.find('input[name="title"]');
 			var is_published = this._element.find('input[name="is_published"]');
 			if(data) {
+				this.current_detail_id = data.Id;
 				this.detail_widget.set_title(data.Title);
 				this.set_text(data.Text);
 				title.val(data.Title);
@@ -75,8 +71,9 @@ Widget.types['journal_entry_detail'] = {
 					comm.click(txt.toggle.bind(txt));
 					comment_list.append(comm);
 				});
-				_this.update_documents();
+				this.update_documents();
 			} else {
+				this.current_detail_id = null;
 				this.detail_widget.set_title('{{writeString=wns.journal.add_entry}}');
 				this.set_text('');
 				title.val('');

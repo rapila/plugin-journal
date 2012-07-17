@@ -13,8 +13,7 @@ jQuery(function() {
 		}
 		existing[year][month][day] = link;
 	}
-	console.log(calendar.find('li a.calendar_item'));
-	calendar.find('li a.calendar_item').each(function() {
+	calendar.find('li a.calendar_day').each(function() {
 		var day = jQuery(this);
 		append(day.data('year'), day.data('month'), day.data('day'), day.attr('href'));
 	});

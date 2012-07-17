@@ -13,6 +13,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sAuxiliaryContainer;
 	private $bDatesHidden;
 	private $aWidgets;
+	private $iYear = null;
+	private $iMonth = null;
+	private $iDay = null;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 	const ALLOWED_POINTER_TAG = 'tag';
@@ -29,13 +32,17 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oPage) {
 			$this->updateFlagsFromProperties();
 		}
+		$aData = $oNavigationItem->getData();
+		$this->iYear = @$aData[1];
+		$this->iMonth = @$aData[2];
+		$this->iDay = @$aData[3];
 		if(isset($_REQUEST[self::ALLOWED_POINTER_TAG])) {
 			$this->sTag = $_REQUEST[self::ALLOWED_POINTER_TAG];
 		}
 	}
 
 	public function updateFlagsFromProperties() {
-		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'overview');
+		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
 		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
 		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
@@ -65,7 +72,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainerName);
 			return;
 		}
-		$sMethod = 'overview';
+		$sMethod = "overview_$this->sOverviewMode";
 		if($this->oNavigationItem instanceof VirtualNavigationItem) {
 			$sMethod = substr($this->oNavigationItem->getType(), strlen('journal-'));
 			if($this->oNavigationItem->getData() instanceof JournalEntry) {
@@ -217,51 +224,61 @@ class JournalPageTypeModule extends PageTypeModule {
 		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
 		
 		$oTemplate = $this->constructTemplate('calendar');
-		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
 		$oYearPrototype = $this->constructTemplate('calendar_item_year');
-		$oDayPrototype = $this->constructTemplate('calendar_item');
-		$sYearDummy = null;
-		$sMonthDummy = null;
-		$bYearHasChanged = false;
-
-		// foreach($aResult as $aDate) {
-			// make year template whenever the year changes and add it to main template
-		// 	if($aDate['Year'] !== $sYearDummy) {
-		// 		$bYearHasChanged = true;
-		// 		$sYearDummy = $aDate['Year'];
-		// 		$oYearTemplate = clone $oYearPrototype;
-		// 		$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
-		// 		$oYearTemplate->replaceIdentifier('link', $this->oPage->getLinkArray($aDate['Year']));
-		// 		$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-		// 	} else {
-		// 		$bYearHasChanged = false;
-		// 	}
-		// 	// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
-		// 	// and add it to year template
-		// 	if($bYearHasChanged || $aDate['Month'] !== $sMonthDummy) {
-		// 		$sMonthDummy = $aDate['Month'];
-		// 		$oMonthTemplate = clone $oMonthPrototype;
-		// 		$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
-		// 		$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
-		// 		$oMonthTemplate->replaceIdentifier('link', $this->oPage->getLinkArray($aDate['Year'], $aDate['Month']));
-		// 		$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-		// 	} 			
-		// 	// make day item template and add it to month template
-		// 	$oDayTemplate = clone $oDayPrototype;
-		// 	$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
-		// 	$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
-		// 	$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
-		// 	$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
-		// 	$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
-		// }
+		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
+		$oDayPrototype = $this->constructTemplate('calendar_item_day');
+		$sPreviousYear = null;
+		$sPreviousMonth = null;
+		$oYearTemplate = null;
+		$oMonthTemplate = null;
 
 		foreach($aResult as $aDate) {
-			$oItemTemplate = clone $oDayPrototype;
-			$oItemTemplate->replaceIdentifier('year', $aDate['Year']);
-			$oItemTemplate->replaceIdentifier('month', $aDate['Month']);
-			$oItemTemplate->replaceIdentifier('day', $aDate['Day']);
-			$oItemTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
-			$oTemplate->replaceIdentifierMultiple('calendar_item', $oItemTemplate);
+			// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
+			// and add it to year template
+			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
+				$sPreviousMonth = $aDate['Month'];
+				if($oMonthTemplate) {
+					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+				}
+				$oMonthTemplate = clone $oMonthPrototype;
+				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
+				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
+				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
+				$oMonthTemplate->replaceIdentifier('month_name', LocaleUtil::localizeDate($aDate['Month']), 'B');
+				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
+			}
+			
+			// make year template whenever the year changes and add it to main template
+			if($aDate['Year'] !== $sPreviousYear) {
+				$sPreviousYear = $aDate['Year'];
+				if($oYearTemplate) {
+					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+				}
+				$oYearTemplate = clone $oYearPrototype;
+				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
+				$oYearTemplate->replaceIdentifier('class_is_active', $aDate['Year'] === $this->iYear ? ' is_active' : '');
+				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
+				// Util::dumpAll($oYearTemplate);
+			}
+			
+			if(!$oMonthTemplate->hasIdentifier('day_item')) {
+				continue;
+			}
+			
+			// make day item template and add it to month template
+			$oDayTemplate = clone $oDayPrototype;
+			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
+			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
+			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
+			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
+		}
+		
+		if($oMonthTemplate) {
+			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+		}
+		if($oYearTemplate) {
+			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
 		}
 		return $oTemplate;
 	}
@@ -298,12 +315,38 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oTemplate;
 	}
 	
-	private function displayList($oTemplate) {
-		$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(20), $this->constructTemplate('list_entry'), $oTemplate);
+	private function displayOverviewList($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
 	
-	private function displayOverview($oTemplate) {
-		$this->renderJournalEntries(JournalEntryQuery::create(), $this->constructTemplate('short_entry'), $oTemplate);
+	private function displayOverviewFull($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
+	}
+	
+	private function displayYear($oTemplate) {
+		return $this->displayFilteredOverview($oTemplate);
+	}
+	
+	private function displayMonth($oTemplate) {
+		return $this->displayFilteredOverview($oTemplate);
+	}
+	
+	private function displayDay($oTemplate) {
+		return $this->displayFilteredOverview($oTemplate);
+	}
+	
+	private function displayFilteredOverview($oTemplate) {
+		$aFilterData = $this->oNavigationItem->getData();
+		$oQuery = JournalEntryQuery::create();
+		$oQuery->filterByDate($this->iYear, $this->iMonth, $this->iDay);
+		$sMethodName = StringUtil::camelize("display_overview_$this->sOverviewMode");
+		$this->$sMethodName($oTemplate, $oQuery);
 	}
 	
 	private function displayEntry($oTemplate) {

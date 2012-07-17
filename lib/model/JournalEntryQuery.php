@@ -15,9 +15,15 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	}
 	
 	public function filterByDate($iYear, $iMonth, $iDay) {
-		$this->add('YEAR(created_at)', (int)$iYear);
-		$this->add('MONTH(created_at)', (int)$iMonth);
-		$this->add('DAY(created_at)', (int)$iDay);
+		if($iYear) {
+			$this->add('YEAR(created_at)', (int)$iYear);
+		}
+		if($iMonth) {
+			$this->add('MONTH(created_at)', (int)$iMonth);
+		}
+		if($iDay) {
+			$this->add('DAY(created_at)', (int)$iDay);
+		}
 		return $this;
 	}
 	

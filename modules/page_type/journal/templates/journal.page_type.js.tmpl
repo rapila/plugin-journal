@@ -115,6 +115,9 @@
 			if(this.entry_list) {
 				this.entry_list.reload();
 			} else {
+				if(!this.journal_entry_detail) {
+					return window.setTimeout(arguments.callee.bind(this), 500);
+				}
 				this.page_type.methods.entryList(function(list) {
 					_this.entry_area.html(list);
 					_this.entry_area.widgetElements().prepareWidget(function(widget) {

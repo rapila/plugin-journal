@@ -36,7 +36,7 @@ class JournalFilterModule extends FilterModule {
 			//Append virtual navigation items for year, overview and feed
 			$oJournal = JournalQuery::create()->findPk($oNavigationItem->getMe()->getPagePropertyValue('journal_id', null));
 			$bDatesHidden = !!$oNavigationItem->getMe()->getPagePropertyValue('blog_dates_hidden', null);
-			$sDateNavigationItemClass = $bDatesHidden ? 'HiddenVirtualFolderNavigationItem' : 'FolderVirtualNavigationItem';
+			$sDateNavigationItemClass = $bDatesHidden ? 'HiddenVirtualNavigationItem' : 'VirtualNavigationItem';
 			$iJournalId = $oJournal->getId();
 			//feed
 			$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $iJournalId);
