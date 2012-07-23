@@ -6,7 +6,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sCommentMode;
 	private $sOverviewMode;
 	private $iJournalId = null;
-	private $sTag = null;
+	private $aTags = null;
 	private $iPage = null;
 	private $sTemplateSet;
 	private $sContainerName;
@@ -18,7 +18,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $iDay = null;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
-	const ALLOWED_POINTER_TAG = 'tag';
+	const ADD_FILTER = 'add_filter';
+	const REMOVE_FILTER = 'remove_filter';
+	const SESSION_FILTER_NAME = 'tag_filter';
 
 	/**
 	 * @var JournalEntry the entry to be viewed
@@ -32,13 +34,25 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oPage) {
 			$this->updateFlagsFromProperties();
 		}
-		$aData = $oNavigationItem->getData();
-		$this->iYear = @$aData[1];
-		$this->iMonth = @$aData[2];
-		$this->iDay = @$aData[3];
-		if(isset($_REQUEST[self::ALLOWED_POINTER_TAG])) {
-			$this->sTag = $_REQUEST[self::ALLOWED_POINTER_TAG];
+		if($oNavigationItem instanceof VirtualNavigationItem) {
+			$aData = $oNavigationItem->getData();
+			$this->iYear = @$aData[1];
+			$this->iMonth = @$aData[2];
+			$this->iDay = @$aData[3];
 		}
+		$this->setFilters();
+	}
+	
+	private function setFilters() {
+		$this->aTags = Session::getSession()->getAttribute(self::SESSION_FILTER_NAME);
+		if(isset($_REQUEST[self::ADD_FILTER]) && (!is_array($this->aTags) || !in_array($_REQUEST[self::ADD_FILTER], $this->aTags))) {
+			$this->aTags[] = $_REQUEST[self::ADD_FILTER];
+		}
+		if(isset($_REQUEST[self::REMOVE_FILTER]) && in_array($_REQUEST[self::REMOVE_FILTER], $this->aTags)) {
+			$mKey = array_search($_REQUEST[self::REMOVE_FILTER], $this->aTags);
+			unset($this->aTags[$mKey]);
+		}
+		Session::getSession()->setAttribute(self::SESSION_FILTER_NAME, $this->aTags);
 	}
 
 	public function updateFlagsFromProperties() {
@@ -59,7 +73,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
 		$bIsDynamic = true;
-		$aAllowedParams = array('tag', 'page');
+		$aAllowedParams = array(self::ALLOWED_POINTER_PAGE);
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {
@@ -97,8 +111,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->iJournalId) {
 			$oQuery->filterByJournalId($this->iJournalId);
 		}
-		if($this->sTag) {
-			$oQuery->filterByTagName($this->sTag);
+		if($this->aTags !== null) {
+			$oQuery->filterByTagName($this->aTags);
 		}
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->excludeDraft()->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
@@ -305,10 +319,12 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oItemTemplate->replaceIdentifier('font_size', $iFontSize);
 			$oItemTemplate->replaceIdentifier('line_height', ceil($iFontSize * 1.2));
 			$oItemTemplate->replaceIdentifier('count_title', StringPeer::getString($iCount === 1 ? 'tag.label_entry' : 'tag.label_entries'));
-			if(($this->sTag == $sName)) {
+			if(is_array($this->aTags) && in_array($sName, $this->aTags)) {
 				$oItemTemplate->replaceIdentifier('class_active', ' active');
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_FILTER => $sName)));
+			} else {
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_FILTER => $sName)));
 			}
-			$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link(array_merge($this->oPage->getLinkArray(self::ALLOWED_POINTER_TAG, $sName))));
 			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
 			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
 		}
