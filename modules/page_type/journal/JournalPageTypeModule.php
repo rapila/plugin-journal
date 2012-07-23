@@ -36,9 +36,15 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		if($oNavigationItem instanceof VirtualNavigationItem) {
 			$aData = $oNavigationItem->getData();
-			$this->iYear = @$aData[1];
-			$this->iMonth = @$aData[2];
-			$this->iDay = @$aData[3];
+			if(is_array($aData)) {
+				$this->iYear = @$aData[1];
+				$this->iMonth = @$aData[2];
+				$this->iDay = @$aData[3];
+			} elseif($aData instanceof JournalEntry) {
+				$this->iYear = $aData->getCreatedAt('Y');
+				$this->iMonth = $aData->getCreatedAt('n');
+				$this->iDay = $aData->getCreatedAt('j');
+			}
 		}
 		$this->setFilters();
 	}
@@ -139,7 +145,15 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->oEntry !== null && $this->oEntry == $oEntry) {
 			$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
 		}
-
+		if($oEntryTemplate->hasIdentifier('tags')) {
+			$aTagInstances = TagInstanceQuery::create()->filterByModelName('JournalEntry')->filterByTaggedItemId($oEntry->getId())->joinTag()->find();
+			foreach($aTagInstances as $i => $oTagInstance) {
+				if($i > 0) {
+					$oEntryTemplate->replaceIdentifierMultiple('tags', ', ', null, Template::NO_NEWLINE|Template::NO_NEW_CONTEXT);			
+				}
+				$oEntryTemplate->replaceIdentifierMultiple('tags', $oTagInstance->getTag()->getReadableName(), null, Template::NO_NEW_CONTEXT|Template::NO_NEWLINE);			
+			}
+		}
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
@@ -313,17 +327,20 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate = $this->constructTemplate('tag');
 		$oItemPrototype = $this->constructTemplate('tag_item');
 		$sLabelEntry = StringPeer::getString('wns.');
+		// $oPage = $this->oNavigationItem;
+		// Util::dumpAll($oPage->getLink());
 		foreach($aTags as $sName => $iCount) {
 			$oItemTemplate = clone $oItemPrototype;
 			$iFontSize = (int) ceil($iMinPixelFontSize + (($iCount - $iMin) * $iPixelStep));
 			$oItemTemplate->replaceIdentifier('font_size', $iFontSize);
 			$oItemTemplate->replaceIdentifier('line_height', ceil($iFontSize * 1.2));
-			$oItemTemplate->replaceIdentifier('count_title', StringPeer::getString($iCount === 1 ? 'tag.label_entry' : 'tag.label_entries'));
 			if(is_array($this->aTags) && in_array($sName, $this->aTags)) {
 				$oItemTemplate->replaceIdentifier('class_active', ' active');
+				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.remove'));
 				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_FILTER => $sName)));
 			} else {
 				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_FILTER => $sName)));
+				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => $sName)));
 			}
 			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
 			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);

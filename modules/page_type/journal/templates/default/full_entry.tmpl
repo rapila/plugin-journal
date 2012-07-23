@@ -2,6 +2,7 @@
 <div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}{{identifierContext=start;name=user_name}}, {{user_name}}{{identifierContext=end;name=user_name}}</div>
 <div class="journal_content">
   {{text}}
-</div>
+</div>{{identifierContext=start;name=tags}}
+<div class="tags">{{tags}}</div>{{identifierContext=end;name=tags}}
 {{journal_gallery}}
 {{journal_comments}}
