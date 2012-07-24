@@ -283,9 +283,13 @@ class JournalPageTypeModule extends PageTypeModule {
 				}
 				$oYearTemplate = clone $oYearPrototype;
 				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
-				$oYearTemplate->replaceIdentifier('class_is_active', $aDate['Year'] === $this->iYear ? ' is_active' : '');
+				if($aDate['Year'] === $this->iYear) {
+					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
+					$oYearTemplate->replaceIdentifier('display', 'block');
+				} else {
+					$oYearTemplate->replaceIdentifier('display', 'none');
+				}
 				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
-				// Util::dumpAll($oYearTemplate);
 			}
 			
 			if(!$oMonthTemplate->hasIdentifier('day_item')) {
