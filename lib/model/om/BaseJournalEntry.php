@@ -61,6 +61,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	protected $text;
 
 	/**
+	 * The value for the text_short field.
+	 * @var        string
+	 */
+	protected $text_short;
+
+	/**
 	 * The value for the is_published field.
 	 * Note: this column has a database default value of: false
 	 * @var        boolean
@@ -211,6 +217,16 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	public function getText()
 	{
 		return $this->text;
+	}
+
+	/**
+	 * Get the [text_short] column value.
+	 * 
+	 * @return     string
+	 */
+	public function getTextShort()
+	{
+		return $this->text_short;
 	}
 
 	/**
@@ -424,6 +440,26 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 	} // setText()
 
 	/**
+	 * Set the value of [text_short] column.
+	 * 
+	 * @param      string $v new value
+	 * @return     JournalEntry The current object (for fluent API support)
+	 */
+	public function setTextShort($v)
+	{
+		if ($v !== null) {
+			$v = (string) $v;
+		}
+
+		if ($this->text_short !== $v) {
+			$this->text_short = $v;
+			$this->modifiedColumns[] = JournalEntryPeer::TEXT_SHORT;
+		}
+
+		return $this;
+	} // setTextShort()
+
+	/**
 	 * Sets the value of the [is_published] column.
 	 * Non-boolean arguments are converted using the following rules:
 	 *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
@@ -584,11 +620,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$this->title = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
 			$this->slug = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
 			$this->text = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
-			$this->is_published = ($row[$startcol + 5] !== null) ? (boolean) $row[$startcol + 5] : null;
-			$this->created_at = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
-			$this->updated_at = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
-			$this->created_by = ($row[$startcol + 8] !== null) ? (int) $row[$startcol + 8] : null;
-			$this->updated_by = ($row[$startcol + 9] !== null) ? (int) $row[$startcol + 9] : null;
+			$this->text_short = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
+			$this->is_published = ($row[$startcol + 6] !== null) ? (boolean) $row[$startcol + 6] : null;
+			$this->created_at = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
+			$this->updated_at = ($row[$startcol + 8] !== null) ? (string) $row[$startcol + 8] : null;
+			$this->created_by = ($row[$startcol + 9] !== null) ? (int) $row[$startcol + 9] : null;
+			$this->updated_by = ($row[$startcol + 10] !== null) ? (int) $row[$startcol + 10] : null;
 			$this->resetModified();
 
 			$this->setNew(false);
@@ -597,7 +634,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 10; // 10 = JournalEntryPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 11; // 11 = JournalEntryPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating JournalEntry object", $e);
@@ -940,6 +977,9 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if ($this->isColumnModified(JournalEntryPeer::TEXT)) {
 			$modifiedColumns[':p' . $index++]  = '`TEXT`';
 		}
+		if ($this->isColumnModified(JournalEntryPeer::TEXT_SHORT)) {
+			$modifiedColumns[':p' . $index++]  = '`TEXT_SHORT`';
+		}
 		if ($this->isColumnModified(JournalEntryPeer::IS_PUBLISHED)) {
 			$modifiedColumns[':p' . $index++]  = '`IS_PUBLISHED`';
 		}
@@ -980,6 +1020,9 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 						break;
 					case '`TEXT`':
 						$stmt->bindValue($identifier, $this->text, PDO::PARAM_STR);
+						break;
+					case '`TEXT_SHORT`':
+						$stmt->bindValue($identifier, $this->text_short, PDO::PARAM_STR);
 						break;
 					case '`IS_PUBLISHED`':
 						$stmt->bindValue($identifier, (int) $this->is_published, PDO::PARAM_INT);
@@ -1182,18 +1225,21 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				return $this->getText();
 				break;
 			case 5:
-				return $this->getIsPublished();
+				return $this->getTextShort();
 				break;
 			case 6:
-				return $this->getCreatedAt();
+				return $this->getIsPublished();
 				break;
 			case 7:
-				return $this->getUpdatedAt();
+				return $this->getCreatedAt();
 				break;
 			case 8:
-				return $this->getCreatedBy();
+				return $this->getUpdatedAt();
 				break;
 			case 9:
+				return $this->getCreatedBy();
+				break;
+			case 10:
 				return $this->getUpdatedBy();
 				break;
 			default:
@@ -1230,11 +1276,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 			$keys[2] => $this->getTitle(),
 			$keys[3] => $this->getSlug(),
 			$keys[4] => $this->getText(),
-			$keys[5] => $this->getIsPublished(),
-			$keys[6] => $this->getCreatedAt(),
-			$keys[7] => $this->getUpdatedAt(),
-			$keys[8] => $this->getCreatedBy(),
-			$keys[9] => $this->getUpdatedBy(),
+			$keys[5] => $this->getTextShort(),
+			$keys[6] => $this->getIsPublished(),
+			$keys[7] => $this->getCreatedAt(),
+			$keys[8] => $this->getUpdatedAt(),
+			$keys[9] => $this->getCreatedBy(),
+			$keys[10] => $this->getUpdatedBy(),
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aJournal) {
@@ -1299,18 +1346,21 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 				$this->setText($value);
 				break;
 			case 5:
-				$this->setIsPublished($value);
+				$this->setTextShort($value);
 				break;
 			case 6:
-				$this->setCreatedAt($value);
+				$this->setIsPublished($value);
 				break;
 			case 7:
-				$this->setUpdatedAt($value);
+				$this->setCreatedAt($value);
 				break;
 			case 8:
-				$this->setCreatedBy($value);
+				$this->setUpdatedAt($value);
 				break;
 			case 9:
+				$this->setCreatedBy($value);
+				break;
+			case 10:
 				$this->setUpdatedBy($value);
 				break;
 		} // switch()
@@ -1342,11 +1392,12 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if (array_key_exists($keys[2], $arr)) $this->setTitle($arr[$keys[2]]);
 		if (array_key_exists($keys[3], $arr)) $this->setSlug($arr[$keys[3]]);
 		if (array_key_exists($keys[4], $arr)) $this->setText($arr[$keys[4]]);
-		if (array_key_exists($keys[5], $arr)) $this->setIsPublished($arr[$keys[5]]);
-		if (array_key_exists($keys[6], $arr)) $this->setCreatedAt($arr[$keys[6]]);
-		if (array_key_exists($keys[7], $arr)) $this->setUpdatedAt($arr[$keys[7]]);
-		if (array_key_exists($keys[8], $arr)) $this->setCreatedBy($arr[$keys[8]]);
-		if (array_key_exists($keys[9], $arr)) $this->setUpdatedBy($arr[$keys[9]]);
+		if (array_key_exists($keys[5], $arr)) $this->setTextShort($arr[$keys[5]]);
+		if (array_key_exists($keys[6], $arr)) $this->setIsPublished($arr[$keys[6]]);
+		if (array_key_exists($keys[7], $arr)) $this->setCreatedAt($arr[$keys[7]]);
+		if (array_key_exists($keys[8], $arr)) $this->setUpdatedAt($arr[$keys[8]]);
+		if (array_key_exists($keys[9], $arr)) $this->setCreatedBy($arr[$keys[9]]);
+		if (array_key_exists($keys[10], $arr)) $this->setUpdatedBy($arr[$keys[10]]);
 	}
 
 	/**
@@ -1363,6 +1414,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if ($this->isColumnModified(JournalEntryPeer::TITLE)) $criteria->add(JournalEntryPeer::TITLE, $this->title);
 		if ($this->isColumnModified(JournalEntryPeer::SLUG)) $criteria->add(JournalEntryPeer::SLUG, $this->slug);
 		if ($this->isColumnModified(JournalEntryPeer::TEXT)) $criteria->add(JournalEntryPeer::TEXT, $this->text);
+		if ($this->isColumnModified(JournalEntryPeer::TEXT_SHORT)) $criteria->add(JournalEntryPeer::TEXT_SHORT, $this->text_short);
 		if ($this->isColumnModified(JournalEntryPeer::IS_PUBLISHED)) $criteria->add(JournalEntryPeer::IS_PUBLISHED, $this->is_published);
 		if ($this->isColumnModified(JournalEntryPeer::CREATED_AT)) $criteria->add(JournalEntryPeer::CREATED_AT, $this->created_at);
 		if ($this->isColumnModified(JournalEntryPeer::UPDATED_AT)) $criteria->add(JournalEntryPeer::UPDATED_AT, $this->updated_at);
@@ -1434,6 +1486,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		$copyObj->setTitle($this->getTitle());
 		$copyObj->setSlug($this->getSlug());
 		$copyObj->setText($this->getText());
+		$copyObj->setTextShort($this->getTextShort());
 		$copyObj->setIsPublished($this->getIsPublished());
 		$copyObj->setCreatedAt($this->getCreatedAt());
 		$copyObj->setUpdatedAt($this->getUpdatedAt());
@@ -2104,6 +2157,7 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		$this->title = null;
 		$this->slug = null;
 		$this->text = null;
+		$this->text_short = null;
 		$this->is_published = null;
 		$this->created_at = null;
 		$this->updated_at = null;
@@ -2179,14 +2233,13 @@ abstract class BaseJournalEntry extends BaseObject  implements Persistent
 		if($oUser === false) {
 			$oUser = Session::getSession()->getUser();
 		}
-		if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryPeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
-			return true;
-		}
-		if(JournalEntryPeer::mayOperateOn($oUser, $this, $sOperation)) {
-			return true;
-		}
 		$bIsAllowed = false;
-		FilterModule::getFilters()->handleOperationIsDenied($sOperation, $this, $oUser, array(&$bIsAllowed));
+		if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryPeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
+			$bIsAllowed = true;
+		} else if(JournalEntryPeer::mayOperateOn($oUser, $this, $sOperation)) {
+			$bIsAllowed = true;
+		}
+		FilterModule::getFilters()->handleJournalEntryOperationCheck($sOperation, $this, $oUser, array(&$bIsAllowed));
 		return $bIsAllowed;
 	}
 	public function mayBeInserted($oUser = false) {

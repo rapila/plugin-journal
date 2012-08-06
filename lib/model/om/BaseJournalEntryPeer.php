@@ -26,13 +26,13 @@ abstract class BaseJournalEntryPeer {
 	const TM_CLASS = 'JournalEntryTableMap';
 
 	/** The total number of columns. */
-	const NUM_COLUMNS = 10;
+	const NUM_COLUMNS = 11;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
 
 	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 10;
+	const NUM_HYDRATE_COLUMNS = 11;
 
 	/** the column name for the ID field */
 	const ID = 'journal_entries.ID';
@@ -48,6 +48,9 @@ abstract class BaseJournalEntryPeer {
 
 	/** the column name for the TEXT field */
 	const TEXT = 'journal_entries.TEXT';
+
+	/** the column name for the TEXT_SHORT field */
+	const TEXT_SHORT = 'journal_entries.TEXT_SHORT';
 
 	/** the column name for the IS_PUBLISHED field */
 	const IS_PUBLISHED = 'journal_entries.IS_PUBLISHED';
@@ -85,12 +88,12 @@ abstract class BaseJournalEntryPeer {
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
 	protected static $fieldNames = array (
-		BasePeer::TYPE_PHPNAME => array ('Id', 'JournalId', 'Title', 'Slug', 'Text', 'IsPublished', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'journalId', 'title', 'slug', 'text', 'isPublished', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
-		BasePeer::TYPE_COLNAME => array (self::ID, self::JOURNAL_ID, self::TITLE, self::SLUG, self::TEXT, self::IS_PUBLISHED, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'JOURNAL_ID', 'TITLE', 'SLUG', 'TEXT', 'IS_PUBLISHED', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
-		BasePeer::TYPE_FIELDNAME => array ('id', 'journal_id', 'title', 'slug', 'text', 'is_published', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
-		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
+		BasePeer::TYPE_PHPNAME => array ('Id', 'JournalId', 'Title', 'Slug', 'Text', 'TextShort', 'IsPublished', 'CreatedAt', 'UpdatedAt', 'CreatedBy', 'UpdatedBy', ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'journalId', 'title', 'slug', 'text', 'textShort', 'isPublished', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', ),
+		BasePeer::TYPE_COLNAME => array (self::ID, self::JOURNAL_ID, self::TITLE, self::SLUG, self::TEXT, self::TEXT_SHORT, self::IS_PUBLISHED, self::CREATED_AT, self::UPDATED_AT, self::CREATED_BY, self::UPDATED_BY, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'JOURNAL_ID', 'TITLE', 'SLUG', 'TEXT', 'TEXT_SHORT', 'IS_PUBLISHED', 'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY', ),
+		BasePeer::TYPE_FIELDNAME => array ('id', 'journal_id', 'title', 'slug', 'text', 'text_short', 'is_published', 'created_at', 'updated_at', 'created_by', 'updated_by', ),
+		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, )
 	);
 
 	/**
@@ -100,12 +103,12 @@ abstract class BaseJournalEntryPeer {
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
 	protected static $fieldKeys = array (
-		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'JournalId' => 1, 'Title' => 2, 'Slug' => 3, 'Text' => 4, 'IsPublished' => 5, 'CreatedAt' => 6, 'UpdatedAt' => 7, 'CreatedBy' => 8, 'UpdatedBy' => 9, ),
-		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'journalId' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'isPublished' => 5, 'createdAt' => 6, 'updatedAt' => 7, 'createdBy' => 8, 'updatedBy' => 9, ),
-		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::JOURNAL_ID => 1, self::TITLE => 2, self::SLUG => 3, self::TEXT => 4, self::IS_PUBLISHED => 5, self::CREATED_AT => 6, self::UPDATED_AT => 7, self::CREATED_BY => 8, self::UPDATED_BY => 9, ),
-		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'JOURNAL_ID' => 1, 'TITLE' => 2, 'SLUG' => 3, 'TEXT' => 4, 'IS_PUBLISHED' => 5, 'CREATED_AT' => 6, 'UPDATED_AT' => 7, 'CREATED_BY' => 8, 'UPDATED_BY' => 9, ),
-		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'journal_id' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'is_published' => 5, 'created_at' => 6, 'updated_at' => 7, 'created_by' => 8, 'updated_by' => 9, ),
-		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
+		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'JournalId' => 1, 'Title' => 2, 'Slug' => 3, 'Text' => 4, 'TextShort' => 5, 'IsPublished' => 6, 'CreatedAt' => 7, 'UpdatedAt' => 8, 'CreatedBy' => 9, 'UpdatedBy' => 10, ),
+		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'journalId' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'textShort' => 5, 'isPublished' => 6, 'createdAt' => 7, 'updatedAt' => 8, 'createdBy' => 9, 'updatedBy' => 10, ),
+		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::JOURNAL_ID => 1, self::TITLE => 2, self::SLUG => 3, self::TEXT => 4, self::TEXT_SHORT => 5, self::IS_PUBLISHED => 6, self::CREATED_AT => 7, self::UPDATED_AT => 8, self::CREATED_BY => 9, self::UPDATED_BY => 10, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'JOURNAL_ID' => 1, 'TITLE' => 2, 'SLUG' => 3, 'TEXT' => 4, 'TEXT_SHORT' => 5, 'IS_PUBLISHED' => 6, 'CREATED_AT' => 7, 'UPDATED_AT' => 8, 'CREATED_BY' => 9, 'UPDATED_BY' => 10, ),
+		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'journal_id' => 1, 'title' => 2, 'slug' => 3, 'text' => 4, 'text_short' => 5, 'is_published' => 6, 'created_at' => 7, 'updated_at' => 8, 'created_by' => 9, 'updated_by' => 10, ),
+		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, )
 	);
 
 	/**
@@ -182,6 +185,7 @@ abstract class BaseJournalEntryPeer {
 			$criteria->addSelectColumn(JournalEntryPeer::TITLE);
 			$criteria->addSelectColumn(JournalEntryPeer::SLUG);
 			$criteria->addSelectColumn(JournalEntryPeer::TEXT);
+			$criteria->addSelectColumn(JournalEntryPeer::TEXT_SHORT);
 			$criteria->addSelectColumn(JournalEntryPeer::IS_PUBLISHED);
 			$criteria->addSelectColumn(JournalEntryPeer::CREATED_AT);
 			$criteria->addSelectColumn(JournalEntryPeer::UPDATED_AT);
@@ -193,6 +197,7 @@ abstract class BaseJournalEntryPeer {
 			$criteria->addSelectColumn($alias . '.TITLE');
 			$criteria->addSelectColumn($alias . '.SLUG');
 			$criteria->addSelectColumn($alias . '.TEXT');
+			$criteria->addSelectColumn($alias . '.TEXT_SHORT');
 			$criteria->addSelectColumn($alias . '.IS_PUBLISHED');
 			$criteria->addSelectColumn($alias . '.CREATED_AT');
 			$criteria->addSelectColumn($alias . '.UPDATED_AT');

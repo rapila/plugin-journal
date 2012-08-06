@@ -11,6 +11,7 @@
  * @method     JournalEntryQuery orderByTitle($order = Criteria::ASC) Order by the title column
  * @method     JournalEntryQuery orderBySlug($order = Criteria::ASC) Order by the slug column
  * @method     JournalEntryQuery orderByText($order = Criteria::ASC) Order by the text column
+ * @method     JournalEntryQuery orderByTextShort($order = Criteria::ASC) Order by the text_short column
  * @method     JournalEntryQuery orderByIsPublished($order = Criteria::ASC) Order by the is_published column
  * @method     JournalEntryQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     JournalEntryQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
@@ -22,6 +23,7 @@
  * @method     JournalEntryQuery groupByTitle() Group by the title column
  * @method     JournalEntryQuery groupBySlug() Group by the slug column
  * @method     JournalEntryQuery groupByText() Group by the text column
+ * @method     JournalEntryQuery groupByTextShort() Group by the text_short column
  * @method     JournalEntryQuery groupByIsPublished() Group by the is_published column
  * @method     JournalEntryQuery groupByCreatedAt() Group by the created_at column
  * @method     JournalEntryQuery groupByUpdatedAt() Group by the updated_at column
@@ -60,6 +62,7 @@
  * @method     JournalEntry findOneByTitle(string $title) Return the first JournalEntry filtered by the title column
  * @method     JournalEntry findOneBySlug(string $slug) Return the first JournalEntry filtered by the slug column
  * @method     JournalEntry findOneByText(string $text) Return the first JournalEntry filtered by the text column
+ * @method     JournalEntry findOneByTextShort(string $text_short) Return the first JournalEntry filtered by the text_short column
  * @method     JournalEntry findOneByIsPublished(boolean $is_published) Return the first JournalEntry filtered by the is_published column
  * @method     JournalEntry findOneByCreatedAt(string $created_at) Return the first JournalEntry filtered by the created_at column
  * @method     JournalEntry findOneByUpdatedAt(string $updated_at) Return the first JournalEntry filtered by the updated_at column
@@ -71,6 +74,7 @@
  * @method     array findByTitle(string $title) Return JournalEntry objects filtered by the title column
  * @method     array findBySlug(string $slug) Return JournalEntry objects filtered by the slug column
  * @method     array findByText(string $text) Return JournalEntry objects filtered by the text column
+ * @method     array findByTextShort(string $text_short) Return JournalEntry objects filtered by the text_short column
  * @method     array findByIsPublished(boolean $is_published) Return JournalEntry objects filtered by the is_published column
  * @method     array findByCreatedAt(string $created_at) Return JournalEntry objects filtered by the created_at column
  * @method     array findByUpdatedAt(string $updated_at) Return JournalEntry objects filtered by the updated_at column
@@ -164,7 +168,7 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
 	 */
 	protected function findPkSimple($key, $con)
 	{
-		$sql = 'SELECT `ID`, `JOURNAL_ID`, `TITLE`, `SLUG`, `TEXT`, `IS_PUBLISHED`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journal_entries` WHERE `ID` = :p0';
+		$sql = 'SELECT `ID`, `JOURNAL_ID`, `TITLE`, `SLUG`, `TEXT`, `TEXT_SHORT`, `IS_PUBLISHED`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journal_entries` WHERE `ID` = :p0';
 		try {
 			$stmt = $con->prepare($sql);
 			$stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -399,6 +403,34 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
 			}
 		}
 		return $this->addUsingAlias(JournalEntryPeer::TEXT, $text, $comparison);
+	}
+
+	/**
+	 * Filter the query on the text_short column
+	 *
+	 * Example usage:
+	 * <code>
+	 * $query->filterByTextShort('fooValue');   // WHERE text_short = 'fooValue'
+	 * $query->filterByTextShort('%fooValue%'); // WHERE text_short LIKE '%fooValue%'
+	 * </code>
+	 *
+	 * @param     string $textShort The value to use as filter.
+	 *              Accepts wildcards (* and % trigger a LIKE)
+	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+	 *
+	 * @return    JournalEntryQuery The current query, for fluid interface
+	 */
+	public function filterByTextShort($textShort = null, $comparison = null)
+	{
+		if (null === $comparison) {
+			if (is_array($textShort)) {
+				$comparison = Criteria::IN;
+			} elseif (preg_match('/[\%\*]/', $textShort)) {
+				$textShort = str_replace('*', '%', $textShort);
+				$comparison = Criteria::LIKE;
+			}
+		}
+		return $this->addUsingAlias(JournalEntryPeer::TEXT_SHORT, $textShort, $comparison);
 	}
 
 	/**
