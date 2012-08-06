@@ -1,15 +1,16 @@
-Hi,
+{{writeString=comment_email.hello}}
 
-someone has left a comment on your entry {{entry}} of the journal {{journal}}.
+{{writeParameterizedString=comment_email.introduction;entry=\{\{entry\}\};journal=\{\{journal\}\};}}
+{{writeString=comment_email.commentor_name}}: {{user}}
+{{writeString=comment_email.commentor_email}}: {{email}}
+{{writeString=comment_email.comment}}:
 
-Name: {{user}}
-Email: {{email}}
-Comment:
+******************************************************************
 
-================
 {{comment}}
-================
 
-The comment is live already.
-To deactivate it, visit {{deactivation_link}}
-To delete it, visit {{deletion_link}}
+******************************************************************
+
+{{writeString=comment_email.comment_notified_byline}}:
+{{writeString=comment_email.visite_for_deletion}}: {{deletion_link}}
+{{writeString=comment_email.visite_for_activation}}: {{activation_link}}

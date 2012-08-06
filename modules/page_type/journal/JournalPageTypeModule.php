@@ -305,11 +305,11 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oFlash = Flash::getFlash();
 			$oComment = new JournalComment();
 			$oComment->setUsername($_POST['comment_name']);
-			$oFlash->checkForValue('comment_name', 'name');
+			$oFlash->checkForValue('comment_name', 'comment_name_required');
 			$oComment->setEmail($_POST['comment_email']);
-			$oFlash->checkForEmail('comment_email', 'email');
+			$oFlash->checkForEmail('comment_email', 'comment_email_required');
 			if(!FormFrontendModule::validateRecaptchaInput()) {
-				$oFlash->addMessage('captcha');
+				$oFlash->addMessage('captcha_required');
 			}
 			$oPurifierConfig = HTMLPurifier_Config::createDefault();
 			$oPurifierConfig->set('Cache.SerializerPath', MAIN_DIR.'/'.DIRNAME_GENERATED.'/'.DIRNAME_CACHES.'/purifier');
@@ -318,7 +318,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oPurifier = new HTMLPurifier($oPurifierConfig);
 			$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
 			$oComment->setText($_POST['comment_text']);
-			$oFlash->checkForValue('comment_text', 'comment');
+			$oFlash->checkForValue('comment_text', 'comment_required');
 			$oFlash->finishReporting();
 			if(isset($_POST['preview'])) {
 				$oComment->setCreatedAt(date('c'));

@@ -1,20 +1,22 @@
+{{identifierContext=start;name=new_comment_thank_you_message}}<div class="new_comment_thank_you_message">{{new_comment_thank_you_message}}</div>
+{{identifierContext=end;name=new_comment_thank_you_message}}
 <form class="leave_comment" action="{{comment_action}}#comments" method="post">
 	<fieldset class="journal_comment"><legend>{{writeString=journal.comment.add}}</legend>
   <p><label for="comment_name">{{writeString=wns.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=name\}\}}}
-  <p>{{writeFlashValue=name}}</p>
+  {{if=ne;1=\{\{writeFlashValue\=comment_name_required\}\}}}
+  <p>{{writeFlashValue=comment_name_required}}</p>
   {{endIf}}
   <p><label for="comment_email">{{writeString=wns.email}}</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=email\}\}}}
-  <p>{{writeFlashValue=email}}</p>
+  {{if=ne;1=\{\{writeFlashValue\=comment_email_required\}\}}}
+  <p>{{writeFlashValue=comment_email_required}}</p>
   {{endIf}}
   <p><label for="comment_text">{{writeString=journal.form.comment}}</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
-  {{if=ne;1=\{\{writeFlashValue\=comment\}\}}}
-  <p>{{writeFlashValue=comment}}</p>
+  {{if=ne;1=\{\{writeFlashValue\=comment_required\}\}}}
+  <p>{{writeFlashValue=comment_required}}</p>
   {{endIf}}
   <p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}</p>
-  {{if=ne;1=\{\{writeFlashValue\=captcha\}\}}}
-  <p>{{writeFlashValue=captcha}}</p>
+  {{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
+  <p>{{writeFlashValue=captcha_required}}</p>
   {{endIf}}
   <p><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
 	</fieldset>
