@@ -17,7 +17,7 @@ class JournalCommentModerationFileModule extends FileModule {
 		JournalCommentPeer::ignoreRights(true);
 		$sAction = StringUtil::camelize("comment_$this->sAction");
 		$this->$sAction();
-		echo 'done';
+		echo StringPeer::getString("journal_comment.executed_$this->sAction", null, 'done');
 	}
 
 	public function commentDeactivate() {
