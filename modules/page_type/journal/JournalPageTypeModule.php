@@ -153,13 +153,18 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oEntryTemplate->replaceIdentifierMultiple('tags', $oTagInstance->getTag()->getReadableName(), null, Template::NO_NEW_CONTEXT|Template::NO_NEWLINE);			
 			}
 		}
+		$oSession = Session::getSession();
+		if($oSession->hasAttribute('has_new_comment')) {
+			$oSession->resetAttribute('has_new_comment');
+			$oEntryTemplate->replaceIdentifier('new_comment_thank_you_message', StringPeer::getString('journal_entry.new_comment_thank_you'));			
+		}
+		
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
 		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
 		}
-		
 		return $oEntryTemplate;
 	}
 
@@ -271,7 +276,9 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
 				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
 				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
-				$oMonthTemplate->replaceIdentifier('month_name', LocaleUtil::localizeDate($aDate['Month']), 'B');
+				LocaleUtil::getLocaleId();
+				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
+				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
 				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
 			}
 			
@@ -448,6 +455,8 @@ class JournalPageTypeModule extends PageTypeModule {
 						$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
 						$oEmail->send();
 				}
+				$oSession = Session::getSession();
+				$oSession->setAttribute('has_new_comment', true);
 				LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink())."#comments");
 			}
 		}
