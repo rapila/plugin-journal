@@ -10,4 +10,9 @@ journal:
         - ["Subscript", "Superscript", "-", "Maximize"]
         - ["Source"]
   externally_managed_images_category: 1
+  
+# tag_cloud config, set pixel_size_min parameters to null, if you do not want variable sizes
+  tag_cloud:
+    pixel_size_min: 12
+    pixel_size_max: 22
 

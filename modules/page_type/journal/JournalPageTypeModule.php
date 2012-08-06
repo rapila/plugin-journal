@@ -3,6 +3,7 @@
 require_once('htmlpurifier/HTMLPurifier.standalone.php');
 
 class JournalPageTypeModule extends PageTypeModule {
+	
 	private $sCommentMode;
 	private $sOverviewMode;
 	private $iJournalId = null;
@@ -109,6 +110,27 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oModule->renderJournalEntries(JournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
 		return $oTemplate;
 	}
+	
+	private function displayOverviewList($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
+	}
+	
+	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
+	}
+	
+	private function displayOverviewFull($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
+	}
 
 	private function renderJournalEntries(JournalEntryQuery $oQuery, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
 		if($sContainerName === null) {
@@ -175,23 +197,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oEntryTemplate;
 	}
 
-	private function renderGallery(JournalEntry $oEntry) {
-		$oEntryTemplate = $this->constructTemplate('journal_gallery');
-		$oListTemplate = new Template('helpers/gallery');
-		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
-
-		foreach($this->oEntry->getJournalEntryImages() as $oJournalEntryImage) {
-			$oDocument = $oJournalEntryImage->getDocument();
-			$oItemTemplate = new Template('helpers/gallery_item');
-			$oDocument->renderListItem($oItemTemplate);
-			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
-		}
-		
-		$oEntryTemplate->replaceIdentifier('gallery', $oListTemplate);
-		return $oEntryTemplate;
-	}
-
-
 	private function renderComments($aComments, JournalEntry $oEntry = null) {
 		$oEntryTemplate = $this->constructTemplate('comments');
 		$oEntryTemplate->replaceIdentifier('comment_count', count($aComments));
@@ -252,141 +257,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
 		$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, 'entries');
 		return $oTemplate;
-	}
-	
-	private function renderCalendarWidget() {
-		// prepare
-		$oQuery=JournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->filterByIsPublished(true)->clearSelectColumns();
-		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
-		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
-		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
-		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
-		
-		$oTemplate = $this->constructTemplate('calendar');
-		$oYearPrototype = $this->constructTemplate('calendar_item_year');
-		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
-		$oDayPrototype = $this->constructTemplate('calendar_item_day');
-		$sPreviousYear = null;
-		$sPreviousMonth = null;
-		$oYearTemplate = null;
-		$oMonthTemplate = null;
-
-		foreach($aResult as $aDate) {
-			// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
-			// and add it to year template
-			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
-				$sPreviousMonth = $aDate['Month'];
-				if($oMonthTemplate) {
-					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-				}
-				$oMonthTemplate = clone $oMonthPrototype;
-				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
-				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
-				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
-				LocaleUtil::getLocaleId();
-				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
-				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
-				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
-			}
-			
-			// make year template whenever the year changes and add it to main template
-			if($aDate['Year'] !== $sPreviousYear) {
-				$sPreviousYear = $aDate['Year'];
-				if($oYearTemplate) {
-					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-				}
-				$oYearTemplate = clone $oYearPrototype;
-				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
-				if($aDate['Year'] === $this->iYear) {
-					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
-					$oYearTemplate->replaceIdentifier('display', 'block');
-				} else {
-					$oYearTemplate->replaceIdentifier('display', 'none');
-				}
-				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
-			}
-			
-			if(!$oMonthTemplate->hasIdentifier('day_item')) {
-				continue;
-			}
-			
-			// make day item template and add it to month template
-			$oDayTemplate = clone $oDayPrototype;
-			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
-			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
-			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
-			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
-			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
-		}
-		
-		if($oMonthTemplate) {
-			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-		}
-		if($oYearTemplate) {
-			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-		}
-		return $oTemplate;
-	}
-	
-	private function renderTagCloudWidget() {
-		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
-
-		if(empty($aTags)) {
-			return null;
-		}
-		// Calculation of font-size
-		$iMin = min($aTags);
-		$iMax = max($aTags);
-		$iDiff = $iMax - $iMin;
-		$iMinPixelFontSize = 10;
-		$iMaxPixelFontSize = 20;
-		if(array_sum($aTags) > 40) {
-			$iMaxPixelFontSize = 30;
-		}
-		$iPixelStep = ($iMaxPixelFontSize - $iMinPixelFontSize) / $iDiff;
-		$oTemplate = $this->constructTemplate('tag');
-		$oItemPrototype = $this->constructTemplate('tag_item');
-		$sLabelEntry = StringPeer::getString('wns.');
-		// $oPage = $this->oNavigationItem;
-		// Util::dumpAll($oPage->getLink());
-		foreach($aTags as $sName => $iCount) {
-			$oItemTemplate = clone $oItemPrototype;
-			$iFontSize = (int) ceil($iMinPixelFontSize + (($iCount - $iMin) * $iPixelStep));
-			$oItemTemplate->replaceIdentifier('font_size', $iFontSize);
-			$oItemTemplate->replaceIdentifier('line_height', ceil($iFontSize * 1.2));
-			if(is_array($this->aTags) && in_array($sName, $this->aTags)) {
-				$oItemTemplate->replaceIdentifier('class_active', ' active');
-				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.remove'));
-				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_FILTER => $sName)));
-			} else {
-				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_FILTER => $sName)));
-				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
-			}
-			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
-			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
-		}
-		return $oTemplate;
-	}
-	
-	private function displayOverviewList($oTemplate, $oQuery = null) {
-		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
-		}
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
-	}
-	
-	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
-		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
-		}
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
-	}
-	
-	private function displayOverviewFull($oTemplate, $oQuery = null) {
-		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
-		}
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
 	}
 	
 	private function displayYear($oTemplate) {
@@ -490,8 +360,173 @@ class JournalPageTypeModule extends PageTypeModule {
 		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', 'default'));
 	}
 
+ /**
+	* renderCalendarWidget()
+	* 
+	* description: display calendar
+	* • as calender (date_picker), include javascript file web/js/journal-collapsible-date-tree.js
+	* • as collapsible date tree, include javascript file web/js/calendar.js
+	* 
+	* @return Template object
+	*/	
+	private function renderCalendarWidget() {
+		// prepare
+		$oQuery=JournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->filterByIsPublished(true)->clearSelectColumns();
+		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
+		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
+		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
+		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		
+		$oTemplate = $this->constructTemplate('calendar');
+		$oYearPrototype = $this->constructTemplate('calendar_item_year');
+		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
+		$oDayPrototype = $this->constructTemplate('calendar_item_day');
+		$sPreviousYear = null;
+		$sPreviousMonth = null;
+		$oYearTemplate = null;
+		$oMonthTemplate = null;
 
+		foreach($aResult as $aDate) {
+			// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
+			// and add it to year template
+			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
+				$sPreviousMonth = $aDate['Month'];
+				if($oMonthTemplate) {
+					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+				}
+				$oMonthTemplate = clone $oMonthPrototype;
+				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
+				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
+				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
+				LocaleUtil::getLocaleId();
+				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
+				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
+				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
+			}
+			
+			// make year template whenever the year changes and add it to main template
+			if($aDate['Year'] !== $sPreviousYear) {
+				$sPreviousYear = $aDate['Year'];
+				if($oYearTemplate) {
+					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+				}
+				$oYearTemplate = clone $oYearPrototype;
+				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
+				if($aDate['Year'] === $this->iYear) {
+					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
+					$oYearTemplate->replaceIdentifier('display', 'block');
+				} else {
+					$oYearTemplate->replaceIdentifier('display', 'none');
+				}
+				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
+			}
+			
+			if(!$oMonthTemplate->hasIdentifier('day_item')) {
+				continue;
+			}
+			
+			// make day item template and add it to month template
+			$oDayTemplate = clone $oDayPrototype;
+			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
+			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
+			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
+			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
+		}
+		
+		if($oMonthTemplate) {
+			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+		}
+		if($oYearTemplate) {
+			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+		}
+		return $oTemplate;
+	}
+	
+ /**
+	* renderTagCloudWidget()
+	* 
+	* description: 
+	* display tags with variable font-size, @see config.yml section journal tag_cloud [pixel_size_min, pixel_size_max]
+	* 
+	* @return Template object / null
+	*/	
+	private function renderTagCloudWidget() {
+		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
 
+		if(empty($aTags)) {
+			return null;
+		}
+		// Configure display style of cloud
+		$bUseSizes = false;
+		$iMinPixelFontSize = null;
+		$iMaxPixelFontSize = null;
+		$aSizeParams = Settings::getSetting('journal', 'tag_cloud', null);
+		if(isset($aSizeParams['pixel_size_min'])) {
+			$iMinPixelFontSize = $aSizeParams['pixel_size_min'];
+		}
+		if(isset($aSizeParams['pixel_size_max'])) {
+			$iMaxPixelFontSize = $aSizeParams['pixel_size_max'];
+		}
+		if($iMinPixelFontSize !== null && $iMaxPixelFontSize !== null) {
+			$bUseSizes = true;
+		}
+		// Calculate font sizes
+		if($bUseSizes) {
+			$iMinCount = min($aTags);
+			$iMaxCount = max($aTags);
+			$iFactor = 1;
+			if($iMaxCount > $iMinCount) {
+				$iFactor = $iMaxCount - $iMinCount;
+			}
+			$iPixelStep = ($iMaxPixelFontSize - $iMinPixelFontSize) / $iFactor;
+		}
+		// Render tags
+		$oTemplate = $this->constructTemplate('tag');
+		$oItemPrototype = $this->constructTemplate('tag_item');
+		$sLabelEntry = StringPeer::getString('wns.');
+		foreach($aTags as $sName => $iCount) {
+			$oItemTemplate = clone $oItemPrototype;
+			if($bUseSizes) {
+				$iFontSize = (int) ceil($iMinPixelFontSize + (($iCount - $iMinCount) * $iPixelStep));
+				$oItemTemplate->replaceIdentifier('size_style', ' style="font-size:'.$iFontSize.'px;line-height:'.ceil($iFontSize * 1.2).'px;"', null, Template::NO_HTML_ESCAPE);
+			}
+			if(is_array($this->aTags) && in_array($sName, $this->aTags)) {
+				$oItemTemplate->replaceIdentifier('class_active', ' active');
+				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.remove'));
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_FILTER => $sName)));
+			} else {
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_FILTER => $sName)));
+				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
+			}
+			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
+			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
+		}
+		return $oTemplate;
+	}
+
+ /**
+	* renderGallery()
+	* 
+	* description: display image gallery
+	* 
+	* @return Template object
+	*/	
+	private function renderGallery(JournalEntry $oEntry) {
+		$oEntryTemplate = $this->constructTemplate('journal_gallery');
+		$oListTemplate = new Template('helpers/gallery');
+		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
+
+		foreach($this->oEntry->getJournalEntryImages() as $oJournalEntryImage) {
+			$oDocument = $oJournalEntryImage->getDocument();
+			$oItemTemplate = new Template('helpers/gallery_item');
+			$oDocument->renderListItem($oItemTemplate);
+			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
+		}
+		
+		$oEntryTemplate->replaceIdentifier('gallery', $oListTemplate);
+		return $oEntryTemplate;
+	}
 
 
 
