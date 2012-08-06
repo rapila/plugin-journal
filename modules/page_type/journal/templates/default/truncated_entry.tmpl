@@ -1,0 +1,9 @@
+<h2 class="journal_title"><a rel="internal" href="{{link}}">{{title}}</a></h2>
+<div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}{{identifierContext=start;name=user_name}}, {{user_name}}{{identifierContext=end;name=user_name}}</div>
+<div class="journal_content">
+  {{text_short}}<a href="{{read_more_link}}" class="read_more">{{writeString=journal_entry.read_more}}</a>
+</div>{{identifierContext=start;name=tags}}
+<div class="tags">{{writeString=journal_entry.related_tags}}: {{tags}}</div>{{identifierContext=end;name=tags}}
+<div class="journal_info info">
+	<a rel="internal" href="{{link}}#comments">{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}</a>
+</div>

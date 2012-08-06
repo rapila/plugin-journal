@@ -136,10 +136,17 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
 		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
-		$oEntryTemplate->replaceIdentifier('link', LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager'));
+		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
+		$oEntryTemplate->replaceIdentifier('link', $sDetailLink);
 		
 		if($oEntryTemplate->hasIdentifier('text')) {
 			$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
+		}
+		if($oEntryTemplate->hasIdentifier('text_short')) {
+			$oEntryTemplate->replaceIdentifier('text_short', RichtextUtil::parseStorageForFrontendOutput($oEntry->getTextShort()));
+			if($oEntryTemplate->hasIdentifier('read_more_link')) {
+				$oEntryTemplate->replaceIdentifier('read_more_link', $sDetailLink);
+			}
 		}
 		if($this->oEntry !== null && $this->oEntry == $oEntry) {
 			$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
@@ -363,6 +370,13 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oQuery = JournalEntryQuery::create();
 		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
+	}
+	
+	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
+		if(!$oQuery) {
+			$oQuery = JournalEntryQuery::create();
+		}
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
 	}
 	
 	private function displayOverviewFull($oTemplate, $oQuery = null) {
