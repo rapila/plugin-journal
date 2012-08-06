@@ -76,7 +76,7 @@ class JournalFilterModule extends FilterModule {
 				}
 			} else if($oNavigationItem->getType() === 'journal-day') {
 				list($iJournalId, $iYear, $iMonth, $iDay) = $aData;
-				foreach(JournalEntryQuery::create()->filterByDate($iYear, $iMonth, $iDay)->excludeDraft()->filterByJournalId($iJournalId)->find() as $oEntry) {
+				foreach(FrontendJournalEntryQuery::create()->filterByDate($iYear, $iMonth, $iDay)->filterByJournalId($iJournalId)->find() as $oEntry) {
 					$oItem = new VirtualNavigationItem('journal-entry', $oEntry->getSlug(), $oEntry->getTitle(), null, $oEntry);
 					$oNavigationItem->addChild($oItem);
 				}

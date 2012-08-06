@@ -8,7 +8,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sOverviewMode;
 	private $iJournalId = null;
 	private $aTags = null;
-	private $iPage = null;
 	private $sTemplateSet;
 	private $sContainerName;
 	private $sAuxiliaryContainer;
@@ -17,6 +16,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $iYear = null;
 	private $iMonth = null;
 	private $iDay = null;
+	private $iPageCount;
+	private $iPage = null;
+	private $iLimit = 2;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 	const ADD_FILTER = 'add_filter';
@@ -107,27 +109,31 @@ class JournalPageTypeModule extends PageTypeModule {
 	public static function displayForHome($oItemTemplate) {
 		$oModule = new JournalPageTypeModule();
 		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
-		$oModule->renderJournalEntries(JournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
+		$oModule->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
 		return $oTemplate;
 	}
 	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
 		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
+			$oQuery = FrontendJournalEntryQuery::create();
+		}
+		// handle limit and pages
+		if($this->iLimit) {
+			$oQuery->limit($this->iLimit);
 		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
 	
 	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
 		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
+			$oQuery = FrontendJournalEntryQuery::create();
 		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
 	}
 	
 	private function displayOverviewFull($oTemplate, $oQuery = null) {
 		if(!$oQuery) {
-			$oQuery = JournalEntryQuery::create();
+			$oQuery = FrontendJournalEntryQuery::create();
 		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
 	}
@@ -142,7 +148,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->aTags !== null) {
 			$oQuery->filterByTagName($this->aTags);
 		}
-		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->excludeDraft()->find() as $oEntry) {
+		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
 		}
 	}
@@ -158,6 +164,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
 		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
+		
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', $sDetailLink);
 		
@@ -255,7 +262,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private function renderRecentEntriesWidget() {
 		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
-		$this->renderJournalEntries(JournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, 'entries');
+		$this->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, 'entries');
 		return $oTemplate;
 	}
 	
@@ -371,7 +378,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	*/	
 	private function renderCalendarWidget() {
 		// prepare
-		$oQuery=JournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->filterByIsPublished(true)->clearSelectColumns();
+		$oQuery = FrontendJournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->clearSelectColumns();
 		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
 		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
 		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');

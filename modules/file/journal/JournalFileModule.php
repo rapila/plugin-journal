@@ -26,7 +26,7 @@ class JournalFileModule extends FileModule {
     $oRoot->setAttribute('version', "2.0");
     $oDocument->appendChild($oRoot);
     $oChannel = $oDocument->createElement("channel");
-		$oQuery = JournalEntryQuery::create()->mostRecent(10);
+		$oQuery = FrontendJournalEntryQuery::create()->mostRecent(10);
 		if($this->iJournalId) {
 			$oQuery->filterByJournalId($this->iJournalId);
 			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
@@ -40,7 +40,7 @@ class JournalFileModule extends FileModule {
     self::addSimpleAttribute($oDocument, $oChannel, 'language', Session::language());
     self::addSimpleAttribute($oDocument, $oChannel, 'ttl', "15");
     $oRoot->appendChild($oChannel);
-    $aJournalEntries = $oQuery->excludeDraft()->find();
+    $aJournalEntries = $oQuery->find();
     foreach($aJournalEntries as $oJournalEntry) {
       $oItem = $oDocument->createElement('item');
       foreach($oJournalEntry->getRssAttributes($this->iJournalId ? $this->oJournalPage : null) as $sAttributeName => $mAttributeValue) {
