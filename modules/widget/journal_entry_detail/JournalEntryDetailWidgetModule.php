@@ -110,7 +110,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oEntry->setIsPublished($aData['is_published']);
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
-		$oEntry->setText($oRichtextUtil->parseInputFromEditor($aData['text']));
+		$sText = $oRichtextUtil->parseInputFromEditor($aData['text']);
+		$oEntry->setText($sText);
+		// store short version of text, use first paragraph if there are more then one
+		$aParagraphs = preg_split('/(?=<p>)/', $sText, -1, PREG_SPLIT_NO_EMPTY);
+		if(count($aParagraphs) > 1) {
+			$oEntry->setTextShort($aParagraphs[0]);
+		}
+
 		return $oEntry->save();
 	}
 }

@@ -16,6 +16,7 @@
 	<column name="title" type="varchar" size="180" required="true"/>
 	<column name="slug" type="varchar" size="50" required="true"/>
 	<column name="text" type="longvarchar" required="true" />
+	<column name="text_short" type="longvarchar" required="true" />
 	<column name="is_published" type="boolean" size="1" default="0" />
 	<behavior name="taggable" />
 	<behavior name="denyable">

@@ -11,6 +11,7 @@
  * @package model
  */ 
 class JournalEntryPeer extends BaseJournalEntryPeer {
+	
 	public static function addSearchToCriteria($sSearch, $oCriteria) {
 		$oSearchCriterion = $oCriteria->getNewCriterion(self::TITLE, "%$sSearch%", Criteria::LIKE);
 		$oSearchCriterion->addOr($oCriteria->getNewCriterion(self::TEXT, "%$sSearch%", Criteria::LIKE));
