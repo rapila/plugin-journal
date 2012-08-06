@@ -330,7 +330,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private function renderTagCloudWidget() {
 		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
-		
+
+		if(empty($aTags)) {
+			return null;
+		}
 		// Calculation of font-size
 		$iMin = min($aTags);
 		$iMax = max($aTags);
