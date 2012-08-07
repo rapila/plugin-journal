@@ -116,7 +116,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		// store short version of text, use first paragraph if there are more then one
 		$aParagraphs = preg_split('/(?=<p>)/', $sText, -1, PREG_SPLIT_NO_EMPTY);
 		if(isset($aParagraphs[0])) {
-			$oEntry->setTextShort($aParagraphs[0]);
+			// @todo check this handling, see Glücksterror, whats the problem
+			$sJustText = trim(strip_tags($aParagraphs[0]));
+			if($sJustText == null && isset($aParagraphs[1])) {
+				$sShortText = $aParagraphs[1];
+			} else {
+				$sShortText = $aParagraphs[0];
+			}
+			$oEntry->setTextShort($sShortText);
 		}
 
 		return $oEntry->save();
