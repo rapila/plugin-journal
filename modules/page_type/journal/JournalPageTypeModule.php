@@ -148,20 +148,23 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$iPagesCount = (int) ceil($iCountAll/$this->iLimit);
 		$oPagerTemplate = $this->constructTemplate('pagination');
+		$aPagerLinkTexts = Settings::getSetting('journal', 'pagination_link_text', null);
+		$sPreviousLinkText = isset($aPagerLinkTexts['previous']) ? $aPagerLinkTexts['previous'] : '<';
+		$sNextLinkText = isset($aPagerLinkTexts['next']) ? $aPagerLinkTexts['next'] : '>';
 
 		// if has previous link
 		if($this->iPage > 1) {
-			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage-1))), '<');
+			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage-1))), $sPreviousLinkText);
 		} else {
-			$oPreviousLink = TagWriter::quickTag('span', array(), '<');
+			$oPreviousLink = TagWriter::quickTag('span', array(), $sPreviousLinkText);
 		}
 		$oPagerTemplate->replaceIdentifier('previous_link', $oPreviousLink);
 		
 		// if has next link
 		if($this->iPage < $iPagesCount) {
-			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage+1))), '>');
+			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage+1))), $sNextLinkText);
 		} else {
-			$oNextLink = TagWriter::quickTag('span', array(), '>');
+			$oNextLink = TagWriter::quickTag('span', array(), $sNextLinkText);
 		}
 		$oPagerTemplate->replaceIdentifier('next_link', $oNextLink);
 		
