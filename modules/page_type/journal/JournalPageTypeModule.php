@@ -49,6 +49,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iDay = $aData->getCreatedAt('j');
 			}
 		}
+		$this->iLimit = Settings::getSetting('journal', 'pagination_limit', null);
 		$this->setFilters();
 	}
 	
@@ -114,40 +115,84 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
-		if(!$oQuery) {
-			$oQuery = FrontendJournalEntryQuery::create();
-		}
-		// handle limit and pages
-		if($this->iLimit) {
-			$oQuery->limit($this->iLimit);
-		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
 	
 	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
-		if(!$oQuery) {
-			$oQuery = FrontendJournalEntryQuery::create();
-		}
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
 	}
 	
 	private function displayOverviewFull($oTemplate, $oQuery = null) {
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
+	}
+	
+	private function handlePagination(&$oQuery, $oTemplate) {
 		if(!$oQuery) {
 			$oQuery = FrontendJournalEntryQuery::create();
 		}
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
+		if($this->iLimit === null) {
+			return;
+		}
+
+		$iCountAll = $oQuery->count();
+		$oQuery->limit($this->iLimit);
+		
+		// display pager if count is larger then limit
+		if($iCountAll <= $this->iLimit) {
+			return;
+		}
+		$this->iPage = (int) (isset($_REQUEST['page']) ? $_REQUEST['page'] : 1);
+		if($this->iPage > 1) {
+			$iOffset = ($this->iPage-1)*$this->iLimit;
+			$oQuery->offset($iOffset);
+		}
+		$iPagesCount = (int) ceil($iCountAll/$this->iLimit);
+		$oPagerTemplate = $this->constructTemplate('pagination');
+
+		// if has previous link
+		if($this->iPage > 1) {
+			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage-1))), '<');
+		} else {
+			$oPreviousLink = TagWriter::quickTag('span', array(), '<');
+		}
+		$oPagerTemplate->replaceIdentifier('previous_link', $oPreviousLink);
+		
+		// if has next link
+		if($this->iPage < $iPagesCount) {
+			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage+1))), '>');
+		} else {
+			$oNextLink = TagWriter::quickTag('span', array(), '>');
+		}
+		$oPagerTemplate->replaceIdentifier('next_link', $oNextLink);
+		
+		// page links
+		for($i = 1; $i <= $iPagesCount; $i++) {
+			if($i === $this->iPage) {
+				$oPageLink = TagWriter::quickTag('span', array(), $i);
+			} else {
+				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $i))), $i);
+			}
+			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
+		}
+		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
 	}
 
-	private function renderJournalEntries(JournalEntryQuery $oQuery, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
+	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
+
+		if($oQuery === null) {
+			$oQuery = FrontendJournalEntryQuery::create();
+		}
 		if($sContainerName === null) {
 			$sContainerName = $this->sContainerName;
 		}
 		if($this->iJournalId) {
 			$oQuery->filterByJournalId($this->iJournalId);
 		}
-		if($this->aTags !== null) {
+		if(!empty($this->aTags)) {
 			$oQuery->filterByTagName($this->aTags);
 		}
+		$this->handlePagination($oQuery, $oFullTemplate);
+
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
 		}
