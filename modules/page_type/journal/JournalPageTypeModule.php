@@ -4,21 +4,44 @@ require_once('htmlpurifier/HTMLPurifier.standalone.php');
 
 class JournalPageTypeModule extends PageTypeModule {
 	
+	// options: on, off, moderated
 	private $sCommentMode;
+	
+	// options: list, short, full view
 	private $sOverviewMode;
+	
+	// journal
 	private $iJournalId = null;
+	
+	// tags that are selected
 	private $aTags = null;
+	
+	// main blog template
 	private $sTemplateSet;
+	
+	// main container for overviews and journal entry detail
 	private $sContainerName;
+	
+	// auxiliary container for widgets
 	private $sAuxiliaryContainer;
+	
+	// ????
 	private $bDatesHidden;
+	
+	// widgets [recent entries, calendar, collapsible-date-tree]
 	private $aWidgets;
+	
+	// virtual item year
 	private $iYear = null;
+	
+	// virtual item month
 	private $iMonth = null;
+	
+	// virtual item day
 	private $iDay = null;
-	private $iPageCount;
-	private $iPage = null;
-	private $iLimit = 2;
+		
+	// entries per overview page
+	private $iLimit = null;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 	const ADD_FILTER = 'add_filter';
@@ -141,9 +164,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($iCountAll <= $this->iLimit) {
 			return;
 		}
-		$this->iPage = (int) (isset($_REQUEST['page']) ? $_REQUEST['page'] : 1);
-		if($this->iPage > 1) {
-			$iOffset = ($this->iPage-1)*$this->iLimit;
+		$iPage = (int) (isset($_REQUEST[self::ALLOWED_POINTER_PAGE]) ? $_REQUEST[self::ALLOWED_POINTER_PAGE] : 1);
+		if($iPage > 1) {
+			$iOffset = ($iPage-1)*$this->iLimit;
 			$oQuery->offset($iOffset);
 		}
 		$iPagesCount = (int) ceil($iCountAll/$this->iLimit);
@@ -152,28 +175,28 @@ class JournalPageTypeModule extends PageTypeModule {
 		$sPreviousLinkText = isset($aPagerLinkTexts['previous']) ? $aPagerLinkTexts['previous'] : '<';
 		$sNextLinkText = isset($aPagerLinkTexts['next']) ? $aPagerLinkTexts['next'] : '>';
 
-		// if has previous link
-		if($this->iPage > 1) {
-			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage-1))), $sPreviousLinkText);
+		// Previous link or placeholder
+		if($iPage > 1) {
+			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE,$iPage-1))), $sPreviousLinkText);
 		} else {
 			$oPreviousLink = TagWriter::quickTag('span', array(), $sPreviousLinkText);
 		}
 		$oPagerTemplate->replaceIdentifier('previous_link', $oPreviousLink);
 		
-		// if has next link
-		if($this->iPage < $iPagesCount) {
-			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $this->iPage+1))), $sNextLinkText);
+		// Next link or placeholder
+		if($iPage < $iPagesCount) {
+			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE, $iPage+1))), $sNextLinkText);
 		} else {
 			$oNextLink = TagWriter::quickTag('span', array(), $sNextLinkText);
 		}
 		$oPagerTemplate->replaceIdentifier('next_link', $oNextLink);
 		
-		// page links
+		// All page links including current one
 		for($i = 1; $i <= $iPagesCount; $i++) {
-			if($i === $this->iPage) {
+			if($i === $iPage) {
 				$oPageLink = TagWriter::quickTag('span', array(), $i);
 			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array('page' => $i))), $i);
+				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE, $i))), $i);
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
@@ -242,7 +265,6 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oSession->resetAttribute('has_new_comment');
 			$oEntryTemplate->replaceIdentifier('new_comment_thank_you_message', StringPeer::getString('journal_entry.new_comment_thank_you'));			
 		}
-		
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
@@ -254,7 +276,8 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function renderComments($aComments, JournalEntry $oEntry = null) {
 		$oEntryTemplate = $this->constructTemplate('comments');
-		$oEntryTemplate->replaceIdentifier('comment_count', count($aComments));
+		$iCountComments = count($aComments);
+		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
 		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
 		foreach($aComments as $iCounter => $oComment) {
 			$oEntryTemplate->replaceIdentifierMultiple('comments', $this->renderComment($oComment, clone $oCommentTemplatePrototype, $iCounter), null, Template::LEAVE_IDENTIFIERS);
@@ -341,7 +364,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainerName);
 	}
 
-	//For adding comments
+	// For adding comments
 	private function displayAddComment($oTemplate) {
 		if($this->oEntry === null) {
 			return $this->displayEntry($oTemplate);
@@ -405,7 +428,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainerName);
 	}
 	
-	//Override from parent
+	// Override from parent
 	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
 		if($this->sTemplateSet) {
 			try {
@@ -415,89 +438,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', 'default'));
 	}
 
- /**
-	* renderCalendarWidget()
-	* 
-	* description: display calendar
-	* • as calender (date_picker), include javascript file web/js/journal-collapsible-date-tree.js
-	* • as collapsible date tree, include javascript file web/js/calendar.js
-	* 
-	* @return Template object
-	*/	
-	private function renderCalendarWidget() {
-		// prepare
-		$oQuery = FrontendJournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->clearSelectColumns();
-		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
-		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
-		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
-		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
-		
-		$oTemplate = $this->constructTemplate('calendar');
-		$oYearPrototype = $this->constructTemplate('calendar_item_year');
-		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
-		$oDayPrototype = $this->constructTemplate('calendar_item_day');
-		$sPreviousYear = null;
-		$sPreviousMonth = null;
-		$oYearTemplate = null;
-		$oMonthTemplate = null;
-
-		foreach($aResult as $aDate) {
-			// make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
-			// and add it to year template
-			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
-				$sPreviousMonth = $aDate['Month'];
-				if($oMonthTemplate) {
-					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-				}
-				$oMonthTemplate = clone $oMonthPrototype;
-				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
-				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
-				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
-				LocaleUtil::getLocaleId();
-				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
-				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
-				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
-			}
-			
-			// make year template whenever the year changes and add it to main template
-			if($aDate['Year'] !== $sPreviousYear) {
-				$sPreviousYear = $aDate['Year'];
-				if($oYearTemplate) {
-					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-				}
-				$oYearTemplate = clone $oYearPrototype;
-				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
-				if($aDate['Year'] === $this->iYear) {
-					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
-					$oYearTemplate->replaceIdentifier('display', 'block');
-				} else {
-					$oYearTemplate->replaceIdentifier('display', 'none');
-				}
-				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
-			}
-			
-			if(!$oMonthTemplate->hasIdentifier('day_item')) {
-				continue;
-			}
-			
-			// make day item template and add it to month template
-			$oDayTemplate = clone $oDayPrototype;
-			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
-			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
-			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
-			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
-			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
-		}
-		
-		if($oMonthTemplate) {
-			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-		}
-		if($oYearTemplate) {
-			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-		}
-		return $oTemplate;
-	}
-	
  /**
 	* renderTagCloudWidget()
 	* 
@@ -561,6 +501,90 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
  /**
+	* renderCalendarWidget()
+	* 
+	* description: display calendar
+	* • as calender (date_picker), include javascript file web/js/journal-collapsible-date-tree.js
+	* • as collapsible date tree, include javascript file web/js/calendar.js
+	* 
+	* @return Template object
+	*/	
+	private function renderCalendarWidget() {
+		
+		$oQuery = FrontendJournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->clearSelectColumns();
+		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
+		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
+		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
+		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		
+		$oTemplate = $this->constructTemplate('calendar');
+		$oYearPrototype = $this->constructTemplate('calendar_item_year');
+		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
+		$oDayPrototype = $this->constructTemplate('calendar_item_day');
+		$sPreviousYear = null;
+		$sPreviousMonth = null;
+		$oYearTemplate = null;
+		$oMonthTemplate = null;
+
+		foreach($aResult as $aDate) {
+			// Make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
+			// Add it to year template
+			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
+				$sPreviousMonth = $aDate['Month'];
+				if($oMonthTemplate) {
+					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+				}
+				$oMonthTemplate = clone $oMonthPrototype;
+				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
+				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
+				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
+				LocaleUtil::getLocaleId();
+				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
+				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
+				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
+			}
+			
+			// Make year template whenever the year changes and add it to main template
+			if($aDate['Year'] !== $sPreviousYear) {
+				$sPreviousYear = $aDate['Year'];
+				if($oYearTemplate) {
+					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+				}
+				$oYearTemplate = clone $oYearPrototype;
+				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
+				if($aDate['Year'] === $this->iYear) {
+					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
+					$oYearTemplate->replaceIdentifier('display', 'block');
+				} else {
+					$oYearTemplate->replaceIdentifier('display', 'none');
+				}
+				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
+			}
+			
+			if(!$oMonthTemplate->hasIdentifier('day_item')) {
+				continue;
+			}
+			
+			// Make day item template and add it to month template
+			$oDayTemplate = clone $oDayPrototype;
+			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
+			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
+			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
+			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
+		}
+		
+		if($oMonthTemplate) {
+			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+		}
+		if($oYearTemplate) {
+			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+		}
+		return $oTemplate;
+	}
+	
+
+ /**
 	* renderGallery()
 	* 
 	* description: display image gallery
@@ -590,7 +614,7 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	
 	/*
-		***** Admin Methods *****
+		***** Journal config and journal entry admin methods *****
 	*/
 	public function detailWidget() {
 		$oWidget = WidgetModule::getWidget('journal_entry_detail', null, $this->oPage);
