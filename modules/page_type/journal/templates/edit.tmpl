@@ -19,32 +19,27 @@
 				<option value="list">{{writeString=wns.journal.action.list}}</option>
 				<option value="truncated">{{writeString=wns.journal.action.truncated}}</option>
 				<option value="full">{{writeString=wns.journal.action.full}}</option>
-			</select>
-		</div>
-		<div class="group_fields">
-			<label for="container">{{writeString=wns.journal.container}}</label><select name="container" class="ui-widget-content"></select>
-		</div>
-		<div class="group_fields">
-			<label for="auxiliary_container">{{writeString=wns.journal.auxiliary_container}}</label><select name="auxiliary_container" class="ui-widget-content"><option value="">--</option></select>
-		</div>
-		<div class="group_fields">
-			<label>{{writeString=wns.journal.widgets}}</label><div class="journal-widgets ui-widget-content"></div>
-		</div>
-		<br />
-		<div class="group_fields">
-			<label for="template_set">{{writeString=wns.journal.template_set}}</label><select name="template_set" class="ui-widget-content"></select>
-		</div>
-		<div class="group_fields">
+			</select><br />
 			<label for="comment_mode">{{writeString=wns.journal.comments}}</label>
 			<select name="comment_mode" class="ui-widget-content">
 				<option value="on">{{writeString=wns.journal.comments.on}}</option>
 				<option value="off">{{writeString=wns.journal.comments.off}}</option>
 				<option value="moderated">{{writeString=wns.journal.comments.moderated}}</option>
 				<option value="notified">{{writeString=wns.journal.comments.notified}}</option>
-			</select>
+			</select><br />
+			<label for="template_set">{{writeString=wns.journal.template_set}}</label>
+			<select name="template_set" class="ui-widget-content"></select>
 		</div>
 		<div class="group_fields">
-			<label for="dates_hidden">{{writeString=wns.journal.dates_hidden}}</label><input type="checkbox" name="dates_hidden" class="ui-widget-content" />
+			<label for="container">{{writeString=wns.journal.container}}</label>
+			<select name="container" class="ui-widget-content"></select><br />
+			<label for="auxiliary_container">{{writeString=wns.journal.auxiliary_container}}</label>
+			<select name="auxiliary_container" class="ui-widget-content"><option value="">--</option></select><br />
+			<label for="dates_hidden">{{writeString=wns.journal.dates_hidden}}</label>
+			<input type="checkbox" name="dates_hidden" class="ui-widget-content" />
+		</div>
+		<div class="group_fields" style="margin-left:1em;">
+			<label>{{writeString=wns.journal.widgets}}</label><div class="journal-widgets ui-widget-content" style="'border:1px solid #e2e2e2;padding:2px;"></div>
 		</div>
 	</div>
 	<div id="journal-journal_entries">

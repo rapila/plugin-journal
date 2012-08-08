@@ -664,15 +664,26 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	public function listWidgets() {
 		$aWidgetTypes = array();
+		$aWidgetTypesOrdered = array();
 		foreach(get_class_methods($this) as $sMethodName) {
 			if(StringUtil::startsWith($sMethodName, 'render') && StringUtil::endsWith($sMethodName, 'Widget')) {
 				$oWidget = new StdClass();
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
 				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
-				$oWidget->title = StringUtil::makeReadableName($oWidget->name);
-				$aWidgetTypes[] = $oWidget;
+				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
+				if($oWidget->current) {
+					$iKey = array_search($oWidget->name, $this->aWidgets);
+					if($iKey !== false) {
+						$aWidgetTypesOrdered[$iKey] = $oWidget;
+					} else {
+						$aWidgetTypes[] = $oWidget;
+					}
+				} else {
+					$aWidgetTypes[] = $oWidget;
+				}
 			}
 		}
+		$aWidgetTypes = array_merge($aWidgetTypesOrdered, $aWidgetTypes);
 		return $aWidgetTypes;
 	}
 

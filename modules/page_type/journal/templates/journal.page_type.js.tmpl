@@ -21,6 +21,10 @@
 			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
 			this.template_list = this.container.find('select[name="template_set"]');
 			this.widget_list = this.container.find('div.journal-widgets');
+			this.widget_list.sortable({
+				handle: '.ui-sortable-handle',
+				axis: 'y'
+			});
 			this.container_list = this.container.find('select[name="container"]');
 			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
 			//Static value lists
@@ -40,11 +44,15 @@
 			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.populate(result.options, result.current);
 			}.deferred(waiters));
-
+			
 			this.page_type.methods.listWidgets(function(result) {
+				var sortable_container = jQuery('<div/>').attr({ style: 'padding:1px;'});
 				jQuery.each(result, function(i, widget) {
-					jQuery('<input/>', {type: 'checkbox', name: 'widgets[]', value: widget.name, checked: widget.current}).appendTo(_this.widget_list);
-					jQuery('<label/>', {"for": 'widgets[]'}).css({display: 'inline'}).appendTo(_this.widget_list).text(widget.title);
+					var container = sortable_container.clone();
+					jQuery('<span/>', {class: 'ui-sortable-handle', style: 'display:inline-block;height:16px;'}).appendTo(container);
+					jQuery('<input/>', {type: 'checkbox', name: 'widgets[]', value: widget.name, checked: widget.current}).appendTo(container);
+					jQuery('<label/>', {"for": 'widgets[]'}).css({display: 'inline'}).appendTo(container).text(widget.title);
+					container.appendTo(_this.widget_list);
 				});
 			}.deferred(waiters));
 
