@@ -72,7 +72,6 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iDay = $aData->getCreatedAt('j');
 			}
 		}
-		$this->iLimit = Settings::getSetting('journal', 'pagination_limit', null);
 		$this->setFilters();
 	}
 	
@@ -95,6 +94,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
+		$this->iLimit = $this->oPage->getPagePropertyValue('entries_per_page', null);
 		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
@@ -629,6 +629,10 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->sCommentMode;
 	}
 
+	public function currentEntriesPerPage() {
+		return $this->iLimit;
+	}
+
 	public function currentJournal() {
 		return $this->iJournalId;
 	}
@@ -648,7 +652,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function listTemplateSets() {
 		$aResult = array();
 		foreach(ResourceFinder::create(array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), DIRNAME_TEMPLATES))->addDirPath()->returnObjects()->find() as $oSet) {
-			$aResult[] = $oSet->getFileName();
+			$aResult[$oSet->getFileName()] = StringPeer::getString('journal.template_'.$oSet->getFileName(), null, StringUtil::makeReadableName($oSet->getFileName()));
 		}
 		return array('options' => $aResult, 'current' => $this->sTemplateSet);
 	}
@@ -739,6 +743,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->iJournalId = $oJournal->getId();
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
+		$this->oPage->updatePageProperty('entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);

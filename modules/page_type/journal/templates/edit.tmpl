@@ -20,6 +20,13 @@
 				<option value="truncated">{{writeString=wns.journal.action.truncated}}</option>
 				<option value="full">{{writeString=wns.journal.action.full}}</option>
 			</select><br />
+			<label for="entries_per_page">{{writeString=wns.journal.pagination_limit}}</label>
+			<select name="entries_per_page" class="ui-widget-content">
+				<option value="">{{writeString=wns.journal.pagination_show_all}}</option>
+				<option value="10">10 {{writeString=wns.journal.journal_entries}}</option>
+				<option value="20">20 {{writeString=wns.journal.journal_entries}}</option>
+				<option value="50">50 {{writeString=wns.journal.journal_entries}}</option>
+			</select><br />
 			<label for="comment_mode">{{writeString=wns.journal.comments}}</label>
 			<select name="comment_mode" class="ui-widget-content">
 				<option value="on">{{writeString=wns.journal.comments.on}}</option>
@@ -28,7 +35,7 @@
 				<option value="notified">{{writeString=wns.journal.comments.notified}}</option>
 			</select><br />
 			<label for="template_set">{{writeString=wns.journal.template_set}}</label>
-			<select name="template_set" class="ui-widget-content"></select>
+			<select name="template_set" class="ui-widget-content"></select><br />
 		</div>
 		<div class="group_fields">
 			<label for="container">{{writeString=wns.journal.container}}</label>

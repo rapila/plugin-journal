@@ -30,6 +30,7 @@
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.comment_mode_list = this.container.find('select[name="comment_mode"]');
+			this.entries_per_page_list = this.container.find('select[name="entries_per_page"]');
 			//Elements used later on
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
@@ -71,6 +72,10 @@
 			
 			this.page_type.methods.currentCommentMode(function(result) {
 				_this.comment_mode_list.val(result);
+			}.deferred(waiters));
+			
+			this.page_type.methods.currentEntriesPerPage(function(result) {
+				_this.entries_per_page_list.val(result);
 			}.deferred(waiters));
 
 			this.container.find('.journal_detail').tabs();
