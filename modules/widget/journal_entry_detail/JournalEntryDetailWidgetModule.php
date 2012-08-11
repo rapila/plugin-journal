@@ -29,6 +29,15 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		return "form";
 	}
 	
+	public function toggleCommentIsPublished($iCommentId) {
+		$oComment = JournalCommentQuery::create()->findPk($iCommentId);
+		if($oComment) {
+			$oComment->setIsPublished(!$oComment->getIsPublished());
+			$oComment->save();
+			return $oComment->getIsPublished();
+		}
+	}
+	
 	public function loadData() {
 		$aResult = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if(!$aResult) {
@@ -40,8 +49,10 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
 			$aComment = array();
 			$aComment['CreatedAtFormatted'] = $oComment->getCreatedAtFormatted();
+			$aComment['Id'] = $oComment->getId();
 			$aComment['Email'] = $oComment->getEmail();
 			$aComment['Text'] = $oComment->getText();
+			$aComment['IsPublished'] = $oComment->getIsPublished();
 			$aResult['comments'][] = $aComment;
 		}
 		return $aResult;

@@ -14,8 +14,18 @@
 	</div>
 	<h3><a>{{writeString=wns.journal_entry.comments}}</a></h3>
 	<div>
-		<ol class="comments ui-editable-items-list">
-		</ol>
+		<table class="comments ui-list ui-editable-items-list">
+			<thead>
+				<tr>
+					<th>{{writeString=wns.date}}</th>
+					<th>{{writeString=wns.email}}</th>
+					<th>{{writeString=journal.form.comment}}</th>
+					<th>{{writeString=wns.journal_entry.is_published}}</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
 	</div>
 	<h3><a href="#">{{writeString=wns.journal_entry.images}}</a></h3>
 	<div class="droppable_area">

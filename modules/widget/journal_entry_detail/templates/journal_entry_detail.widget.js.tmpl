@@ -1,4 +1,4 @@
-Widget.types['journal_entry_detail'] = {
+Widget.types.journal_entry_detail = {
 	initialize: function() {
 		var _this = this;
 		this.init_content();
@@ -9,6 +9,7 @@ Widget.types['journal_entry_detail'] = {
 	init_content: function() {
 		var _this = this;
 		this._element = jQuery.parseHTML('{{includeTemplate=edit}}');
+		this.comment_row = jQuery.parseHTML("{{includeTemplate=comment_row}}", true, 'tbody');
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
 		Widget.createWithElement('tag_area', function(widget) {
 			_this.tag_area = widget;
@@ -48,8 +49,9 @@ Widget.types['journal_entry_detail'] = {
 	},
 	
 	fill_data: function() {
+		var _this = this;
 		this.loadData(function(data) {
-			var comment_list = this._element.find('ol.comments').empty();
+			var comment_list = this._element.find('table.comments').empty();
 			var title = this._element.find('input[name="title"]');
 			var is_published = this._element.find('input[name="is_published"]');
 			if(data) {
@@ -62,14 +64,19 @@ Widget.types['journal_entry_detail'] = {
 					this.tag_area.setTaggedItemId(data.Id);
 					this.tag_area.reload_tags();
 				}
+				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}"
 				jQuery.each(data.comments, function(i, comment) {
-					var comm = jQuery('<li/>');
-					comm.text(comment.CreatedAtFormatted+' '+comment.Email);
-					var txt = jQuery('<div/>');
-					txt.html(comment.Text);
-					comm.append(txt.hide());
-					comm.click(txt.toggle.bind(txt));
-					comment_list.append(comm);
+					var comment_row = _this.comment_row.clone();
+					var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'is_published[]', value : comment.Id, title: toggle_is_published_title}).prop('checked', comment.IsPublished).change(function() {
+						_this.toggleCommentIsPublished(comment.Id, function(result) {
+							online_checkbox.prop('checked', result === true);
+						});
+					});
+					comment_row.find('td.date').append(comment.CreatedAtFormatted);
+					comment_row.find('td.email').append(comment.Email);
+					comment_row.find('td.comment').append(comment.Text);
+					comment_row.find('td.is_published').append(online_checkbox);
+					comment_list.append(comment_row);
 				});
 				this.update_documents();
 			} else {

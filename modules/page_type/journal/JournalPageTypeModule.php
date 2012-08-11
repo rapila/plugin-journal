@@ -41,7 +41,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $iDay = null;
 		
 	// entries per overview page
-	private $iLimit = null;
+	private $iEntriesPerPage = null;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 	const ADD_FILTER = 'add_filter';
@@ -94,7 +94,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
-		$this->iLimit = $this->oPage->getPagePropertyValue('entries_per_page', null);
+		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('entries_per_page', null);
 		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
@@ -149,28 +149,27 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
 	}
 	
-	private function handlePagination(&$oQuery, $oTemplate) {
-		if(!$oQuery) {
-			$oQuery = FrontendJournalEntryQuery::create();
-		}
-		if($this->iLimit === null) {
+	private function addPagination(&$oQuery, $oTemplate) {
+		if($this->iEntriesPerPage === null) {
 			return;
-		}
+		}		
 
 		$iCountAll = $oQuery->count();
-		$oQuery->limit($this->iLimit);
+		$oQuery->limit($this->iEntriesPerPage);
 		
-		// display pager if count is larger then limit
-		if($iCountAll <= $this->iLimit) {
+		// Display pager if count all entries is larger then entries per page limit
+		if($iCountAll <= $this->iEntriesPerPage) {
 			return;
 		}
 		$iPage = (int) (isset($_REQUEST[self::ALLOWED_POINTER_PAGE]) ? $_REQUEST[self::ALLOWED_POINTER_PAGE] : 1);
 		if($iPage > 1) {
-			$iOffset = ($iPage-1)*$this->iLimit;
+			$iOffset = ($iPage-1)*$this->iEntriesPerPage;
 			$oQuery->offset($iOffset);
 		}
-		$iPagesCount = (int) ceil($iCountAll/$this->iLimit);
+		$iPagesCount = (int) ceil($iCountAll/$this->iEntriesPerPage);
 		$oPagerTemplate = $this->constructTemplate('pagination');
+		
+		// Prepare configurable next and previous page links
 		$aPagerLinkTexts = Settings::getSetting('journal', 'pagination_link_text', null);
 		$sPreviousLinkText = isset($aPagerLinkTexts['previous']) ? $aPagerLinkTexts['previous'] : '<';
 		$sNextLinkText = isset($aPagerLinkTexts['next']) ? $aPagerLinkTexts['next'] : '>';
@@ -200,6 +199,9 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
+		if($oPagerTemplate->hasIdentifier('page_count_info')) {
+			$oPagerTemplate->replaceIdentifier('page_count_info', "$this->iEntriesPerPage/$iCountAll");
+		}
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
 	}
 
@@ -217,7 +219,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!empty($this->aTags)) {
 			$oQuery->filterByTagName($this->aTags);
 		}
-		$this->handlePagination($oQuery, $oFullTemplate);
+		$this->addPagination($oQuery, $oFullTemplate);
 
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
@@ -630,7 +632,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function currentEntriesPerPage() {
-		return $this->iLimit;
+		return $this->iEntriesPerPage;
 	}
 
 	public function currentJournal() {
