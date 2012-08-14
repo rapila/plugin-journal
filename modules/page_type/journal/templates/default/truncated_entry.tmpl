@@ -5,5 +5,7 @@
 </div>{{identifierContext=start;name=tags}}
 <div class="tags">{{writeString=journal_entry.related_tags}}: {{tags}}</div>{{identifierContext=end;name=tags}}
 <div class="journal_info info">
-	<a rel="internal" href="{{link}}#comments">{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}</a>
+	<a rel="internal" href="{{link}}#comments" title="{{detail_link_title}}">
+		{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}
+	</a>
 </div>
