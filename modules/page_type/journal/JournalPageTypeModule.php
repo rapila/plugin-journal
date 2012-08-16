@@ -240,6 +240,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', $sDetailLink);
+		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
 		
 		if($oEntryTemplate->hasIdentifier('text')) {
 			$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
