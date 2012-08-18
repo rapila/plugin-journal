@@ -1,8 +1,8 @@
 <?php
 
-
 /**
- * @package    propel.generator.model
+ * @package propel.generator.model
+ * @subpackage rapila-plugin-journal
  */
 class JournalEntryQuery extends BaseJournalEntryQuery {
 

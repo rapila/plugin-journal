@@ -2,9 +2,9 @@
 
 require_once 'model/om/BaseJournalComment.php';
 
-
 /**
  * @package model
+ * @subpackage rapila-plugin-journal
  */	
 class JournalComment extends BaseJournalComment {
 	

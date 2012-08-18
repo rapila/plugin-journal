@@ -1,7 +1,7 @@
 <?php
 
-
 /**
+ * @subpackage rapila-plugin-journal
  * @package    propel.generator.model
  */
 class JournalCommentQuery extends BaseJournalCommentQuery {

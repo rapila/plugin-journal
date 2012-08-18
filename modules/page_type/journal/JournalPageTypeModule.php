@@ -153,7 +153,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->iEntriesPerPage === null) {
 			return;
 		}		
-
 		$iCountAll = $oQuery->count();
 		$oQuery->limit($this->iEntriesPerPage);
 		

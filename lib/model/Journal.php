@@ -2,10 +2,10 @@
 
 require_once 'model/om/BaseJournal.php';
 
-
 /**
- * @package    model
- */
+ * @package model
+ * @subpackage rapila-plugin-journal
+ */	
 class Journal extends BaseJournal {
 	
 	public function getJournalPage() {

@@ -33,23 +33,29 @@ class JournalFilterModule extends FilterModule {
 	public function onNavigationItemChildrenRequested(NavigationItem $oNavigationItem) {
 		$mIdentifier = $oNavigationItem->getIdentifier();
 		if($oNavigationItem instanceof PageNavigationItem && $oNavigationItem->getMe()->isOfType('journal')) {
+			
 			//Append virtual navigation items for year, overview and feed
 			$oJournal = JournalQuery::create()->findPk($oNavigationItem->getMe()->getPagePropertyValue('journal_id', null));
 			$bDatesHidden = !!$oNavigationItem->getMe()->getPagePropertyValue('blog_dates_hidden', null);
 			$sDateNavigationItemClass = $bDatesHidden ? 'HiddenVirtualNavigationItem' : 'VirtualNavigationItem';
+			
+			//NOTE: if $oJournal is null, most probably the journal page is not properly configured
 			$iJournalId = $oJournal->getId();
-			//feed
+			
+			//Feed
 			$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $iJournalId);
 			$oFeedItem->bIsIndexed = false; //Don’t index the feed item or else you’ll be exit()-ed before finishing the index
 			$oNavigationItem->addChild($oFeedItem);
-			//overview list if default mode isn’t a list in itself
+			
+			//Overview list
 			$bOverviewIsList = $oNavigationItem->getMe()->getPagePropertyValue('blog_overview_action', 'list') === 'list';
 			if(!$bOverviewIsList) {
 				$oOverviewItem = new VirtualNavigationItem('journal-overview_list', 'list', StringPeer::getString('wns.journal.list'), null, $iJournalId);
 				$oOverviewItem->bIsIndexed = false;
 				$oNavigationItem->addChild($oOverviewItem);
 			}
-			//year
+			
+			//Year
 			foreach($oJournal->possibleYears() as $iYear) {
 				$oItem = new $sDateNavigationItemClass('journal-year', $iYear, StringPeer::getString('wns.journal.year', null, $iYear, array('year' => $iYear)), null, array($iJournalId, $iYear));
 				$oItem->bIsIndexed = false;
@@ -58,6 +64,8 @@ class JournalFilterModule extends FilterModule {
 		} else if($oNavigationItem instanceof VirtualNavigationItem) {
 			$aData = $oNavigationItem->getData();
 			$sDateNavigationItemClass = get_class($oNavigationItem);
+			
+			//Month
 			if($oNavigationItem->getType() === 'journal-year') {
 				list($iJournalId, $iYear) = $aData;
 				$oJournal = JournalQuery::create()->findPk($iJournalId);
@@ -69,6 +77,8 @@ class JournalFilterModule extends FilterModule {
 			} else if($oNavigationItem->getType() === 'journal-month') {
 				list($iJournalId, $iYear, $iMonth) = $aData;
 				$oJournal = JournalQuery::create()->findPk($iJournalId);
+				
+				//Days
 				foreach($oJournal->possibleDays($iYear, $iMonth) as $iDay) {
 					$oItem = new $sDateNavigationItemClass('journal-day', $iDay, StringPeer::getString('wns.journal.day', null, $iDay, array('year' => $iYear, 'month' => $iMonth, 'day' => $iDay)), null, array($iJournalId, $iYear, $iMonth, $iDay));
 					$oItem->bIsIndexed = false;
@@ -81,7 +91,8 @@ class JournalFilterModule extends FilterModule {
 					$oNavigationItem->addChild($oItem);
 				}
 			} else if($oNavigationItem->getType() === 'journal-entry') {
-				//comment
+				
+				//Comment
 				$oAddCommentItem = new HiddenVirtualNavigationItem('journal-add_comment', 'add_comment', StringPeer::getString('journal.comment.add'), null, $oNavigationItem->getData());
 				$oAddCommentItem->bIsIndexed = false;
 				$oNavigationItem->addChild($oAddCommentItem);

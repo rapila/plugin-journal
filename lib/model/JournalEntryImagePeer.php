@@ -6,9 +6,9 @@
   // include object class
   include_once 'model/JournalEntryImage.php';
 
-
 /**
  * @package    model
+ * @subpackage rapila-plugin-journal
  */
 class JournalEntryImagePeer extends BaseJournalEntryImagePeer {
 
