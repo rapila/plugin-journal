@@ -33,7 +33,7 @@
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
-			this.dates_hidden_checkbox = this.container.find('input[name="dates_hidden"]');
+			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
 			
 			this.reload();
@@ -73,7 +73,7 @@
 			}.deferred(waiters));
 			
 			this.page_type.methods.datesHidden(function(hidden) {
-				_this.dates_hidden_checkbox.attr('checked', hidden);
+				_this.date_navigation_items_visible_checkbox.attr('checked', hidden);
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentCommentMode(function(result) {

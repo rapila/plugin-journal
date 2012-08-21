@@ -735,12 +735,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->iJournalId = $oJournal->getId();
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('blog_journal_id', $this->iJournalId);
-		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['blog_entries_per_page'] == '' ? null : $aData['blog_entries_per_page']);
+		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', isset($aData['dates_hidden']) ? 'true' : '');
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', isset($aData['date_navigation_items_visible']) ? 'true' : '');
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
 			if($sWidgetName !== false) {
