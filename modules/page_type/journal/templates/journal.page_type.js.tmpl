@@ -12,9 +12,6 @@
 	}
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
-			var _this = this;
-			var waiters = [];
-			
 			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
 			//Lists to be filled
@@ -37,7 +34,14 @@
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.dates_hidden_checkbox = this.container.find('input[name="dates_hidden"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
+			
+			this.reload();
+		},
 
+		reload: function() {
+			var _this = this;
+			var waiters = [];
+			
 			this.page_type.methods.listJournals(function(result) {
 				_this.journal_list.populate(result.options, result.current || '');
 			}.deferred(waiters));
@@ -81,7 +85,7 @@
 			this.container.find('.journal_detail').tabs();
 			
 			jQuery.when.apply(jQuery, waiters).then(function() {
-				_this.reload();
+				_this.reload_properties();
 			});
 		},
 
@@ -102,11 +106,11 @@
 			var _this = this;
 			var value = this.journal_list.val() ? this.journal_list.val() : null;
 			this.page_type.methods.setCurrentJournal(value, function() {
-				_this.reload();
+				_this.reload_properties();
 			});
 		},
 
-		reload: function() {
+		reload_properties: function() {
 			var _this = this;
 			this.page_type.methods.journalProperties(function(result) {
 				if(result) {
@@ -151,8 +155,7 @@
 						Widget.notifyUser(Widget.logSeverity.ALERT, error.message);
 					}
 				} else {
-					_this.container.empty();
-					_this.init();
+					_this.reload();
 				}
 			});
 		}
