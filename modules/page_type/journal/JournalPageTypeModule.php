@@ -130,13 +130,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->$sMethod($oTemplate);
 	}
 	
-	public static function displayForHome($oItemTemplate) {
-		$oModule = new JournalPageTypeModule();
-		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
-		$oModule->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
-		return $oTemplate;
-	}
-	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
@@ -675,20 +668,17 @@ class JournalPageTypeModule extends PageTypeModule {
 			if(StringUtil::startsWith($sMethodName, 'render') && StringUtil::endsWith($sMethodName, 'Widget')) {
 				$oWidget = new StdClass();
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
-				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
+				$iLocation = array_search($oWidget->name, $this->aWidgets, true);
+				$oWidget->current = $iLocation !== false;
 				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
-					$iKey = array_search($oWidget->name, $this->aWidgets);
-					if($iKey !== false) {
-						$aWidgetTypesOrdered[$iKey] = $oWidget;
-					} else {
-						$aWidgetTypes[] = $oWidget;
-					}
+					$aWidgetTypesOrdered[$iLocation] = $oWidget;
 				} else {
 					$aWidgetTypes[] = $oWidget;
 				}
 			}
 		}
+		ksort($aWidgetTypesOrdered);
 		$aWidgetTypes = array_merge($aWidgetTypesOrdered, $aWidgetTypes);
 		return $aWidgetTypes;
 	}
