@@ -130,6 +130,13 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->$sMethod($oTemplate);
 	}
 	
+	public static function displayForHome($oItemTemplate) {
+		$oModule = new JournalPageTypeModule();
+		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
+		$oModule->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
+		return $oTemplate;
+	}
+	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
@@ -196,9 +203,16 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
 	}
+	
+	//Convenience function for external uses
+	public static function renderEntries(JournalEntryQuery $oQuery, Template $oEntryTemplate) {
+		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
+		$oModule = new JournalPageTypeModule();
+		$oModule->renderJournalEntries($oQuery, $oEntryTemplate, $oTemplate, null, 'entries');
+		return $oTemplate;
+	}
 
 	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
-
 		if($oQuery === null) {
 			$oQuery = FrontendJournalEntryQuery::create();
 		}
@@ -229,19 +243,16 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
 		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
-		
+
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', $sDetailLink);
 		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
-		
+
 		if($oEntryTemplate->hasIdentifier('text')) {
 			$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
 		}
 		if($oEntryTemplate->hasIdentifier('text_short')) {
 			$oEntryTemplate->replaceIdentifier('text_short', RichtextUtil::parseStorageForFrontendOutput($oEntry->getTextShort()));
-			if($oEntryTemplate->hasIdentifier('read_more_link')) {
-				$oEntryTemplate->replaceIdentifier('read_more_link', $sDetailLink);
-			}
 		}
 		if($this->oEntry !== null && $this->oEntry == $oEntry) {
 			$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
@@ -250,15 +261,15 @@ class JournalPageTypeModule extends PageTypeModule {
 			$aTagInstances = TagInstanceQuery::create()->filterByModelName('JournalEntry')->filterByTaggedItemId($oEntry->getId())->joinTag()->find();
 			foreach($aTagInstances as $i => $oTagInstance) {
 				if($i > 0) {
-					$oEntryTemplate->replaceIdentifierMultiple('tags', ', ', null, Template::NO_NEWLINE|Template::NO_NEW_CONTEXT);			
+					$oEntryTemplate->replaceIdentifierMultiple('tags', ', ', null, Template::NO_NEWLINE|Template::NO_NEW_CONTEXT);
 				}
-				$oEntryTemplate->replaceIdentifierMultiple('tags', $oTagInstance->getTag()->getReadableName(), null, Template::NO_NEW_CONTEXT|Template::NO_NEWLINE);			
+				$oEntryTemplate->replaceIdentifierMultiple('tags', $oTagInstance->getTag()->getReadableName(), null, Template::NO_NEW_CONTEXT|Template::NO_NEWLINE);
 			}
 		}
 		$oSession = Session::getSession();
 		if($oSession->hasAttribute('has_new_comment')) {
 			$oSession->resetAttribute('has_new_comment');
-			$oEntryTemplate->replaceIdentifier('new_comment_thank_you_message', StringPeer::getString('journal_entry.new_comment_thank_you'));			
+			$oEntryTemplate->replaceIdentifier('new_comment_thank_you_message', StringPeer::getString('journal_entry.new_comment_thank_you'));
 		}
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
@@ -668,17 +679,20 @@ class JournalPageTypeModule extends PageTypeModule {
 			if(StringUtil::startsWith($sMethodName, 'render') && StringUtil::endsWith($sMethodName, 'Widget')) {
 				$oWidget = new StdClass();
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
-				$iLocation = array_search($oWidget->name, $this->aWidgets, true);
-				$oWidget->current = $iLocation !== false;
+				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
 				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
-					$aWidgetTypesOrdered[$iLocation] = $oWidget;
+					$iKey = array_search($oWidget->name, $this->aWidgets);
+					if($iKey !== false) {
+						$aWidgetTypesOrdered[$iKey] = $oWidget;
+					} else {
+						$aWidgetTypes[] = $oWidget;
+					}
 				} else {
 					$aWidgetTypes[] = $oWidget;
 				}
 			}
 		}
-		ksort($aWidgetTypesOrdered);
 		$aWidgetTypes = array_merge($aWidgetTypesOrdered, $aWidgetTypes);
 		return $aWidgetTypes;
 	}

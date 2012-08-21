@@ -121,21 +121,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oEntry->setIsPublished($aData['is_published']);
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
-		$sText = $oRichtextUtil->parseInputFromEditor($aData['text']);
-		$oEntry->setText($sText);
-		
-		// store short version of text, use first paragraph if there are more then one
-		$aParagraphs = preg_split('/(?=<p>)/', $sText, -1, PREG_SPLIT_NO_EMPTY);
-		if(isset($aParagraphs[0])) {
-			// @todo check this handling, see Glücksterror, whats the problem
-			$sJustText = trim(strip_tags($aParagraphs[0]));
-			if($sJustText == null && isset($aParagraphs[1])) {
-				$sShortText = $aParagraphs[1];
-			} else {
-				$sShortText = $aParagraphs[0];
-			}
-			$oEntry->setTextShort($sShortText);
-		}
+		$oEntry->setText($oRichtextUtil->getTagParser($aData['text']));
 
 		return $oEntry->save();
 	}
