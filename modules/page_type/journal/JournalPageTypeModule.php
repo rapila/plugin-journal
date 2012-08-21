@@ -25,8 +25,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	// auxiliary container for widgets
 	private $sAuxiliaryContainer;
 	
-	// ????
-	private $bDatesHidden;
+	// show year, month, day virtual navigation items
+	private $bDateNavigationItemsVisible;
 	
 	// widgets [recent entries, calendar, collapsible-date-tree]
 	private $aWidgets;
@@ -90,12 +90,12 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function updateFlagsFromProperties() {
 		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
 		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
-		$this->iJournalId = $this->oPage->getPagePropertyValue('journal_id', null);
+		$this->iJournalId = $this->oPage->getPagePropertyValue('blog_journal_id', null);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
-		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('entries_per_page', null);
-		$this->bDatesHidden = !!$this->oPage->getPagePropertyValue('blog_dates_hidden', null);
+		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
+		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', null);
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
 			$this->aWidgets = array();
@@ -633,7 +633,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function datesHidden() {
-		return $this->bDatesHidden;
+		return $this->bDateNavigationItemsVisible;
 	}
 	
 	public function listJournals() {
@@ -734,13 +734,13 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oJournal->save();
 		$this->iJournalId = $oJournal->getId();
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
-		$this->oPage->updatePageProperty('journal_id', $this->iJournalId);
-		$this->oPage->updatePageProperty('entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
+		$this->oPage->updatePageProperty('blog_journal_id', $this->iJournalId);
+		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['blog_entries_per_page'] == '' ? null : $aData['blog_entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
-		$this->oPage->updatePageProperty('blog_dates_hidden', isset($aData['dates_hidden']) ? 'true' : '');
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', isset($aData['dates_hidden']) ? 'true' : '');
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
 			if($sWidgetName !== false) {

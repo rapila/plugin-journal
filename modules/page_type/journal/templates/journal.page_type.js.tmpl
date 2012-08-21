@@ -10,6 +10,7 @@
 			}.bind(this), jQuery.noop, session);
 		}.bind(this));
 	}
+	
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
 			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
@@ -43,14 +44,15 @@
 			var waiters = [];
 			
 			this.page_type.methods.listJournals(function(result) {
-				_this.journal_list.populate(result.options, result.current || '');
+				_this.journal_list.empty().populate(result.options, result.current || '');
 			}.deferred(waiters));
 			
 			this.page_type.methods.listTemplateSets(function(result) {
-				_this.template_list.populate(result.options, result.current);
+				_this.template_list.empty().populate(result.options, result.current);
 			}.deferred(waiters));
 			
 			this.page_type.methods.listWidgets(function(result) {
+				_this.widget_list.empty();
 				var sortable_container = jQuery('<div/>').attr({ style: 'padding:1px;'});
 				jQuery.each(result, function(i, widget) {
 					var container = sortable_container.clone();
@@ -62,8 +64,8 @@
 			}.deferred(waiters));
 
 			this.page_type.methods.listContainers(function(result) {
-				_this.container_list.populate(result.options, result.current);
-				_this.auxiliary_container_list.populate(result.options, result.current_auxiliary);
+				_this.container_list.empty().populate(result.options, result.current);
+				_this.auxiliary_container_list.empty().populate(result.options, result.current_auxiliary);
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentMode(function(result) {
