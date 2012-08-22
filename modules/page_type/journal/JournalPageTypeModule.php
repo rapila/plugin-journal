@@ -204,7 +204,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
 	}
 	
-	//Convenience function for external uses
+	// Convenience function for external uses
 	public static function renderEntries(JournalEntryQuery $oQuery, Template $oEntryTemplate) {
 		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
 		$oModule = new JournalPageTypeModule();
@@ -589,7 +589,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oTemplate;
 	}
 	
-
  /**
 	* renderGallery()
 	* 
@@ -613,14 +612,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oEntryTemplate;
 	}
 
-
-
-
-
-
-	
 	/*
 		***** Journal config and journal entry admin methods *****
+		********************************************************************************************************************************** 
 	*/
 	public function detailWidget() {
 		$oWidget = WidgetModule::getWidget('journal_entry_detail', null, $this->oPage);
