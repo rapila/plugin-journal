@@ -73,7 +73,7 @@
 			}.deferred(waiters));
 			
 			this.page_type.methods.dateNavigationItemsVisible(function(hidden) {
-				_this.date_navigation_items_visible_checkbox.attr('checked', hidden);
+				_this.date_navigation_items_visible_checkbox.prop('checked', hidden === '1');
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentCommentMode(function(result) {
