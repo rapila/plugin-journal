@@ -35,7 +35,7 @@
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
-			
+
 			this.reload();
 		},
 
@@ -68,11 +68,11 @@
 				_this.auxiliary_container_list.empty().populate(result.options, result.current_auxiliary);
 			}.deferred(waiters));
 			
-			this.page_type.methods.currentMode(function(result) {
+			this.page_type.methods.currentOverviewMode(function(result) {
 				_this.mode_list.val(result);
 			}.deferred(waiters));
 			
-			this.page_type.methods.datesHidden(function(hidden) {
+			this.page_type.methods.dateNavigationItemsVisible(function(hidden) {
 				_this.date_navigation_items_visible_checkbox.attr('checked', hidden);
 			}.deferred(waiters));
 			
@@ -93,7 +93,7 @@
 
 		add_journal_entry: function() {
 			var _this = this;
-			this.page_type.methods.currentJournal(function(id) {
+			this.page_type.methods.currentJournalId(function(id) {
 				if(id && _this.journal_entry_detail) {
 					_this.journal_entry_detail.setJournalId(id);
 					_this.journal_entry_detail.setJournalEntryId(null);

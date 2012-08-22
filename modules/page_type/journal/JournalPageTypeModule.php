@@ -4,43 +4,43 @@ require_once('htmlpurifier/HTMLPurifier.standalone.php');
 
 class JournalPageTypeModule extends PageTypeModule {
 	
-	// options: on, off, moderated
+	// Comment mode options: [on, off, moderated]
 	private $sCommentMode;
 	
-	// options: list, short, full view
+	// Overview mode options: [list, truncated, full]
 	private $sOverviewMode;
 	
-	// journal
+	// Journal id
 	private $iJournalId = null;
 	
-	// tags that are selected
+	// Tags selected
 	private $aTags = null;
 	
-	// main blog template
+	// Main blog template
 	private $sTemplateSet;
 	
-	// main container for overviews and journal entry detail
+	// Main container for overviews and journal entry detail
 	private $sContainerName;
 	
-	// auxiliary container for widgets
+	// Auxiliary container for widgets
 	private $sAuxiliaryContainer;
 	
-	// show year, month, day virtual navigation items
+	// Show year, month, day virtual navigation items
 	private $bDateNavigationItemsVisible;
 	
-	// widgets [recent entries, calendar, collapsible-date-tree]
+	// Widgets [recent entries, calendar, collapsible-date-tree]
 	private $aWidgets;
 	
-	// virtual item year
+	// Virtual item year
 	private $iYear = null;
 	
-	// virtual item month
+	// Virtual item month
 	private $iMonth = null;
 	
-	// virtual item day
+	// Virtual item day
 	private $iDay = null;
 		
-	// entries per overview page
+	// Entries per overview page
 	private $iEntriesPerPage = null;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
@@ -95,7 +95,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
-		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', null);
+		$this->bDateNavigationItemsVisible = $this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
 			$this->aWidgets = array();
@@ -627,7 +627,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oWidget->getSessionKey();
 	}
 	
-	public function currentMode() {
+	public function currentOverviewMode() {
 		return $this->sOverviewMode;
 	}
 
@@ -639,11 +639,11 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->iEntriesPerPage;
 	}
 
-	public function currentJournal() {
+	public function currentJournalId() {
 		return $this->iJournalId;
 	}
 
-	public function datesHidden() {
+	public function dateNavigationItemsVisible() {
 		return $this->bDateNavigationItemsVisible;
 	}
 	
@@ -701,9 +701,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->iJournalId === CriteriaListWidgetDelegate::SELECT_WITHOUT) {
 			return null;
 		}
-		$oJounal = JournalPeer::retrieveByPK($this->iJournalId);
-		if($oJounal) {
-			return $oJounal->toArray();
+		$oJournal = JournalQuery::create()->findPk($this->iJournalId);
+		if($oJournal) {
+			return $oJournal->toArray();
 		}
 		// should never happen...
 		return null;
@@ -735,7 +735,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function saveJournal($aData) {
-		$oJournal = JournalPeer::retrieveByPK($this->iJournalId);
+		$oJournal = JournalQuery::create()->findPk($this->iJournalId);
 		if($oJournal === null) {
 			$oJournal = new Journal();
 		}
@@ -754,7 +754,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', isset($aData['date_navigation_items_visible']) ? 'true' : '');
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible']);
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
 			if($sWidgetName !== false) {
