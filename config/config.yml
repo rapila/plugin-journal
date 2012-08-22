@@ -1,4 +1,4 @@
-journal:
+journal_plugin:
   text_module:
     toolbar:
       - 

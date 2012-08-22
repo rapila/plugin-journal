@@ -12,7 +12,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		$this->setSetting('richtext_session', $this->oRichTextWidget->getSessionKey());
 		
-		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
+		$iJournalEntryImageCategory = Settings::getSetting('journal_plugin', 'externally_managed_images_category', null);
 		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
 	}
 

@@ -162,7 +162,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oPagerTemplate = $this->constructTemplate('pagination');
 		
 		// Prepare configurable next and previous page links
-		$aPagerLinkTexts = Settings::getSetting('journal', 'pagination_link_text', null);
+		$aPagerLinkTexts = Settings::getSetting('journal_plugin', 'pagination_link_text', null);
 		$sPreviousLinkText = isset($aPagerLinkTexts['previous']) ? $aPagerLinkTexts['previous'] : '<';
 		$sNextLinkText = isset($aPagerLinkTexts['next']) ? $aPagerLinkTexts['next'] : '>';
 
@@ -451,7 +451,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$bUseSizes = false;
 		$iMinPixelFontSize = null;
 		$iMaxPixelFontSize = null;
-		$aSizeParams = Settings::getSetting('journal', 'tag_cloud', null);
+		$aSizeParams = Settings::getSetting('journal_plugin', 'tag_cloud', null);
 		if(isset($aSizeParams['pixel_size_min'])) {
 			$iMinPixelFontSize = $aSizeParams['pixel_size_min'];
 		}
