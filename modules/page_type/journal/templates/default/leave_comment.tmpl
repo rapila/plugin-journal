@@ -2,15 +2,15 @@
 {{identifierContext=end;name=new_comment_thank_you_message}}
 <form class="leave_comment" action="{{comment_action}}#comments" method="post">
 	<fieldset class="journal_comment"><legend>{{writeString=journal.comment.add}}</legend>
-  <p><label for="comment_name">{{writeString=wns.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
+  <p><label for="comment_name">{{writeString=journal_comment.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
   {{if=ne;1=\{\{writeFlashValue\=comment_name_required\}\}}}
   <p>{{writeFlashValue=comment_name_required}}</p>
   {{endIf}}
-  <p><label for="comment_email">{{writeString=wns.email}}</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
+  <p><label for="comment_email">{{writeString=journal_comment.email}}</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
   {{if=ne;1=\{\{writeFlashValue\=comment_email_required\}\}}}
   <p>{{writeFlashValue=comment_email_required}}</p>
   {{endIf}}
-  <p><label for="comment_text">{{writeString=journal.form.comment}}</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
+  <p><label for="comment_text">{{writeString=journal_comment.comment}}</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
   {{if=ne;1=\{\{writeFlashValue\=comment_required\}\}}}
   <p>{{writeFlashValue=comment_required}}</p>
   {{endIf}}
@@ -18,6 +18,7 @@
   {{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
   <p>{{writeFlashValue=captcha_required}}</p>
   {{endIf}}
+	<p>{{writeString=journal_comment.required_fields}}</p>
   <p><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
 	</fieldset>
 </form>
