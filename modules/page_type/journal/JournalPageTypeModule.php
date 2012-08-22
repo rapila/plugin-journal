@@ -430,7 +430,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				}
 				$oSession = Session::getSession();
 				$oSession->setAttribute('has_new_comment', true);
-				LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink())."#comments");
+				LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink($this->oPage))."#comments");
 			}
 		}
 		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainerName);
