@@ -305,6 +305,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		switch($this->sCommentMode) {
 			case "moderated":
 				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
+			case "notified":
+				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
 			case "on":
 				$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
 				$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
