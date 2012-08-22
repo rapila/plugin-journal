@@ -748,7 +748,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible']);
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
 			if($sWidgetName !== false) {
