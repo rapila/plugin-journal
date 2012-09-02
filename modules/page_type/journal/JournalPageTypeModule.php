@@ -455,8 +455,11 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object / null
 	*/	
 	private function renderTagCloudWidget() {
+		// get all tags related to JournalEntries
+		$aEntriesByJournalId = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->select('Id')->find();
+		Util::dumpAll('$aEntriesByJournalId',$aEntriesByJournalId);
 		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
-
+		
 		if(empty($aTags)) {
 			return null;
 		}
