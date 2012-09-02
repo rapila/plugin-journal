@@ -9,7 +9,7 @@ require_once 'model/om/BaseJournal.php';
 class Journal extends BaseJournal {
 	
 	public function getJournalPage() {
-		return PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('journal_id')->filterByValue($this->getId())->endUse()->findOne();
+		return PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('blog-journal_id')->filterByValue($this->getId())->endUse()->findOne();
 	}
 
 	public function possibleYears($bExcludeDraft = true) {
