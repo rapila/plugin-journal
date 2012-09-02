@@ -44,7 +44,8 @@
 			var waiters = [];
 			
 			this.page_type.methods.listJournals(function(result) {
-				_this.journal_list.empty().populate(result.options, result.current || '');
+				_this.journal_list.empty().populate({'': "{{writeString=wns.journal.add}}"});
+				_this.journal_list.populate(result.options, result.current || '');
 			}.deferred(waiters));
 			
 			this.page_type.methods.listTemplateSets(function(result) {

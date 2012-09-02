@@ -722,6 +722,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function setCurrentJournal($iJournalId) {
+		// @todo this method is called from the journalPageTypeModule journal select and intended to create a new journal
+		// is this some fallback stuff for migrating old journal_entries without journal_ids???
 		$this->iJournalId = $iJournalId === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $iJournalId;
 		if($this->oJournalEntryList) {
 			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
