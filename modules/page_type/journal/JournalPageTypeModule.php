@@ -455,8 +455,13 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object / null
 	*/	
 	private function renderTagCloudWidget() {
-		$aTags = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry')->find()->toKeyValue('Name', 'TagInstanceCount');
-
+		// get all tags related to
+		// • model JournalEntry
+		// • active journal_enties with current journal_id 
+		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->select('Id')->find()->getData();
+		$oQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
+		$aTags = $oQuery->find()->toKeyValue('Name', 'TagInstanceCount');
+		
 		if(empty($aTags)) {
 			return null;
 		}
@@ -717,6 +722,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function setCurrentJournal($iJournalId) {
+		// @todo this method is called from the journalPageTypeModule journal select and intended to create a new journal
+		// is this some fallback stuff for migrating old journal_entries without journal_ids???
 		$this->iJournalId = $iJournalId === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $iJournalId;
 		if($this->oJournalEntryList) {
 			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);

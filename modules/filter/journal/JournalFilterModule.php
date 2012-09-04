@@ -38,9 +38,12 @@ class JournalFilterModule extends FilterModule {
 			$oJournal = JournalQuery::create()->findPk($oNavigationItem->getMe()->getPagePropertyValue('blog_journal_id', null));
 			$bDateNavigationItemsVisible = !!$oNavigationItem->getMe()->getPagePropertyValue('blog_date_navigation_items_visible', null);
 			$sDateNavigationItemClass = $bDateNavigationItemsVisible ? 'HiddenVirtualNavigationItem' : 'VirtualNavigationItem';
-			
-			//NOTE: if $oJournal is null, most probably the journal page is not properly configured
+
+			if($oJournal === null) {
+				throw new Exception("Error in__METHOD__: Journal page '{$oNavigationItem->getMe()->getName()}' is not properly configured ");
+			}
 			$iJournalId = $oJournal->getId();
+
 			
 			//Feed
 			$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $iJournalId);
