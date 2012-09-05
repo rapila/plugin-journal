@@ -28,6 +28,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	// Show year, month, day virtual navigation items
 	private $bDateNavigationItemsVisible;
 	
+	// Anti spam check with Captcha
+	private $bCaptchaEnabled;
+	
 	// Widgets [recent entries, calendar, collapsible-date-tree]
 	private $aWidgets;
 	
@@ -96,6 +99,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
 		$this->bDateNavigationItemsVisible = $this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
+		$this->bCaptchaEnabled = $this->oPage->getPagePropertyValue('blog_captcha_enabled', true);
+		
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
 			$this->aWidgets = array();
@@ -647,6 +652,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function dateNavigationItemsVisible() {
 		return $this->bDateNavigationItemsVisible;
 	}
+
+	public function captchaEnabled() {
+		return $this->bCaptchaEnabled;
+	}
 	
 	public function listJournals() {
 		$aJournals = array();
@@ -758,6 +767,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
 		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
 		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
+		$this->oPage->updatePageProperty('blog_captcha_enabled', $aData['captcha_enabled'] ? 1 : 0);
+		
+		
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
 			if($sWidgetName !== false) {
