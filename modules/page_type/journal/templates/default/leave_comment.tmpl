@@ -1,5 +1,5 @@
-{{identifierContext=start;name=new_comment_thank_you_message}}<div class="new_comment_thank_you_message">{{new_comment_thank_you_message}}</div>
-{{identifierContext=end;name=new_comment_thank_you_message}}
+{{writeFlashValue=journal.has_new_comment}}
+
 <form class="leave_comment" action="{{comment_action}}#comments" method="post">
 	<fieldset class="journal_comment"><legend>{{writeString=journal.comment.add}}</legend>
   <p><label for="comment_name">{{writeString=journal_comment.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
@@ -14,10 +14,12 @@
   {{if=ne;1=\{\{writeFlashValue\=comment_required\}\}}}
   <p>{{writeFlashValue=comment_required}}</p>
   {{endIf}}
+	{{identifierContext=start;name=captcha}}
   <p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}</p>
   {{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
   <p>{{writeFlashValue=captcha_required}}</p>
   {{endIf}}
+	{{identifierContext=end;name=captcha}}
 	<p>{{writeString=journal_comment.required_fields}}</p>
   <p><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
 	</fieldset>

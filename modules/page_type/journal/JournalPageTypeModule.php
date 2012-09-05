@@ -98,8 +98,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
-		$this->bDateNavigationItemsVisible = $this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
-		$this->bCaptchaEnabled = $this->oPage->getPagePropertyValue('blog_captcha_enabled', true);
+		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
+		$this->bCaptchaEnabled = !!$this->oPage->getPagePropertyValue('blog_captcha_enabled', true);
 		
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
@@ -272,10 +272,6 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 		}
 		$oSession = Session::getSession();
-		if($oSession->hasAttribute('has_new_comment')) {
-			$oSession->resetAttribute('has_new_comment');
-			$oEntryTemplate->replaceIdentifier('new_comment_thank_you_message', StringPeer::getString('journal_entry.new_comment_thank_you'));
-		}
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
@@ -307,13 +303,15 @@ class JournalPageTypeModule extends PageTypeModule {
 			return null;
 		}
 		$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
+		
 		switch($this->sCommentMode) {
 			case "moderated":
 				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
 			case "notified":
-				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
 			case "on":
-				$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
+				if($this->bCaptchaEnabled) {
+					$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
+				}
 				$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
 				break;
 			default:
@@ -383,72 +381,28 @@ class JournalPageTypeModule extends PageTypeModule {
 			return $this->displayEntry($oTemplate);
 		}
 		if($this->sCommentMode === 'off') {
-			LinkUtil::redirect(LinkUtil::link($oEntry->getLink()));
+			LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink()));
 		}
-		if(Manager::isPost()) {
-			$oFlash = Flash::getFlash();
-			$oComment = new JournalComment();
-			$oComment->setUsername($_POST['comment_name']);
-			$oFlash->checkForValue('comment_name', 'comment_name_required');
-			$oComment->setEmail($_POST['comment_email']);
-			$oFlash->checkForEmail('comment_email', 'comment_email_required');
-			if($this->bCaptchaEnabled && !FormFrontendModule::validateRecaptchaInput()) {
-				$oFlash->addMessage('captcha_required');
-			}
-			$oPurifierConfig = HTMLPurifier_Config::createDefault();
-			$oPurifierConfig->set('Cache.SerializerPath', MAIN_DIR.'/'.DIRNAME_GENERATED.'/'.DIRNAME_CACHES.'/purifier');
-			$oPurifierConfig->set('HTML.Doctype', 'XHTML 1.0 Transitional');
-			$oPurifierConfig->set('AutoFormat.AutoParagraph', true);
-			$oPurifier = new HTMLPurifier($oPurifierConfig);
-			$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
-			$oComment->setText($_POST['comment_text']);
-			$oFlash->checkForValue('comment_text', 'comment_required');
-			$oFlash->finishReporting();
-			if(isset($_POST['preview'])) {
-				$oComment->setCreatedAt(date('c'));
-				$oTemplate->replaceIdentifier('container', $this->renderComments(array($oComment), $this->oEntry), $this->sContainerName);
-				return;
-			}
-			if(Flash::noErrors()) {
-				$this->oEntry->addJournalComment($oComment);
-				if($this->sCommentMode === 'moderated') {
-					$oComment->setIsPublished(false);
-				}
-				$oComment->save();
-				switch($this->sCommentMode) {
-					case "moderated":
-					case "notified":
-						$oEmailContent = $this->constructTemplate('e_mail_comment_'.$this->sCommentMode);
-						$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
-						$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
-						$oEmailContent->replaceIdentifier('comment', $oComment->getText());
-						$oEmailContent->replaceIdentifier('entry', $this->oEntry->getTitle());
-						$oEmailContent->replaceIdentifier('journal', $this->oEntry->getJournal()->getName());
-						$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($this->oEntry->getLink($this->oPage))));
-						$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager')));
-						$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager')));
-						$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager')));
-						$oEmail = new EMail("New comment on your journal entry ".$this->oEntry->getTitle(), $oEmailContent);
-						$oSender = $this->oEntry->getUserRelatedByCreatedBy();
-						$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
-						$oEmail->send();
-				}
-				$oSession = Session::getSession();
-				$oSession->setAttribute('has_new_comment', true);
-				LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink($this->oPage))."#comments");
-			}
+		if(Manager::isPost() && isset($_POST['preview'])) {
+			$oComment = $_POST['preview'];
+			$oTemplate->replaceIdentifier('container', $this->renderComments(array($oComment), $this->oEntry), $this->sContainerName);
+			return;
 		}
 		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainerName);
 	}
 	
 	// Override from parent
 	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
-		if($this->sTemplateSet) {
+		return self::template($sTemplateName, $this->sTemplateSet);
+	}
+	
+	public static function template($sTemplateName, $sTemplateSet = null) {
+		if($sTemplateSet) {
 			try {
-				return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', $this->sTemplateSet));
+				return new Template($sTemplateName, array(DIRNAME_MODULES, self::getType(), self::moduleName(), 'templates', $sTemplateSet));
 			} catch (Exception $e) {}
 		}
-		return parent::constructTemplate($sTemplateName, array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), 'templates', 'default'));
+		return new Template($sTemplateName, array(DIRNAME_MODULES, self::getType(), self::moduleName(), 'templates', 'default'));
 	}
 
  /**

@@ -25,6 +25,63 @@ class JournalFilterModule extends FilterModule {
 		if($oNavigationItem instanceof VirtualNavigationItem && $oNavigationItem->getType() === 'journal-feed') {
 			$oFeed = new JournalFileModule(false, $oPage, $oNavigationItem->getData());
 			$oFeed->renderFile();exit;
+		} else if($oNavigationItem instanceof VirtualNavigationItem && $oNavigationItem->getType() === 'journal-add_comment' && Manager::isPost()) {
+			$sCommentMode = $oPage->getPagePropertyValue('blog_comment_mode', 'on');
+			$oEntry = $oNavigationItem->getData();
+			$bCheckCaptcha = $oPage->getPagePropertyValue('blog_captcha_enabled', true);
+			if($sCommentMode !== 'off') {
+				$oFlash = Flash::getFlash();
+				$oComment = new JournalComment();
+				$oComment->setUsername($_POST['comment_name']);
+				$oFlash->checkForValue('comment_name', 'comment_name_required');
+				$oComment->setEmail($_POST['comment_email']);
+				$oFlash->checkForEmail('comment_email', 'comment_email_required');
+				if($bCheckCaptcha && !FormFrontendModule::validateRecaptchaInput() && !isset($_POST['preview'])) {
+					$oFlash->addMessage('captcha_required');
+				}
+				$oPurifierConfig = HTMLPurifier_Config::createDefault();
+				$oPurifierConfig->set('Cache.SerializerPath', MAIN_DIR.'/'.DIRNAME_GENERATED.'/'.DIRNAME_CACHES.'/purifier');
+				$oPurifierConfig->set('HTML.Doctype', 'XHTML 1.0 Transitional');
+				$oPurifierConfig->set('AutoFormat.AutoParagraph', true);
+				$oPurifier = new HTMLPurifier($oPurifierConfig);
+				$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
+				$oComment->setText($_POST['comment_text']);
+				$oFlash->checkForValue('comment_text', 'comment_required');
+				$oFlash->finishReporting();
+				if(isset($_POST['preview'])) {
+					$oComment->setCreatedAt(date('c'));
+					$_POST['preview'] = $oComment;
+				} else if(Flash::noErrors()) {
+					$oEntry->addJournalComment($oComment);
+					if($sCommentMode === 'moderated') {
+						$oComment->setIsPublished(false);
+					}
+					$oComment->save();
+					switch($sCommentMode) {
+						case "moderated":
+						case "notified":
+							$oEmailContent = JournalPageTypeModule::template('e_mail_comment_'.$sCommentMode, $oPage->getPagePropertyValue('blog_template_set', 'default'));
+							$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
+							$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
+							$oEmailContent->replaceIdentifier('comment', $oComment->getText());
+							$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
+							$oEmailContent->replaceIdentifier('journal', $oEntry->getJournal()->getName());
+							$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($oEntry->getLink($oPage))));
+							$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager')));
+							$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager')));
+							$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager')));
+							$oEmail = new EMail("New comment on your journal entry ".$oEntry->getTitle(), $oEmailContent);
+							$oSender = $oEntry->getUserRelatedByCreatedBy();
+							$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
+							$oEmail->send();
+					}
+					$oSession = Session::getSession();
+					Flash::getFlash()->unfinishReporting()->addMessage('journal.has_new_comment', array(), "journal_entry.new_comment_thank_you.$sCommentMode", 'new_comment_thank_you_message', 'p')->stick();
+					LinkUtil::redirect(LinkUtil::link($oEntry->getLink($oPage))."#comments");
+				}
+			} else {
+				LinkUtil::redirect(LinkUtil::link($oEntry->getLink()));
+			}
 		}
 		//Add the feed include
 		ResourceIncluder::defaultIncluder()->addCustomResource(array('template' => 'feed', 'location' => LinkUtil::link($oPage->getLinkArray('feed'))));
