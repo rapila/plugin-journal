@@ -392,7 +392,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oFlash->checkForValue('comment_name', 'comment_name_required');
 			$oComment->setEmail($_POST['comment_email']);
 			$oFlash->checkForEmail('comment_email', 'comment_email_required');
-			if(!FormFrontendModule::validateRecaptchaInput()) {
+			if($this->bCaptchaEnabled && !FormFrontendModule::validateRecaptchaInput()) {
 				$oFlash->addMessage('captcha_required');
 			}
 			$oPurifierConfig = HTMLPurifier_Config::createDefault();
