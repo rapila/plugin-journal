@@ -67,9 +67,9 @@ class JournalFilterModule extends FilterModule {
 							$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
 							$oEmailContent->replaceIdentifier('journal', $oEntry->getJournal()->getName());
 							$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($oEntry->getLink($oPage))));
-							$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager')));
-							$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager')));
-							$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager')));
+							$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager'), null, LinkUtil::isSSL()));
+							$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager'), null, LinkUtil::isSSL()));
+							$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager'), null, LinkUtil::isSSL()));
 							$oEmail = new EMail("New comment on your journal entry ".$oEntry->getTitle(), $oEmailContent);
 							$oSender = $oEntry->getUserRelatedByCreatedBy();
 							$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
