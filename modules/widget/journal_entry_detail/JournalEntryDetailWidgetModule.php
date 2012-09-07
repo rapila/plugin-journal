@@ -1,7 +1,10 @@
 <?php
 class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
+	
 	private $oRichTextWidget;
+	
 	private $iJournalId;
+	
 	private $iJournalEntryId;
 	
 	public function __construct($sSessionKey = null, $oPage = null) {
@@ -12,7 +15,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		$this->setSetting('richtext_session', $this->oRichTextWidget->getSessionKey());
 		
-		$iJournalEntryImageCategory = Settings::getSetting('journal_plugin', 'externally_managed_images_category', null);
+		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
 		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
 	}
 
@@ -22,7 +25,6 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	public function setJournalEntryId($iJournalEntryId) {
 		$this->iJournalEntryId = $iJournalEntryId;
-		
 	}
 	
 	public function getElementType() {
@@ -59,32 +61,32 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 	
 	public function addJournalEntryImage($iDocumentId) {
-	  if($this->iJournalEntryId === null) {
-	    $this->aUnsavedDocuments[] = $iDocumentId;
-	    return;
-	  }
-	  if(JournalEntryImagePeer::retrieveByPK($this->iJournalEntryId, $iDocumentId)) {
-	    return;
-	  }
-	  $oJournalEntryImage = new JournalEntryImage();
-	  $oJournalEntryImage->setJournalEntryId($this->iJournalEntryId);
-	  $oJournalEntryImage->setDocumentId($iDocumentId);
-	  return $oJournalEntryImage->save();
+		if($this->iJournalEntryId === null) {
+			$this->aUnsavedDocuments[] = $iDocumentId;
+			return;
+		}
+		if(JournalEntryImagePeer::retrieveByPK($this->iJournalEntryId, $iDocumentId)) {
+			return;
+		}
+		$oJournalEntryImage = new JournalEntryImage();
+		$oJournalEntryImage->setJournalEntryId($this->iJournalEntryId);
+		$oJournalEntryImage->setDocumentId($iDocumentId);
+		return $oJournalEntryImage->save();
 	}
 	
 	public function allDocuments($iThumbnailSize = 180) {
-	  $aDocuments = JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->joinDocument()->orderBySort()->find();
-	  $aResult = array();
-	  foreach($aDocuments as $oEntryDocument) {
-	    $aResult[] = $this->rowData($oEntryDocument->getDocument(), $iThumbnailSize);
-	  }
-	  return $aResult;
+		$aDocuments = JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->joinDocument()->orderBySort()->find();
+		$aResult = array();
+		foreach($aDocuments as $oEntryDocument) {
+			$aResult[] = $this->rowData($oEntryDocument->getDocument(), $iThumbnailSize);
+		}
+		return $aResult;
 	}
 	
 	public function rowData($oDocument, $iThumbnailSize = 180) {
 		return array( 'Name' => $oDocument->getName(), 
-								  'Id' => $oDocument->getId(), 
-								  'Preview' => $oDocument->getPreview($iThumbnailSize)
+									'Id' => $oDocument->getId(), 
+									'Preview' => $oDocument->getPreview($iThumbnailSize)
 								);
 	}
 	

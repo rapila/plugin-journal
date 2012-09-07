@@ -13,6 +13,7 @@
 	
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
+			var _this = this;
 			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
 			//Lists to be filled
@@ -25,16 +26,20 @@
 			});
 			this.container_list = this.container.find('select[name="container"]');
 			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
-			//Static value lists
-			this.mode_list = this.container.find('select[name="mode"]');
-			this.comment_mode_list = this.container.find('select[name="comment_mode"]');
-			this.entries_per_page_list = this.container.find('select[name="entries_per_page"]');
 			//Elements used later on
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
+			this.captcha_enabled_checkbox = this.container.find('input[name="captcha_enabled"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
+			//Static value lists
+			this.mode_list = this.container.find('select[name="mode"]');
+			this.with_comment_active_only = this.container.find('.with_comment_active_only');
+			this.comment_mode_list = this.container.find('select[name="comment_mode"]').change(function() {
+				_this.with_comment_active_only.css('visibility' , jQuery(this).val() ===  'off' ? 'hidden' : 'visible');
+			});
+			this.entries_per_page_list = this.container.find('select[name="entries_per_page"]');
 
 			this.reload();
 		},
@@ -77,8 +82,12 @@
 				_this.date_navigation_items_visible_checkbox.prop('checked', hidden === '1');
 			}.deferred(waiters));
 			
+			this.page_type.methods.captchaEnabled(function(result) {
+				_this.captcha_enabled_checkbox.attr('checked', result);
+			}.deferred(waiters));
+			
 			this.page_type.methods.currentCommentMode(function(result) {
-				_this.comment_mode_list.val(result);
+				_this.comment_mode_list.val(result).change();
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentEntriesPerPage(function(result) {
