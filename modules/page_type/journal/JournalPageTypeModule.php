@@ -250,7 +250,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
 
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
-		$oEntryTemplate->replaceIdentifier('link', $sDetailLink);
+		$oEntryTemplate->replaceIdentifier('link', LinkUtil::absoluteLink($sDetailLink), null, LinkUtil::isSSL());
 		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
 
 		if($oEntryTemplate->hasIdentifier('text')) {
