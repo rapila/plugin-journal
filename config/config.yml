@@ -12,8 +12,10 @@ journal:
         
   externally_managed_images_category: null
   
+  # render years [1] and months [2] and days [3]
+  display_journal_tree_levels: 2
+  
   # pagination settings
-  pagination_limit: 10
   pagination_link_text:
     previous: '<'
     next: '>'
@@ -22,5 +24,15 @@ journal:
   tag_cloud:
     pixel_size_min: 12
     pixel_size_max: 22
+    
+  # rss feed journal page configuration for rss feed link
+  # for single journal usage or multiple [if no journal id is set]
+  rss_feed_journal_page_name: 'blog'
+  # alternative for multiple journals per site with journal id set
+  # rss_feed_journal_page_name:
+  #   1 : 'blog1'
+  #   2 : 'blog2'
+
+    
   
 

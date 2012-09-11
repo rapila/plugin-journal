@@ -1,5 +1,5 @@
 jQuery(function() {
-	var calendar = jQuery('#journal_calendar');
+	var calendar = jQuery('#calendar_widget');
 	var existing = {};
 	var minDate, maxDate;
 	function append(year, month, day, link) {

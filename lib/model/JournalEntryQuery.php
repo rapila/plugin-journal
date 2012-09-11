@@ -45,6 +45,14 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this;
 	}
 	
+	public function distinctDates() {
+		$this->distinct()->clearSelectColumns();
+		$this->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
+		$this->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
+		$this->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
+		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day');
+	}
+	
 	public function filterByTagName($sTagName) {
 		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select('TaggedItemId')->find();
 		$this->filterById($aTaggedItems, Criteria::IN);

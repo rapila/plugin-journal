@@ -1,5 +1,5 @@
 <div id="pagination">
-	<div id="previous_link">{{previous_link}}</div>
+	<div id="previous_link"><a{{if=ne;1=\{\{previous_link\}\};2=false}} href="{{previous_link}}" title="{{writeString=pager.previous_page}}"{{endIf}}>&lt;</a></div>
 	<div id="page_links">{{page_links}}</div>
-	<div id="next_link">{{next_link}}</div>
+	<div id="next_link"><a{{if=ne;1=\{\{next_link\}\};2=false}} href="{{next_link}}" title="{{writeString=pager.next_page}}"{{endIf}}>&gt;</a></div>
 </div>

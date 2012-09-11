@@ -135,13 +135,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->$sMethod($oTemplate);
 	}
 	
-	public static function displayForHome($oItemTemplate) {
-		$oModule = new JournalPageTypeModule();
-		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
-		$oModule->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(5), $oItemTemplate, $oTemplate, null, 'entries');
-		return $oTemplate;
-	}
-	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
 		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
 	}
@@ -158,44 +151,22 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->iEntriesPerPage === null) {
 			return;
 		}		
-		$iCountAll = $oQuery->count();
-		$oQuery->limit($this->iEntriesPerPage);
-		
-		// Display pager if count all entries is larger then entries per page limit
-		if($iCountAll <= $this->iEntriesPerPage) {
+		$iPage = (int) (isset($_REQUEST[self::ALLOWED_POINTER_PAGE]) ? $_REQUEST[self::ALLOWED_POINTER_PAGE] : 1);
+		$oPager = new SimplePager($oQuery, $iPage, $this->iEntriesPerPage);
+		if($oPager->requiresPagination() === false) {
 			return;
 		}
-		$iPage = (int) (isset($_REQUEST[self::ALLOWED_POINTER_PAGE]) ? $_REQUEST[self::ALLOWED_POINTER_PAGE] : 1);
-		if($iPage > 1) {
-			$iOffset = ($iPage-1)*$this->iEntriesPerPage;
-			$oQuery->offset($iOffset);
-		}
-		$iPagesCount = (int) ceil($iCountAll/$this->iEntriesPerPage);
+		
+		// Basic page link without page number
+		$sBasePageLink = LinkUtil::link(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink()).'/'.self::ALLOWED_POINTER_PAGE.'/';
+		$oPager->setPageLinkBase($sBasePageLink);
+		$oQuery = $oPager->getQuery();
+
 		$oPagerTemplate = $this->constructTemplate('pagination');
 		
-		// Prepare configurable next and previous page links
-		$aPagerLinkTexts = Settings::getSetting('journal', 'pagination_link_text', null);
-		$sPreviousLinkText = isset($aPagerLinkTexts['previous']) ? $aPagerLinkTexts['previous'] : '<';
-		$sNextLinkText = isset($aPagerLinkTexts['next']) ? $aPagerLinkTexts['next'] : '>';
-
-		// Previous link or placeholder
-		if($iPage > 1) {
-			$oPreviousLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.previous_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE,$iPage-1))), $sPreviousLinkText);
-		} else {
-			$oPreviousLink = TagWriter::quickTag('span', array(), $sPreviousLinkText);
-		}
-		$oPagerTemplate->replaceIdentifier('previous_link', $oPreviousLink);
-		
-		// Next link or placeholder
-		if($iPage < $iPagesCount) {
-			$oNextLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.next_page'), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE, $iPage+1))), $sNextLinkText);
-		} else {
-			$oNextLink = TagWriter::quickTag('span', array(), $sNextLinkText);
-		}
-		$oPagerTemplate->replaceIdentifier('next_link', $oNextLink);
-		
 		// All page links including current one
-		for($i = 1; $i <= $iPagesCount; $i++) {
+		$iTotalPages = $oPager->getTotalPageCount();
+		for($i = 1; $i <= $iTotalPages; $i++) {
 			if($i === $iPage) {
 				$oPageLink = TagWriter::quickTag('span', array(), $i);
 			} else {
@@ -203,12 +174,12 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
-		if($oPagerTemplate->hasIdentifier('page_count_info')) {
-			$oPagerTemplate->replaceIdentifier('page_count_info', "$this->iEntriesPerPage/$iCountAll");
-		}
+		$oPagerTemplate->replaceIdentifier('previous_link', $oPager->getPreviousLink());
+		$oPagerTemplate->replaceIdentifier('next_link', $oPager->getNextLink());
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
+		return $oPager;
 	}
-	
+
 	// Convenience function for external uses
 	public static function renderEntries(JournalEntryQuery $oQuery, Template $oEntryTemplate) {
 		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
@@ -231,7 +202,6 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oQuery->filterByTagName($this->aTags);
 		}
 		$this->addPagination($oQuery, $oFullTemplate);
-
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
 		}
@@ -475,82 +445,118 @@ class JournalPageTypeModule extends PageTypeModule {
  /**
 	* renderCalendarWidget()
 	* 
-	* description: display calendar
-	* • as calender (date_picker), include javascript file web/js/journal-collapsible-date-tree.js
-	* • as collapsible date tree, include javascript file web/js/calendar.js
-	* 
+	* description: display calendar (date_picker)
+	* include javascript file web/js/calendar.js
 	* @return Template object
 	*/	
 	private function renderCalendarWidget() {
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->distinctDates()->find();
+		$oTemplate = $this->constructTemplate('widget_calendar');
+		$oItemPrototype = $this->constructTemplate('widget_calendar_item');
+		foreach($aResult as $aDate) {			
+			// Make day item template and add it to month template
+			$oItemTemplate = clone $oItemPrototype;
+			foreach($aDate as $sPeriod => $sValue) {
+				$oItemTemplate->replaceIdentifier(strtolower($sPeriod), $sValue);
+			}
+			$oItemTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
+			$oTemplate->replaceIdentifierMultiple('calendar_item', $oItemTemplate);
+		}
+		return $oTemplate;
+	}
+	
+	private function renderTreeWidget() {
+		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_tree_levels', 2);
 		
-		$oQuery = FrontendJournalEntryQuery::create()->distinct()->filterByJournalId($this->iJournalId)->clearSelectColumns();
-		$oQuery->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
-		$oQuery->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
-		$oQuery->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
-		$aResult = $oQuery->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->distinctDates()->find();
 		
-		$oTemplate = $this->constructTemplate('calendar');
-		$oYearPrototype = $this->constructTemplate('calendar_item_year');
-		$oMonthPrototype = $this->constructTemplate('calendar_item_month');
-		$oDayPrototype = $this->constructTemplate('calendar_item_day');
+		$oTemplate = $this->constructTemplate('widget_tree');
+		$oItemPrototype = $this->constructTemplate('widget_tree_item');
+		
 		$sPreviousYear = null;
 		$sPreviousMonth = null;
-		$oYearTemplate = null;
-		$oMonthTemplate = null;
-
-		foreach($aResult as $aDate) {
-			// Make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
-			// Add it to year template
-			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
-				$sPreviousMonth = $aDate['Month'];
-				if($oMonthTemplate) {
-					$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
-				}
-				$oMonthTemplate = clone $oMonthPrototype;
-				$oMonthTemplate->replaceIdentifier('year', $aDate['Year']);
-				$oMonthTemplate->replaceIdentifier('month', $aDate['Month']);
-				$oMonthTemplate->replaceIdentifier('class_is_active', $aDate['Month'] === $this->iMonth ? ' is_active' : '');
-				LocaleUtil::getLocaleId();
-				$sMonthName = strftime( '%B', mktime( 0, 0, 0, $aDate['Month'], 1, $aDate['Year']));
-				$oMonthTemplate->replaceIdentifier('month_name', $sMonthName);
-				$oMonthTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'])));
+		
+		$aStack = array($oTemplate);
+		
+		$cReduceToLevel = function($iLevel) use (&$aStack) {
+			while(count($aStack) > $iLevel) {
+				$oPreviousTemplate = array_pop($aStack);
+				$oCurrentTemplate = $aStack[count($aStack)-1];
+				$oCurrentTemplate->replaceIdentifierMultiple('items', $oPreviousTemplate, null, Template::NO_NEW_CONTEXT);
 			}
+		};
+		
+		$oPage = $this->oPage;
+		$cOutput = function($aDate, $sFormat) use (&$aStack, $oItemPrototype, $oPage) {
+			$oTemplate = clone $oItemPrototype;
+			array_push($aStack, $oTemplate);
+			foreach($aDate as $sPeriod => $sValue) {
+				$oTemplate->replaceIdentifier(strtolower($sPeriod), $sValue);
+			}
+			$oDate = new DateTime();
+			$oDate->setDate($aDate['Year'], @$aDate['Month'] ? $aDate['Month'] : 1, @$aDate['Day'] ? @$aDate['Day'] : 1);
+			$oTemplate->replaceIdentifier('full_name', LocaleUtil::localizeDate($oDate, null, $sFormat));
+			$aKeys = array_keys($aDate);
+			$oTemplate->replaceIdentifier('name', $aDate[$aKeys[count($aKeys)-1]]);
+			$oTemplate->replaceIdentifier('level', count($aKeys));
+			$oTemplate->replaceIdentifier('link', LinkUtil::link($oPage->getFullPathArray(array_values($aDate))));
+		};
+		
+		foreach($aResult as $aDate) {
+			$oCurrentTemplate = null;
 			
 			// Make year template whenever the year changes and add it to main template
 			if($aDate['Year'] !== $sPreviousYear) {
+				$cReduceToLevel(1);
 				$sPreviousYear = $aDate['Year'];
-				if($oYearTemplate) {
-					$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
-				}
-				$oYearTemplate = clone $oYearPrototype;
-				$oYearTemplate->replaceIdentifier('year', $aDate['Year']);
-				if($aDate['Year'] === $this->iYear) {
-					$oYearTemplate->replaceIdentifier('class_is_active', ' is_active');
-					$oYearTemplate->replaceIdentifier('display', 'block');
-				} else {
-					$oYearTemplate->replaceIdentifier('display', 'none');
-				}
-				$oYearTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'])));
+				$cOutput(array('Year' => $aDate['Year']), 'Y');
 			}
 			
-			if(!$oMonthTemplate->hasIdentifier('day_item')) {
-				continue;
+			// Render 2nd level months
+			if($iTreeWidgetLevels === 1) continue;
+			// Make month template whenever month changes (or year, because it can happen that two months are the same when a year changes) 
+			// Add it to year template
+			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
+				$cReduceToLevel(2);
+				$sPreviousMonth = $aDate['Month'];
+				$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month']), 'B');
 			}
 			
-			// Make day item template and add it to month template
-			$oDayTemplate = clone $oDayPrototype;
-			$oDayTemplate->replaceIdentifier('year', $aDate['Year']);
-			$oDayTemplate->replaceIdentifier('month', $aDate['Month']);
-			$oDayTemplate->replaceIdentifier('day', $aDate['Day']);
-			$oDayTemplate->replaceIdentifier('link', LinkUtil::link($this->oPage->getLinkArray($aDate['Year'], $aDate['Month'], $aDate['Day'])));
-			$oMonthTemplate->replaceIdentifierMultiple('day_item', $oDayTemplate);
+			// Render 3rd level days
+			if($iTreeWidgetLevels === 2) continue;
+			$cReduceToLevel(3);
+			$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month'], 'Day' => $aDate['Day']), 'x');
 		}
 		
-		if($oMonthTemplate) {
-			$oYearTemplate->replaceIdentifierMultiple('month_item', $oMonthTemplate);	
+		$cReduceToLevel(1);
+		
+		return $oTemplate;
+	}
+
+ /**
+	* renderRssFeedWidget()
+	* 
+	* description: display rss feed link
+	* requires rss_feed_journal_page_name in config.yml section journal
+	* @return Template object
+	*/	
+	public function renderRssFeedWidget() {
+		$mJournalPageName = Settings::getSetting('journal', 'rss_feed_journal_page_name', 'blog');
+		$oJournalPage = null;
+		$sPageName = null; 
+		if(!is_array($mJournalPageName)) {
+			$sPageName = $mJournalPageName;
+		} else if(isset($mJournalPageName[$this->iJournalId])) {
+			$sPageName = $mJournalPageName[$this->iJournalId];
 		}
-		if($oYearTemplate) {
-			$oTemplate->replaceIdentifierMultiple('calendar_item', $oYearTemplate);	
+		$oJournalPage = PageQuery::create()->filterByName($sPageName)->findOne();
+		if($oJournalPage === null) {
+			throw new Exception ('Error in JournalPageTypeModule::renderRssFeedWidget(): journal page name is not properly configured');
+		}
+		$oTemplate = $this->constructTemplate('widget_rss_feed');
+		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($oJournalPage->getFullPathArray()));
+		if($sTitle = StringPeer::getString('wns.journal.rss_feed_title}}')) {
+			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
 		}
 		return $oTemplate;
 	}
