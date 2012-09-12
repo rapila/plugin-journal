@@ -17,7 +17,7 @@ class JournalFileModule extends FileModule {
 			}
 		}
     header("Content-Type: application/rss+xml;charset=".Settings::getSetting('encoding', 'db', 'utf-8'));
-    RichtextUtil::$USE_ABSOLUTE_LINKS = true;
+    RichtextUtil::$USE_ABSOLUTE_LINKS = LinkUtil::isSSL();
   }
   
   public function renderFile() {
@@ -36,7 +36,7 @@ class JournalFileModule extends FileModule {
 			self::addSimpleAttribute($oDocument, $oChannel, 'title', $this->oJournalPage->getPageTitle());
 			self::addSimpleAttribute($oDocument, $oChannel, 'description', $this->oJournalPage->getDescription());
 		}
-    self::addSimpleAttribute($oDocument, $oChannel, 'link', LinkUtil::absoluteLink(LinkUtil::link($this->oJournalPage->getFullPathArray(), 'FrontendManager')));
+    self::addSimpleAttribute($oDocument, $oChannel, 'link', LinkUtil::absoluteLink(LinkUtil::link($this->oJournalPage->getFullPathArray(), 'FrontendManager'), null, LinkUtil::isSSL()));
     self::addSimpleAttribute($oDocument, $oChannel, 'language', Session::language());
     self::addSimpleAttribute($oDocument, $oChannel, 'ttl', "15");
     $oRoot->appendChild($oChannel);
@@ -49,7 +49,11 @@ class JournalFileModule extends FileModule {
             //Add one elements with attributes
             $oAttribute = $oDocument->createElement($sAttributeName);
             foreach($mAttributeValue as $sSubAttributeName => $sSubAttributeValue) {
-              $oAttribute->setAttribute($sSubAttributeName, $sSubAttributeValue);
+							if($sSubAttributeName === '__content') {
+						    $oAttribute->appendChild($oDocument->createTextNode($sSubAttributeValue));
+							} else {
+	              $oAttribute->setAttribute($sSubAttributeName, $sSubAttributeValue);
+							}
             }
             $oChannel->appendChild($oAttribute);
           } else {

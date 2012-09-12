@@ -27,7 +27,8 @@ class JournalEntry extends BaseJournalEntry {
 	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
 		$aResult = array();
 		$aResult['title'] = $this->getTitle();
-		$aResult['link'] = LinkUtil::absoluteLink(LinkUtil::link($this->getLink($oJournalPage), 'FrontendManager'));
+		$aJournalPageLink = $this->getLink($oJournalPage);
+		$aResult['link'] = LinkUtil::absoluteLink(LinkUtil::link($aJournalPageLink, 'FrontendManager'), null, LinkUtil::isSSL());
 		if($bIsForRpc) {
 			$aResult['description'] = RichtextUtil::parseStorageForBackendOutput($this->getText())->render();
 		} else {
@@ -40,7 +41,11 @@ class JournalEntry extends BaseJournalEntry {
 			$aCategories[] = $oTag->getTagName();
 		}
 		$aResult[$bIsForRpc ? 'categories' : 'category'] = $aCategories;
-		$aResult['guid'] = $aResult['link'];
+		if($aJournalPageLink) {
+			$aResult['guid'] = $aResult['link'];
+		} else {
+			$aResult['guid'] = array('isPermaLink' => 'false', '__content' => $this->getId()."-".$this->getJournal()->getId());
+		}
 		$aResult['pubDate'] = date(DATE_RSS, (int)$this->getCreatedAtTimestamp());
 		if($bIsForRpc) {
 			$aResult['dateCreated'] = new xmlrpcval(iso8601_encode((int)$this->getCreatedAtTimestamp()), 'dateTime.iso8601');
@@ -98,6 +103,9 @@ class JournalEntry extends BaseJournalEntry {
 	public function getLink($oPage = null, $sSubpage = null) {
 		if($oPage === null) {
 			$oPage = $this->getJournal()->getJournalPage();
+		}
+		if($oPage === null) {
+			return null;
 		}
 		if($sSubpage) {
 			return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('n'), $this->getCreatedAt('j'), $this->getSlug(), $sSubpage);
