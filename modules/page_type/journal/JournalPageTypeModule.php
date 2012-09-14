@@ -663,6 +663,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				}
 			}
 		}
+		ksort($aWidgetTypesOrdered);
 		$aWidgetTypes = array_merge($aWidgetTypesOrdered, $aWidgetTypes);
 		return $aWidgetTypes;
 	}
