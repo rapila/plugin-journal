@@ -542,7 +542,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			if($oPageProperty) {
 				self::$JOURNAL_PAGE = $oPageProperty->getPage();
 			}
-			if($JOURNAL_PAGE === null) {
+			if(self::$JOURNAL_PAGE === null) {
 				throw new Exception ('Error in JournalPageTypeModule::renderRssFeedWidget(): journal page name is not properly configured');
 			}
 		}
@@ -579,7 +579,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate = $this->constructTemplate('widget_journals');
 		foreach(JournalQuery::create()->findPks($this->mJournalIds) as $oJournal) {
 			$oLink = TagWriter::quickTag('a', array('href' => LinkUtil::link($oJournalPage->getFullPathArray())), $oJournal->getName());
-			$oTemplate->replaceIdentifier('journal_link', $oLink);
+			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
 		}
 		return $oTemplate;
 	}
