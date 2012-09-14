@@ -20,7 +20,7 @@
 	<column name="is_published" type="boolean" size="1" default="0" />
 	<behavior name="taggable" />
 	<behavior name="denyable">
-		<parameter name="role_key" value="journal" />
+		<parameter name="role_key" value="journal_entries" />
 	</behavior>
 </table>
 
@@ -36,7 +36,7 @@
 	<column name="is_published" type="boolean" size="1" default="1" />
 	<column name="activation_hash" type="varchar" size="50" />
 	<behavior name="denyable">
-		<parameter name="role_key" value="journal" />
+		<parameter name="role_key" value="journal_entries" />
 		<parameter name="owner_allowed" value="true" />
 	</behavior>
 </table>
@@ -52,7 +52,4 @@
 	</foreign-key>
 	<column name="sort" type="integer" />
 	<column name="legend" type="varchar" size="180" required="true"/>
-	<behavior name="denyable">
-		<parameter name="role_key" value="journal" />
-	</behavior>
 </table>

@@ -66,7 +66,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 
 	public function getFilterTypeForColumn($sColumnIdentifier) {
 		if($sColumnIdentifier === 'journal_id') {
-			return CriteriaListWidgetDelegate::FILTER_TYPE_IS;
+			return CriteriaListWidgetDelegate::FILTER_TYPE_IN;
 		}
 		return null;
 	}

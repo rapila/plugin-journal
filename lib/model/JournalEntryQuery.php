@@ -7,7 +7,7 @@
 class JournalEntryQuery extends BaseJournalEntryQuery {
 
 	public function mostRecent($iLimit = null) {
-		$this->addDescendingOrderByColumn(JournalEntryPeer::CREATED_AT);
+		$this->orderByCreatedAt(Criteria::DESC);
 		if($iLimit) {
 			$this->setLimit($iLimit);
 		}
@@ -45,19 +45,54 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this;
 	}
 	
-	public function distinctDates() {
-		$this->distinct()->clearSelectColumns();
-		$this->withColumn('DAY('.JournalEntryPeer::CREATED_AT.')', 'Day');
-		$this->withColumn('MONTH('.JournalEntryPeer::CREATED_AT.')', 'Month');
-		$this->withColumn('YEAR('.JournalEntryPeer::CREATED_AT.')', 'Year');
-		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day');
-	}
-	
 	public function filterByTagName($sTagName) {
 		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select('TaggedItemId')->find();
 		$this->filterById($aTaggedItems, Criteria::IN);
 		return $this;
 	}
-
+	
+	public function findDistinctDates() {
+		$this->distinct()->clearSelectColumns();
+		$this->withColumn('DAY(created_at)', 'Day');
+		$this->withColumn('MONTH(created_at)', 'Month');
+		$this->withColumn('YEAR(created_at)', 'Year');
+		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+	}
+	
+	public function findAvailableYearsByJournalId($mJournalId) {
+		$this->distinct()->clearSelectColumns();
+		if($mJournalId) {
+			$this->filterByJournalId($mJournalId);
+		} 
+		$this->withColumn('YEAR(created_at)', 'Year');
+		$this->orderBy('Year');
+		return $this->select(array('Year'))->find();
+	}
+	
+	public function findAvailableMonthsByJournalId($mJournalId, $iYear) {
+		$this->distinct()->clearSelectColumns();
+		if($mJournalId) {
+			$this->filterByJournalId($mJournalId);
+		} 
+		$this->withColumn('MONTH(created_at)', 'Month');
+		$oYearInterval = new DateInterval('P1Y');
+		$oYear = DateTime::createFromFormat('!Y', $iYear);
+		$this->filterByCreatedAt(array('min' => clone $oYear, 'max' => $oYear->add($oYearInterval)));
+		$this->orderBy('Month');
+		return $this->select(array('Month'))->find();
+	}
+	
+	public function findAvailableDaysByJournalId($mJournalId, $iYear, $iMonth) {
+		$this->distinct()->clearSelectColumns();
+		if($mJournalId) {
+			$this->filterByJournalId($mJournalId);
+		} 
+		$this->withColumn('DAY(created_at)', 'Day');
+		$oMonthInterval = new DateInterval('P1M');
+		$oMonth = DateTime::createFromFormat('!Y-m', "$iYear-$iMonth");
+		$this->filterByCreatedAt(array('min' => clone $oMonth, 'max' => $oMonth->add($oMonthInterval)));
+		$this->orderBy('Day');
+		return $this->select(array('Day'))->find();
+	}
 }
 

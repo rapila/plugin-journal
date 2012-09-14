@@ -10,8 +10,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	// Overview mode options: [list, truncated, full]
 	private $sOverviewMode;
 	
-	// Journal id
-	private $iJournalId = null;
+	// Single or multiple journal ids
+	private $sJournalIdProperty = null;
+	private $mJournalIds = null;
 	
 	// Tags selected
 	private $aTags = null;
@@ -57,6 +58,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $oEntry;
 	
 	private static $PAGE_DEFAULT_ACTIONS = array('newest', 'index', 'entry');
+	private static $JOURNAL_PAGE = null;
 	
 	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null) {
 		parent::__construct($oPage, $oNavigationItem);
@@ -93,7 +95,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function updateFlagsFromProperties() {
 		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
 		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
-		$this->iJournalId = $this->oPage->getPagePropertyValue('blog_journal_id', null);
+		$this->sJournalIdProperty = $this->oPage->getPagePropertyValue('blog_journal_id', null);
+		$this->mJournalIds = explode(',',$this->sJournalIdProperty);
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
@@ -195,8 +198,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($sContainerName === null) {
 			$sContainerName = $this->sContainerName;
 		}
-		if($this->iJournalId) {
-			$oQuery->filterByJournalId($this->iJournalId);
+		if($this->mJournalIds) {
+			$oQuery->filterByJournalId($this->mJournalIds);
 		}
 		if(!empty($this->aTags)) {
 			$oQuery->filterByTagName($this->aTags);
@@ -387,7 +390,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		// get all tags related to
 		// • model JournalEntry
 		// • active journal_enties with current journal_id 
-		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->select('Id')->find()->getData();
+		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->select('Id')->find()->getData();
 		$oQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
 		$aTags = $oQuery->find()->toKeyValue('Name', 'TagInstanceCount');
 		
@@ -450,7 +453,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/	
 	private function renderCalendarWidget() {
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->distinctDates()->find();
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->findDistinctDates();
 		$oTemplate = $this->constructTemplate('widget_calendar');
 		$oItemPrototype = $this->constructTemplate('widget_calendar_item');
 		foreach($aResult as $aDate) {			
@@ -468,7 +471,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderTreeWidget() {
 		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_tree_levels', 2);
 		
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->iJournalId)->distinctDates()->find();
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->findDistinctDates();
 		
 		$oTemplate = $this->constructTemplate('widget_tree');
 		$oItemPrototype = $this->constructTemplate('widget_tree_item');
@@ -532,31 +535,51 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		return $oTemplate;
 	}
+	
+	private function getCurrentJournalPage() {
+		if(self::$JOURNAL_PAGE === null) {
+			$oPageProperty = PagePropertyQuery::create()->filterByName('blog_journal_id')->filterByValue($this->sJournalIdProperty)->findOne();
+			if($oPageProperty) {
+				self::$JOURNAL_PAGE = $oPageProperty->getPage();
+			}
+			if($JOURNAL_PAGE === null) {
+				throw new Exception ('Error in JournalPageTypeModule::renderRssFeedWidget(): journal page name is not properly configured');
+			}
+		}
+		return self::$JOURNAL_PAGE;
+	}
 
  /**
 	* renderRssFeedWidget()
 	* 
 	* description: display rss feed link
-	* requires rss_feed_journal_page_name in config.yml section journal
 	* @return Template object
 	*/	
 	public function renderRssFeedWidget() {
-		$mJournalPageName = Settings::getSetting('journal', 'rss_feed_journal_page_name', 'blog');
-		$oJournalPage = null;
-		$sPageName = null; 
-		if(!is_array($mJournalPageName)) {
-			$sPageName = $mJournalPageName;
-		} else if(isset($mJournalPageName[$this->iJournalId])) {
-			$sPageName = $mJournalPageName[$this->iJournalId];
-		}
-		$oJournalPage = PageQuery::create()->filterByName($sPageName)->findOne();
-		if($oJournalPage === null) {
-			throw new Exception ('Error in JournalPageTypeModule::renderRssFeedWidget(): journal page name is not properly configured');
-		}
+		$oJournalPage = $this->getCurrentJournalPage();
 		$oTemplate = $this->constructTemplate('widget_rss_feed');
 		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($oJournalPage->getFullPathArray()));
 		if($sTitle = StringPeer::getString('wns.journal.rss_feed_title}}')) {
 			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
+		}
+		return $oTemplate;
+	}
+
+ /**
+	* renderJournalsWidget()
+	* 
+	* description: renders a journals list with links, like the tag cloud, but fixed categories
+	* @return Template object
+	*/	
+	public function renderJournalsWidget() {
+		if(!is_array($this->mJournalIds) || count($this->mJournalIds) < 2) {
+			return;
+		}
+		$oJournalPage = $this->getCurrentJournalPage();
+		$oTemplate = $this->constructTemplate('widget_journals');
+		foreach(JournalQuery::create()->findPks($this->mJournalIds) as $oJournal) {
+			$oLink = TagWriter::quickTag('a', array('href' => LinkUtil::link($oJournalPage->getFullPathArray())), $oJournal->getName());
+			$oTemplate->replaceIdentifier('journal_link', $oLink);
 		}
 		return $oTemplate;
 	}
@@ -605,8 +628,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->iEntriesPerPage;
 	}
 
-	public function currentJournalId() {
-		return $this->iJournalId;
+	public function currentJournalIds() {
+		return $this->mJournalIds;
 	}
 
 	public function dateNavigationItemsVisible() {
@@ -617,12 +640,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->bCaptchaEnabled;
 	}
 	
-	public function listJournals() {
-		$aJournals = array();
-		foreach(JournalQuery::create()->find() as $oJournal) {
-			$aJournals[$oJournal->getId()] = $oJournal->getName();
-		}
-		return array('options' => $aJournals, 'current' => $this->iJournalId);
+	public function getJournalIds() {
+		return $this->mJournalIds;
 	}
 
 	public function listTemplateSets() {
@@ -663,26 +682,15 @@ class JournalPageTypeModule extends PageTypeModule {
 				}
 			}
 		}
+		ksort($aWidgetTypesOrdered);
 		$aWidgetTypes = array_merge($aWidgetTypesOrdered, $aWidgetTypes);
 		return $aWidgetTypes;
-	}
-
-	public function journalProperties() {
-		if($this->iJournalId === CriteriaListWidgetDelegate::SELECT_WITHOUT) {
-			return null;
-		}
-		$oJournal = JournalQuery::create()->findPk($this->iJournalId);
-		if($oJournal) {
-			return $oJournal->toArray();
-		}
-		// should never happen...
-		return null;
 	}
 
 	private $oJournalEntryList = null;
 	public function entryList() {
 		$this->oJournalEntryList = new JournalEntryListWidgetModule();
-		$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
+		$this->oJournalEntryList->getDelegate()->setJournalId($this->mJournalIds);
 		
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
@@ -690,24 +698,52 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oIncluder->getIncludes()->render().$this->oJournalEntryList->doWidget()->render();
 	}
 
-	public function setCurrentJournal($iJournalId) {
+	public function setCurrentJournal($mJournalIds) {
 		// @todo this method is called from the journalPageTypeModule journal select and intended to create a new journal
 		// is this some fallback stuff for migrating old journal_entries without journal_ids???
-		$this->iJournalId = $iJournalId === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $iJournalId;
+		$this->mJournalIds = $mJournalIds === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $mJournalIds;
 		if($this->oJournalEntryList) {
-			$this->oJournalEntryList->getDelegate()->setJournalId($this->iJournalId);
+			$this->oJournalEntryList->getDelegate()->setJournalId($this->mJournalIds);
 		}
 	}
 	
 	private function validate($aData) {
 		$oFlash = Flash::getFlash();
 		$oFlash->setArrayToCheck($aData);
-		$oFlash->checkForValue('journal_name', 'journal.name_required');
+		if(!isset($aData['journal_ids'])) {
+			$oFlash->addMessage('journal_ids_required');
+		}
 		$oFlash->finishReporting();
+	}
+	
+	public function saveJournalPageConfiguration($aData) {
+		$this->validate($aData);
+		if(!Flash::noErrors()) {
+			throw new ValidationException();
+		}
+		
+		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
+		$this->oPage->updatePageProperty('blog_journal_id', implode(',', $aData['journal_ids']));
+		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
+		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
+		$this->oPage->updatePageProperty('blog_container', $aData['container']);
+		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
+		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
+		$this->oPage->updatePageProperty('blog_captcha_enabled', $aData['captcha_enabled'] ? 1 : 0);
+		
+		$aWidgets =  array();
+		foreach($aData['widgets'] as $sWidgetName) {
+			if($sWidgetName !== false) {
+				$aWidgets[] = $sWidgetName;
+			}
+		}
+		$this->oPage->updatePageProperty('blog_widgets', implode(',', $aWidgets));
+		$this->updateFlagsFromProperties();
 	}
 
 	public function saveJournal($aData) {
-		$oJournal = JournalQuery::create()->findPk($this->iJournalId);
+		$oJournal = JournalQuery::create()->findPk($this->mJournalIds);
 		if($oJournal === null) {
 			$oJournal = new Journal();
 		}
@@ -718,25 +754,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oJournal->setName($aData['journal_name']);
 		$oJournal->setDescription($aData['journal_description']);
 		$oJournal->save();
-		$this->iJournalId = $oJournal->getId();
-		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
-		$this->oPage->updatePageProperty('blog_journal_id', $this->iJournalId);
-		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
-		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
-		$this->oPage->updatePageProperty('blog_container', $aData['container']);
-		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
-		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
-		$this->oPage->updatePageProperty('blog_captcha_enabled', $aData['captcha_enabled'] ? 1 : 0);
-		
-		
-		$aWidgets =  array();
-		foreach($aData['widgets'] as $sWidgetName) {
-			if($sWidgetName !== false) {
-				$aWidgets[] = $sWidgetName;
-			}
-		}
-		$this->oPage->updatePageProperty('blog_widgets', implode(',', $aWidgets));
-		$this->updateFlagsFromProperties();
+		$this->mJournalIds = $oJournal->getId();
 	}
 }

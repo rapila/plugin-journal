@@ -16,8 +16,13 @@
 			var _this = this;
 			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
-			//Lists to be filled
-			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
+			
+			// Lists to be filles
+			this.journal_list = this.container.find('select[name="journal_ids"]').prepareWidget();
+			this.container.find('span.edit_journal_button').click(function() {
+				_this.edit_journal();
+			});
+			
 			this.template_list = this.container.find('select[name="template_set"]');
 			this.widget_list = this.container.find('div.journal-widgets');
 			this.widget_list.sortable({
@@ -26,13 +31,15 @@
 			});
 			this.container_list = this.container.find('select[name="container"]');
 			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
-			//Elements used later on
+			
+			// Elements used later on
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
 			this.captcha_enabled_checkbox = this.container.find('input[name="captcha_enabled"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
+			
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.with_comment_active_only = this.container.find('.with_comment_active_only');
@@ -43,15 +50,18 @@
 
 			this.reload();
 		},
-
+		
 		reload: function() {
 			var _this = this;
 			var waiters = [];
 			
-			this.page_type.methods.listJournals(function(result) {
-				_this.journal_list.empty().populate({'': "{{writeString=wns.journal.add}}"});
-				_this.journal_list.populate(result.options, result.current || '');
-			}.deferred(waiters));
+			this.container.find('.journal_detail').tabs();
+			
+			this.journal_list.ensureWidget(function(journal_input) {
+				_this.page_type.methods.getJournalIds(function(journal_ids) {
+					journal_input.val(journal_ids);
+				});				
+			});
 			
 			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.empty().populate(result.options, result.current);
@@ -94,10 +104,8 @@
 				_this.entries_per_page_list.val(result);
 			}.deferred(waiters));
 
-			this.container.find('.journal_detail').tabs();
-			
 			jQuery.when.apply(jQuery, waiters).then(function() {
-				_this.reload_properties();
+				_this.reload_entries();
 			});
 		},
 
@@ -113,29 +121,34 @@
 			});
 			return false;
 		},
-
+		
+		edit_journal: function() {
+			var _this = this;
+			var journal_id = this.journal_list.val();	
+			if(journal_id.length !== 1) {
+				journal_id = null;
+			}
+			Widget.create('journal_detail', function(widget) {
+				if(journal_id) {
+					widget.setJournalId(journal_id);
+					widget.fill_data();
+				}
+				widget.open();
+				widget.save_callback = function(journal_id) {
+					Widget.fire('rapila-journal_input_changed');
+					journals.ensureWidget(function(journal_input_widget) {
+						journal_input_widget.val(journal_id);
+					});
+				};
+			});
+		},
+		
 		journal_changed: function() {
 			var _this = this;
 			var value = this.journal_list.val() ? this.journal_list.val() : null;
 			this.page_type.methods.setCurrentJournal(value, function() {
-				_this.reload_properties();
+				_this.reload_entries();
 			});
-		},
-
-		reload_properties: function() {
-			var _this = this;
-			this.page_type.methods.journalProperties(function(result) {
-				if(result) {
-					_this.name_input.val(result.Name);
-					_this.description_input.val(result.Description);
-					_this.add_journal_entry_button.show();
-				} else {
-					_this.name_input.val('');
-					_this.description_input.val('');
-					_this.add_journal_entry_button.hide();
-				}
-			});
-			this.reload_entries();
 		},
 
 		reload_entries: function() {
@@ -159,7 +172,7 @@
 
 		save: function() {
 			var _this = this;
-			this.page_type.methods.saveJournal(this.form.serializeArrayKV(), function(result, error) {
+			this.page_type.methods.saveJournalPageConfiguration(this.form.serializeArrayKV(), function(result, error) {
 				if(error) {
 					if(error.exception_type === 'ValidationException') {
 						Widget.callStatic('detail', 'validate_with', error.parameters, _this.form);
