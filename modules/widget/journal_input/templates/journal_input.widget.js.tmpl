@@ -1,0 +1,31 @@
+Widget.types.journal_input = {
+	prepare: function() {
+		this.reload();
+		Widget.handle('rapila-journal_input_changed', this.reload.bind(this));		
+	},
+	
+	reload: function() {
+		var _this = this;
+		var current = this._element.val();
+		this._element.empty();
+		if(this.settings.initial_selection !== null) {
+			this._element.populate({'': "{{writeString=wns.choose}}"});
+		}
+		this._element.populate(this.getJournals());
+		if(current) {
+			this.val(current);
+		} 
+	},
+	
+	val: function(value) {
+		if(value) {
+			this._element.val(value);
+			return;
+		}
+		return this._element.val();
+	},
+	
+	settings: {
+		initial_selection: null
+	}
+};

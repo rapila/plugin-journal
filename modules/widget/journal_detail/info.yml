@@ -1,0 +1,5 @@
+allowed_roles: [journal]
+enabled: true
+aspects: 
+  - persistent
+  - detail
