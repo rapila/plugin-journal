@@ -574,7 +574,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	* description: display rss feed link
 	* @return Template object
 	*/	
-	public function renderRssFeedWidget() {
+	private function renderRssFeedWidget() {
 		$oJournalPage = $this->getCurrentJournalPage();
 		$oTemplate = $this->constructTemplate('widget_rss_feed');
 		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($oJournalPage->getFullPathArray()));
@@ -590,7 +590,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	* description: renders a journals list with links, like the tag cloud, but fixed categories
 	* @return Template object
 	*/	
-	public function renderJournalsWidget() {
+	private function renderJournalsWidget() {
 		if(!is_array($this->mJournalIds) || count($this->mJournalIds) < 2) {
 			return;
 		}
@@ -670,7 +670,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function listTemplateSets() {
 		$aResult = array();
 		foreach(ResourceFinder::create(array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), DIRNAME_TEMPLATES))->addDirPath()->returnObjects()->find() as $oSet) {
-			$aResult[$oSet->getFileName()] = StringPeer::getString('journal.template_'.$oSet->getFileName(), null, StringUtil::makeReadableName($oSet->getFileName()));
+			$aResult[$oSet->getFileName()] = StringPeer::getString('journal.template_set_'.$oSet->getFileName(), null, StringUtil::makeReadableName($oSet->getFileName()));
 		}
 		return array('options' => $aResult, 'current' => $this->sTemplateSet);
 	}
