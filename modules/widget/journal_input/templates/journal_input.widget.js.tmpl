@@ -1,17 +1,16 @@
 Widget.types.journal_input = {
 	prepare: function() {
 		this.reload();
-		Widget.handle('rapila-journal_input_changed', this.reload.bind(this));		
+		Widget.handle('rapila-journals_changed', this.reload.bind(this));		
 	},
 	
 	reload: function() {
-		var _this = this;
 		var current = this._element.val();
 		this._element.empty();
 		if(this.settings.initial_selection !== null) {
 			this._element.populate({'': "{{writeString=wns.choose}}"});
 		}
-		this._element.populate(this.getJournals());
+		this._element.populate(this.getJournals(this.settings.journal_ids_configured));
 		if(current) {
 			this.val(current);
 		} 
@@ -26,6 +25,7 @@ Widget.types.journal_input = {
 	},
 	
 	settings: {
+		journal_ids_configured: null,
 		initial_selection: null
 	}
 };

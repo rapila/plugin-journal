@@ -11,7 +11,10 @@ Widget.types.journal_entry_detail = {
 		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
 		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
-		this.journals = this._element.find("select[name='journal_ids']").prepareWidget();
+		this.journals = this._element.find("select[name='journal_id']").prepareWidget(function(journal_input) {
+			_this.journal_input = journal_input;
+			journal_input.settings.journal_ids_configured = _this.settings.journal_ids_configured;
+		}, jQuery.noop);
 		
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
 		Widget.createWithElement('tag_area', function(widget) {
@@ -62,12 +65,14 @@ Widget.types.journal_entry_detail = {
 				this.set_text(data.Text);
 				title.val(data.Title);
 				is_published.prop('checked', data.IsPublished);
-				this.journals.val(data.JournalId);
+				this.journals.ensureWidget(function(journal_input) {
+					journal_input.val(data.JournalId);
+				});
 				if(data.Id) {
 					this.tag_area.setTaggedItemId(data.Id);
 					this.tag_area.reload_tags();
 				}
-				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}"
+				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}";
 				this.update_comments(data.comments);
 				this.update_documents();
 			} else {
@@ -156,11 +161,19 @@ Widget.types.journal_entry_detail = {
 	upload_error: function(error) {
 	},
 
+	journal_ids_configured: function(journal_ids_configured) {
+		this.settings.journal_ids_configured = journal_ids_configured;
+		if(this.journal_input) {
+			this.journal_input.settings.journal_ids_configured = journal_ids_configured;
+			this.journal_input.reload();
+		}
+	},
 	
 	settings: {
 		"detail_widget": {
 			width: 800 
 		},
-		thumbnail_size: 180
+		thumbnail_size: 180,
+		journal_ids_configured: null
 	}
 };

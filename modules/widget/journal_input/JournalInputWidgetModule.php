@@ -4,8 +4,12 @@
  */
 class JournalInputWidgetModule extends WidgetModule {
 	
-	public function getJournals() {
-		$aResult = JournalQuery::create()->distinct()->orderByName()->find()->toKeyValue('Id', 'Name');
+	public function getJournals($iJournalIdsConfigured = null) {
+		$oQuery = JournalQuery::create()->distinct();
+		if($iJournalIdsConfigured !== null) {
+			$oQuery->filterById($iJournalIdsConfigured);
+		}
+		$aResult = $oQuery->orderByName()->find()->toKeyValue('Id', 'Name');
 		return $aResult;
 	}
 }

@@ -1,12 +1,12 @@
 <?php
 class JournalFileModule extends FileModule {
   private $oJournalPage;
-  private $iJournalId;
+  private $aJournalIds;
   
-  public function __construct($aRequestPath, Page $oJournalPage = null, $iJournalId = null) {
+  public function __construct($aRequestPath, Page $oJournalPage = null, $aJournalIds = null) {
 		if($aRequestPath === false) {
 			$this->oJournalPage = $oJournalPage;
-			$this->iJournalId = $iJournalId;
+			$this->aJournalIds = $aJournalIds;
 		} else {
 			parent::__construct($aRequestPath);
 			Manager::usePath(); //the “journal” bit
@@ -27,15 +27,11 @@ class JournalFileModule extends FileModule {
     $oDocument->appendChild($oRoot);
     $oChannel = $oDocument->createElement("channel");
 		$oQuery = FrontendJournalEntryQuery::create()->mostRecent(10);
-		if($this->iJournalId) {
-			$oQuery->filterByJournalId($this->iJournalId);
-			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
-			self::addSimpleAttribute($oDocument, $oChannel, 'title', $oJournal->getName());
-			self::addSimpleAttribute($oDocument, $oChannel, 'description', $oJournal->getDescription());
-		} else {
-			self::addSimpleAttribute($oDocument, $oChannel, 'title', $this->oJournalPage->getPageTitle());
-			self::addSimpleAttribute($oDocument, $oChannel, 'description', $this->oJournalPage->getDescription());
+		if($this->aJournalIds) {
+			$oQuery->filterByJournalId($this->aJournalIds);
 		}
+		self::addSimpleAttribute($oDocument, $oChannel, 'title', $this->oJournalPage->getPageTitle());
+		self::addSimpleAttribute($oDocument, $oChannel, 'description', $this->oJournalPage->getDescription());
     self::addSimpleAttribute($oDocument, $oChannel, 'link', LinkUtil::absoluteLink(LinkUtil::link($this->oJournalPage->getFullPathArray(), 'FrontendManager'), null, LinkUtil::isSSL()));
     self::addSimpleAttribute($oDocument, $oChannel, 'language', Session::language());
     self::addSimpleAttribute($oDocument, $oChannel, 'ttl', "15");
@@ -43,7 +39,7 @@ class JournalFileModule extends FileModule {
     $aJournalEntries = $oQuery->find();
     foreach($aJournalEntries as $oJournalEntry) {
       $oItem = $oDocument->createElement('item');
-      foreach($oJournalEntry->getRssAttributes($this->iJournalId ? $this->oJournalPage : null) as $sAttributeName => $mAttributeValue) {
+      foreach($oJournalEntry->getRssAttributes($this->aJournalIds ? $this->oJournalPage : null) as $sAttributeName => $mAttributeValue) {
         if(is_array($mAttributeValue)) {
           if(ArrayUtil::arrayIsAssociative($mAttributeValue)) {
             //Add one elements with attributes

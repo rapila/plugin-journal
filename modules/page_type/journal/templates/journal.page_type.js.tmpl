@@ -3,22 +3,31 @@
 		this.page_id = page_id;
 		this.container = container;
 		this.page_type = page_type;
-		page_type.methods.detailWidget(function(session) {
-			Widget.create('journal_entry_detail', function(detail) {
-				this.journal_entry_detail = detail;
-				detail.save_callback = this.reload_entries.bind(this);
-			}.bind(this), jQuery.noop, session);
-		}.bind(this));
 	}
 	
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
 			var _this = this;
+			
 			this.form = jQuery('<form/>').append(Widget.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
+
+			this.journal_list = this.container.find('select[name="journal_ids"]').prepareWidget(function(journal_input) {
+				journal_input._element.change(_this.journal_changed.bind(_this));
+			});
+
+			this.page_type.methods.detailWidget(function(session) {
+				Widget.create('journal_entry_detail', function(detail) {
+					_this.journal_entry_detail = detail;
+					_this.journal_entry_detail.save_callback = _this.reload_entries.bind(_this);
+					_this.journal_list.ensureWidget(function(journal_input) {
+						_this.journal_entry_detail.journal_ids_configured(journal_input.val() || []);
+					});
+				}, jQuery.noop, session);
+			});
 			
-			// Lists to be filles
-			this.journal_list = this.container.find('select[name="journal_ids"]').prepareWidget();
+			
+			// Lists to be filled
 			this.container.find('span.edit_journal_button').click(function() {
 				_this.edit_journal();
 			});
@@ -38,7 +47,7 @@
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
 			this.captcha_enabled_checkbox = this.container.find('input[name="captcha_enabled"]');
-			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
+			this.add_journal_entry_button = this.container.find('a.add_journal_entry').click(this.add_journal_entry.bind(this)).hide();
 			
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
@@ -57,10 +66,14 @@
 			
 			this.container.find('.journal_detail').tabs();
 			
-			this.journal_list.ensureWidget(function(journal_input) {
-				_this.page_type.methods.getJournalIds(function(journal_ids) {
+			this.journal_ids = null;
+			this.page_type.methods.currentJournalIds(function(journal_ids) {
+				_this.journal_ids = journal_ids;
+				_this.journal_list.ensureWidget(function(journal_input) {
 					journal_input.val(journal_ids);
-				});				
+					_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(journal_input.val() || []);
+				});
+				_this.add_journal_entry_button.show();
 			});
 			
 			this.page_type.methods.listTemplateSets(function(result) {
@@ -111,14 +124,11 @@
 
 		add_journal_entry: function() {
 			var _this = this;
-			this.page_type.methods.currentJournalId(function(id) {
-				if(id && _this.journal_entry_detail) {
-					_this.journal_entry_detail.setJournalId(id);
-					_this.journal_entry_detail.setJournalEntryId(null);
-					_this.journal_entry_detail.fill_data();
-					_this.journal_entry_detail.open();
-				}
-			});
+			if(_this.journal_entry_detail) {
+				_this.journal_entry_detail.setJournalEntryId(null);
+				_this.journal_entry_detail.fill_data();
+				_this.journal_entry_detail.open();
+			}
 			return false;
 		},
 		
@@ -135,9 +145,9 @@
 				}
 				widget.open();
 				widget.save_callback = function(journal_id) {
-					Widget.fire('rapila-journal_input_changed');
-					journals.ensureWidget(function(journal_input_widget) {
-						journal_input_widget.val(journal_id);
+					Widget.fire('rapila-journals_changed');
+					_this.journal_list.ensureWidget(function(journal_input_widget) {
+						journal_input_widget.val(journal_input_widget.val().concat([journal_id]));
 					});
 				};
 			});
@@ -145,7 +155,8 @@
 		
 		journal_changed: function() {
 			var _this = this;
-			var value = this.journal_list.val() ? this.journal_list.val() : null;
+			var value = this.journal_list.val() || [];
+			_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(value);
 			this.page_type.methods.setCurrentJournal(value, function() {
 				_this.reload_entries();
 			});

@@ -648,10 +648,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function captchaEnabled() {
 		return $this->bCaptchaEnabled;
 	}
-	
-	public function getJournalIds() {
-		return $this->mJournalIds;
-	}
 
 	public function listTemplateSets() {
 		$aResult = array();
@@ -708,11 +704,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function setCurrentJournal($mJournalIds) {
-		// @todo this method is called from the journalPageTypeModule journal select and intended to create a new journal
-		// is this some fallback stuff for migrating old journal_entries without journal_ids???
-		$this->mJournalIds = $mJournalIds === null ? CriteriaListWidgetDelegate::SELECT_WITHOUT : $mJournalIds;
 		if($this->oJournalEntryList) {
-			$this->oJournalEntryList->getDelegate()->setJournalId($this->mJournalIds);
+			$this->oJournalEntryList->getDelegate()->setJournalId($mJournalIds);
 		}
 	}
 	
