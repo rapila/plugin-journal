@@ -8,8 +8,8 @@ Widget.types.journal_entry_detail = {
 	
 	init_content: function() {
 		var _this = this;
-		this._element = jQuery.parseHTML('{{includeTemplate=edit}}');
-		this.comment_row = jQuery.parseHTML("{{includeTemplate=comment_row}}");
+		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
+		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
 		this.journals = this._element.find("select[name='journal_ids']").prepareWidget();
 		
@@ -132,7 +132,7 @@ Widget.types.journal_entry_detail = {
 			});
 			return false;
 		}).appendTo(doc);
-		var document_object = jQuery.parseHTML(document_data.Preview);
+		var document_object = Widget.parseHTML(document_data.Preview);
 		doc.addClass('pointer').attr('title', '{{writeString=wns.edit_file.dblclick}}').dblclick(function() {
 			Widget.create('document_detail', function(detail) {
 				detail.settings.hide_inputs_if_called_externally = true;

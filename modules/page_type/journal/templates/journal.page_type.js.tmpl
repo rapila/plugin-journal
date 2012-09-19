@@ -14,7 +14,7 @@
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
 			var _this = this;
-			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
+			this.form = jQuery('<form/>').append(Widget.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
 			
 			// Lists to be filles
