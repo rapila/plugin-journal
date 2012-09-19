@@ -1,5 +1,7 @@
 <?php
 
+require_once('htmlpurifier/HTMLPurifier.standalone.php');
+
 class JournalFilterModule extends FilterModule {
 
 	/**
@@ -106,13 +108,12 @@ class JournalFilterModule extends FilterModule {
 			$oFeed->renderFile();exit;
 		} 
 		
-		// a
+		// Add-Comment handling/validation
 		else if($oNavigationItem instanceof VirtualNavigationItem && $oNavigationItem->getType() === 'journal-add_comment' && Manager::isPost()) {
 			$sCommentMode = $oPage->getPagePropertyValue('blog_comment_mode', 'on');
 			$oEntry = $oNavigationItem->getData();
-			$bCheckCaptcha = $oPage->getPagePropertyValue('blog_captcha_enabled', true);
 			if($sCommentMode !== 'off') {
-				$this->handleNewJournalComment($oPage);
+				$this->handleNewJournalComment($oPage, $sCommentMode, $oEntry);
 			} else {
 				LinkUtil::redirect(LinkUtil::link($oEntry->getLink()));
 			}
@@ -121,8 +122,9 @@ class JournalFilterModule extends FilterModule {
 		ResourceIncluder::defaultIncluder()->addCustomResource(array('template' => 'feed', 'location' => LinkUtil::link($oPage->getLinkArray('feed'))));
 	}
 	
-	private function handleNewJournalComment($oPage) {
+	private function handleNewJournalComment($oPage, $sCommentMode, $oEntry) {
 		$oFlash = Flash::getFlash();
+		$bCheckCaptcha = $oPage->getPagePropertyValue('blog_captcha_enabled', true);
 		
 		// Validate form and create new comment and
 		$oComment = new JournalComment();
@@ -142,14 +144,13 @@ class JournalFilterModule extends FilterModule {
 		$oComment->setText($_POST['comment_text']);
 		$oFlash->checkForValue('comment_text', 'comment_required');
 		$oFlash->finishReporting();
-		
-		// Display preview
+
 		if(isset($_POST['preview'])) {
+			// Display preview
 			$oComment->setCreatedAt(date('c'));
 			$_POST['preview'] = $oComment;
-		} 
-		// Save and notify if required if no errors
-		else if(Flash::noErrors()) {
+		} else if(Flash::noErrors()) {
+			// Save and notify if required if no errors
 			$oEntry->addJournalComment($oComment);
 			if($sCommentMode === 'moderated') {
 				$oComment->setIsPublished(false);
