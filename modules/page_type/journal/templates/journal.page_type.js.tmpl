@@ -125,7 +125,7 @@
 		edit_journal: function() {
 			var _this = this;
 			var journal_id = this.journal_list.val();	
-			if(journal_id.length !== 1) {
+			if(journal_id && journal_id.length !== 1) {
 				journal_id = null;
 			}
 			Widget.create('journal_detail', function(widget) {
