@@ -1,6 +1,5 @@
 (function() {
 	function JournalController(page_id, container, page_type) {
-		this.page_id = page_id;
 		this.container = container;
 		this.page_type = page_type;
 	}
@@ -25,7 +24,6 @@
 					});
 				}, jQuery.noop, session);
 			});
-			
 			
 			// Lists to be filled
 			this.container.find('span.edit_journal_button').click(function() {
@@ -222,7 +220,6 @@
 		handle_admin: function(page_id, container, page_type) {
 			this.controller = init_journal_controls(page_id, container, page_type);
 		},
-
 
 		did_save: function(page_id, container, page_type) {
 			this.controller.save();
