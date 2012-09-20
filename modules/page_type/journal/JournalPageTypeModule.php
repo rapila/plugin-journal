@@ -9,9 +9,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sOverviewMode;
 	
 	// Single or multiple journal ids
-	private $mJournalIds = null;
+	private $aJournalIds = null;
 	
-	// Tags / Journals selected
+	// Tags / Journals filters
 	private $aFilteredTags = array();
 	private $aFilteredJournalIds = array();
 	
@@ -19,7 +19,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $sTemplateSet;
 	
 	// Main container for overviews and journal entry detail
-	private $sContainerName;
+	private $sContainer;
 	
 	// Auxiliary container for widgets
 	private $sAuxiliaryContainer;
@@ -58,9 +58,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	 */
 	private $oEntry;
 	
-	private static $PAGE_DEFAULT_ACTIONS = array('newest', 'index', 'entry');
-	private static $JOURNAL_PAGE = null;
-	
 	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null) {
 		parent::__construct($oPage, $oNavigationItem);
 		if($oPage) {
@@ -79,41 +76,13 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 		}
 	}
-	
-	private function setFilters() {
-		$this->aFilteredTags = Session::getSession()->getAttribute(self::SESSION_TAG_FILTER);
-		$this->aFilteredJournalIds = Session::getSession()->getAttribute(self::SESSION_JOURNAL_FILTER);
-
-		if(isset($_REQUEST[self::ADD_TAG]) && !in_array($_REQUEST[self::ADD_TAG], $this->aFilteredTags)) {
-			$this->aFilteredTags[] = $_REQUEST[self::ADD_TAG];
-		}
-		if(isset($_REQUEST[self::REMOVE_TAG])) {
-			$mKey = array_search($_REQUEST[self::REMOVE_TAG], $this->aFilteredTags);
-			if($mKey !== false) {
-				unset($this->aFilteredTags[$mKey]);
-			}
-		}
-
-		if(isset($_REQUEST[self::ADD_JOURNAL]) && !in_array($_REQUEST[self::ADD_JOURNAL], $this->aFilteredJournalIds) && in_array($_REQUEST[self::ADD_JOURNAL], $this->mJournalIds)) {
-			$this->aFilteredJournalIds[] = $_REQUEST[self::ADD_JOURNAL];
-		}
-		if(isset($_REQUEST[self::REMOVE_JOURNAL])) {
-			$mKey = array_search($_REQUEST[self::REMOVE_JOURNAL], $this->aFilteredJournalIds);
-			if($mKey !== false) {
-				unset($this->aFilteredJournalIds[$mKey]);
-			}
-		}
-
-		Session::getSession()->setAttribute(self::SESSION_JOURNAL_FILTER, $this->aFilteredJournalIds);
-		Session::getSession()->setAttribute(self::SESSION_TAG_FILTER, $this->aFilteredTags);
-	}
 
 	public function updateFlagsFromProperties() {
 		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
 		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
-		$this->mJournalIds = explode(',', $this->oPage->getPagePropertyValue('blog_journal_id', ''));
+		$this->aJournalIds = explode(',', $this->oPage->getPagePropertyValue('blog_journal_id', ''));
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
-		$this->sContainerName = $this->oPage->getPagePropertyValue('blog_container', 'content');
+		$this->sContainer = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
 		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
@@ -132,15 +101,43 @@ class JournalPageTypeModule extends PageTypeModule {
 		$aAllowedParams = array(self::ALLOWED_POINTER_PAGE);
 	}
 	
+	private function setFilters() {
+		$this->aFilteredTags = Session::getSession()->getAttribute(self::SESSION_TAG_FILTER);
+		$this->aFilteredJournalIds = Session::getSession()->getAttribute(self::SESSION_JOURNAL_FILTER);
+
+		if(isset($_REQUEST[self::ADD_TAG]) && !in_array($_REQUEST[self::ADD_TAG], $this->aFilteredTags)) {
+			$this->aFilteredTags[] = $_REQUEST[self::ADD_TAG];
+		}
+		if(isset($_REQUEST[self::REMOVE_TAG])) {
+			$mKey = array_search($_REQUEST[self::REMOVE_TAG], $this->aFilteredTags);
+			if($mKey !== false) {
+				unset($this->aFilteredTags[$mKey]);
+			}
+		}
+
+		if(isset($_REQUEST[self::ADD_JOURNAL]) && !in_array($_REQUEST[self::ADD_JOURNAL], $this->aFilteredJournalIds) && in_array($_REQUEST[self::ADD_JOURNAL], $this->aJournalIds)) {
+			$this->aFilteredJournalIds[] = $_REQUEST[self::ADD_JOURNAL];
+		}
+		if(isset($_REQUEST[self::REMOVE_JOURNAL])) {
+			$mKey = array_search($_REQUEST[self::REMOVE_JOURNAL], $this->aFilteredJournalIds);
+			if($mKey !== false) {
+				unset($this->aFilteredJournalIds[$mKey]);
+			}
+		}
+
+		Session::getSession()->setAttribute(self::SESSION_JOURNAL_FILTER, $this->aFilteredJournalIds);
+		Session::getSession()->setAttribute(self::SESSION_TAG_FILTER, $this->aFilteredTags);
+	}
+	
 	public function display(Template $oTemplate, $bIsPreview = false) {
 		$this->setFilters();
 		$this->fillAuxilliaryContainers($oTemplate);
-		if(!$oTemplate->hasIdentifier('container', $this->sContainerName)) {
+		if(!$oTemplate->hasIdentifier('container', $this->sContainer)) {
 			return;
 		}
 		if($bIsPreview) {
 			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing'));
-			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainerName);
+			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainer);
 			return;
 		}
 		$sMethod = "overview_$this->sOverviewMode";
@@ -207,18 +204,18 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oTemplate;
 	}
 
-	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainerName = null) {
+	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null) {
 		if($oQuery === null) {
 			$oQuery = FrontendJournalEntryQuery::create();
 		}
-		if($sContainerName === null) {
-			$sContainerName = $this->sContainerName;
+		if($sContainer === null) {
+			$sContainer = $this->sContainer;
 		}
 		if(!empty($this->aFilteredJournalIds)) {
 			$oQuery->filterByJournalId($this->aFilteredJournalIds);
 		} else {
-			if($this->mJournalIds) {
-				$oQuery->filterByJournalId($this->mJournalIds);
+			if($this->aJournalIds) {
+				$oQuery->filterByJournalId($this->aJournalIds);
 			}
 		}
 		if(!empty($this->aFilteredTags)) {
@@ -226,7 +223,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$this->addPagination($oQuery, $oFullTemplate);
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
-			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainerName);
+			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
 		}
 	}
 
@@ -354,7 +351,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayFilteredOverview($oTemplate) {
-		$aFilterData = $this->oNavigationItem->getData();
 		$oQuery = JournalEntryQuery::create();
 		$oQuery->filterByDate($this->iYear, $this->iMonth, $this->iDay);
 		$sMethodName = StringUtil::camelize("display_overview_$this->sOverviewMode");
@@ -365,23 +361,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->oEntry === null) {
 			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray(), 'FrontendManager'));
 		}
-		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainerName);
-	}
-
-	// For adding comments
-	private function displayAddComment($oTemplate) {
-		if($this->oEntry === null) {
-			return $this->displayEntry($oTemplate);
-		}
-		if($this->sCommentMode === 'off') {
-			LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink()));
-		}
-		if(Manager::isPost() && isset($_POST['preview'])) {
-			$oComment = $_POST['preview'];
-			$oTemplate->replaceIdentifier('container', $this->renderComments(array($oComment), $this->oEntry), $this->sContainerName);
-			return;
-		}
-		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainerName);
+		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainer);
 	}
 	
 	// Override from parent
@@ -410,7 +390,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		// get all tags related to
 		// • model JournalEntry
 		// • active journal_enties with current journal_id 
-		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->select('Id')->find()->getData();
+		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->select('Id')->find()->getData();
 		$oQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
 		$aTags = $oQuery->find()->toKeyValue('Name', 'TagInstanceCount');
 		
@@ -473,7 +453,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/	
 	private function renderCalendarWidget() {
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->findDistinctDates();
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		$oTemplate = $this->constructTemplate('widget_calendar');
 		$oItemPrototype = $this->constructTemplate('widget_calendar_item');
 		foreach($aResult as $aDate) {			
@@ -491,7 +471,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderTreeWidget() {
 		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_tree_levels', 2);
 		
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->mJournalIds)->findDistinctDates();
+		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		
 		$oTemplate = $this->constructTemplate('widget_tree');
 		$oItemPrototype = $this->constructTemplate('widget_tree_item');
@@ -578,11 +558,11 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/	
 	private function renderJournalsWidget() {
-		if(!is_array($this->mJournalIds) || count($this->mJournalIds) < 2) {
+		if(!is_array($this->aJournalIds) || count($this->aJournalIds) < 2) {
 			return;
 		}
 		$oTemplate = $this->constructTemplate('widget_journals');
-		foreach(JournalQuery::create()->findPks($this->mJournalIds) as $oJournal) {
+		foreach(JournalQuery::create()->findPks($this->aJournalIds) as $oJournal) {
 			if(is_array($this->aFilteredJournalIds) && in_array($oJournal->getId(), $this->aFilteredJournalIds)) {
 				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			} else {
@@ -638,7 +618,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function currentJournalIds() {
-		return $this->mJournalIds;
+		return $this->aJournalIds;
 	}
 
 	public function dateNavigationItemsVisible() {
@@ -663,7 +643,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		foreach($aContainers as $oContainer) {
 			$aResult[] = $oContainer->getValue();
 		}
-		return array('options' => $aResult, 'current' => $this->sContainerName, 'current_auxiliary' => $this->sAuxiliaryContainer);
+		return array('options' => $aResult, 'current' => $this->sContainer, 'current_auxiliary' => $this->sAuxiliaryContainer);
 	}
 	
 	public function listWidgets() {
@@ -695,7 +675,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private $oJournalEntryList = null;
 	public function entryList() {
 		$this->oJournalEntryList = new JournalEntryListWidgetModule();
-		$this->oJournalEntryList->getDelegate()->setJournalId($this->mJournalIds);
+		$this->oJournalEntryList->getDelegate()->setJournalId($this->aJournalIds);
 		
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
@@ -703,9 +683,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oIncluder->getIncludes()->render().$this->oJournalEntryList->doWidget()->render();
 	}
 
-	public function setCurrentJournal($mJournalIds) {
+	public function setCurrentJournal($aJournalIds) {
 		if($this->oJournalEntryList) {
-			$this->oJournalEntryList->getDelegate()->setJournalId($mJournalIds);
+			$this->oJournalEntryList->getDelegate()->setJournalId($aJournalIds);
 		}
 	}
 	
@@ -726,6 +706,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('blog_journal_id', implode(',', $aData['journal_ids']));
+		// reset journal filter because a journal id that is not configured anymore might be in the session and take effect
+		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER);
 		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
@@ -742,20 +724,5 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$this->oPage->updatePageProperty('blog_widgets', implode(',', $aWidgets));
 		$this->updateFlagsFromProperties();
-	}
-
-	public function saveJournal($aData) {
-		$oJournal = JournalQuery::create()->findPk($this->mJournalIds);
-		if($oJournal === null) {
-			$oJournal = new Journal();
-		}
-		$this->validate($aData);
-		if(!Flash::noErrors()) {
-			throw new ValidationException();
-		}
-		$oJournal->setName($aData['journal_name']);
-		$oJournal->setDescription($aData['journal_description']);
-		$oJournal->save();
-		$this->mJournalIds = $oJournal->getId();
 	}
 }
