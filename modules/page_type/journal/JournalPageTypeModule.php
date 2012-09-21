@@ -104,6 +104,12 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function setFilters() {
 		$this->aFilteredTags = Session::getSession()->getAttribute(self::SESSION_TAG_FILTER);
 		$this->aFilteredJournalIds = Session::getSession()->getAttribute(self::SESSION_JOURNAL_FILTER);
+		if($this->aFilteredTags === null) {
+			$this->aFilteredTags = array();
+		}
+		if($this->aFilteredJournalIds === null) {
+			$this->aFilteredJournalIds = array();
+		}
 
 		if(isset($_REQUEST[self::ADD_TAG]) && !in_array($_REQUEST[self::ADD_TAG], $this->aFilteredTags)) {
 			$this->aFilteredTags[] = $_REQUEST[self::ADD_TAG];
