@@ -39,7 +39,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 				$aResult['field_name'] = 'title';
 				break;
 			case 'created_at_formatted':
-				$aResult['heading'] = StringPeer::getString('wns.date');
+				$aResult['heading'] = StringPeer::getString('wns.journal_entry.created_at');
 				break;
 			case 'is_published':
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.is_published');
