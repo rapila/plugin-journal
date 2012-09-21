@@ -322,6 +322,22 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return $oCommentTemplate;
 	}
+	
+	// For adding comments
+	private function displayAddComment($oTemplate) {
+		if($this->oEntry === null) {
+			return $this->displayEntry($oTemplate);
+		}
+		if($this->sCommentMode === 'off') {
+			LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink()));
+		}
+		if(Manager::isPost() && isset($_POST['preview'])) {
+			$oComment = $_POST['preview'];
+			$oTemplate->replaceIdentifier('container', $this->renderComments(array($oComment), $this->oEntry), $this->sContainer);
+			return;
+		}
+		$oTemplate->replaceIdentifier('container', $this->renderAddComment($this->oEntry), $this->sContainer);
+	}
 
 	private function fillAuxilliaryContainers(Template $oTemplate) {
 		if($this->sAuxiliaryContainer && $oTemplate->hasIdentifier('container', $this->sAuxiliaryContainer)) {
