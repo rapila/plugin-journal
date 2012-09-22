@@ -252,14 +252,11 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderNoResult() {
 		$oTemplate = $this->constructTemplate('no_result');
 		if($this->tagFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.tags')));
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.tags')), null, Template::NO_HTML_ESCAPE);
 			
 		}
 		if($this->journalFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')));
-		}
-		if(empty($this->aFilteredJournalIds)) {
-			$oTemplate->replaceIdentifier('jounals_selection_hint',  StringPeer::getString('journal_entries.no_result.journals_hint'));
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')), null, Template::NO_HTML_ESCAPE);
 		}
 		return $oTemplate;
 	}
