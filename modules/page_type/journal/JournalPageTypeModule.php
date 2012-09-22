@@ -609,7 +609,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderRssFeedWidget() {
 		$oTemplate = $this->constructTemplate('widget_rss_feed');
 		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($this->oPage->getFullPathArray()));
-		if($sTitle = StringPeer::getString('wns.journal.rss_feed_title}}')) {
+		if($sTitle = StringPeer::getString('journal.feed_title}}')) {
 			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
 		}
 		return $oTemplate;
