@@ -22,6 +22,9 @@ journal:
   tag_cloud:
     pixel_size_min: 12
     pixel_size_max: 22
+  
+  # Query limit of entries
+  recent_entries_widget_limit: 7
 
     
   

@@ -239,7 +239,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$this->addPagination($oQuery, $oFullTemplate);
 		$aEntries = $oQuery->orderByCreatedAt(Criteria::DESC)->find();
-
 		if(count($aEntries) === 0) {
 			$oFullTemplate->replaceIdentifier('no_result_info', $this->renderNoResult());
 			return;
@@ -388,12 +387,6 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oTemplate->replaceIdentifierMultiple('container', $this->$sMethodName(), $this->sAuxiliaryContainer);
 			}
 		}
-	}
-	
-	private function renderRecentEntriesWidget() {
-		$oTemplate = new Template(TemplateIdentifier::constructIdentifier('container', 'entries'), null, true);
-		$this->renderJournalEntries(FrontendJournalEntryQuery::create()->mostRecent(), $this->constructTemplate('list_entry'), $oTemplate, null, 'entries');
-		return $oTemplate;
 	}
 	
 	private function displayYear($oTemplate) {
@@ -638,6 +631,24 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			}
 			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
+		}
+		return $oTemplate;
+	}
+	
+ /**
+	* renderRecentEntriesWidget()
+	* 
+	* description: renders a journal entry list
+	* change limit count by overwriting the config param "recent_entry_widget_limit" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderRecentEntriesWidget() {
+		$oTemplate = $this->constructTemplate('widget_recent_entries');
+		$oItemPrototype = $this->constructTemplate('widget_recent_entry_item');
+		$iLimit = Settings::getSetting('journal', 'recent_entries_widget_limit', 7);
+		$oQuery	= FrontendJournalEntryQuery::create()->mostRecent()->filterByJournalId($this->aJournalIds);
+		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->limit($iLimit)->find() as $oEntry) {
+			$oTemplate->replaceIdentifierMultiple('entries', $this->renderEntry($oEntry, clone $oItemPrototype));
 		}
 		return $oTemplate;
 	}
