@@ -142,6 +142,7 @@ class JournalFilterModule extends FilterModule {
 		$oPurifier = new HTMLPurifier($oPurifierConfig);
 		$_POST['comment_text'] = $oPurifier->purify($_POST['comment_text']);
 		$oComment->setText($_POST['comment_text']);
+		
 		$oFlash->checkForValue('comment_text', 'comment_required');
 		$oFlash->finishReporting();
 

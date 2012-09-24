@@ -1,7 +1,8 @@
-<h2 class="journal_title">{{title}}</h2>
+<h2 class="journal_title">{{return_to_list_view}}{{title}}</h2>
 <div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}{{identifierContext=start;name=user_name}}, {{user_name}}{{identifierContext=end;name=user_name}}</div>
 <div class="journal_content">
   {{text}}
 </div>{{identifierContext=start;name=tags}}
 <div class="tags"><span>{{writeString=journal_entry.related_tags}}:</span> {{tags}}</div>{{identifierContext=end;name=tags}}
 {{journal_gallery}}{{journal_comments}}
+{{return_to_list_view}}

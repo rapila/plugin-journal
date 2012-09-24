@@ -59,6 +59,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	const SESSION_TAG_FILTER = 'tag_filter';
 	const SESSION_JOURNAL_FILTER = 'journal_filter';
+	const SESSION_LAST_OVERVIEW_ITEM_LINK = null;
 
 	/**
 	 * @var JournalEntry the entry to be viewed
@@ -163,6 +164,10 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->oEntry = $this->oNavigationItem->getData();
 			}
 		}
+		// whenever there is no detail requested, store current navigation item for overview link
+		if($this->oEntry === null) {
+			Session::getSession()->setAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK, $this->oNavigationItem->getLink());
+		}
 		$sMethod = StringUtil::camelize("display_$sMethod");
 		return $this->$sMethod($oTemplate);
 	}
@@ -257,6 +262,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->journalFilterIsActive()) {
 			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')), null, Template::NO_HTML_ESCAPE);
 		}
+		if($this->archiveIsActive()) {
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.archive')), null, Template::NO_HTML_ESCAPE);
+		}
 		return $oTemplate;
 	}
 	
@@ -266,6 +274,10 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private function tagFilterIsActive() {
 		return !empty($this->aFilteredTags);
+	}
+	
+	private function archiveIsActive() {
+		return is_null($this->iYear) || is_null($this->iMonth) || is_null($this->iDay);
 	}
 
 	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
@@ -302,7 +314,6 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oEntryTemplate->replaceIdentifierMultiple('tags', $oTagInstance->getTag()->getReadableName(), null, Template::NO_NEW_CONTEXT|Template::NO_NEWLINE);
 			}
 		}
-		$oSession = Session::getSession();
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
 			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
 		}
@@ -412,7 +423,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->oEntry === null) {
 			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray(), 'FrontendManager'));
 		}
-		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $this->constructTemplate('full_entry')), $this->sContainer);
+		$oEntryTemplate = $this->constructTemplate('full_entry');
+		if($aLink = Session::getSession()->getAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK)) {
+			$sOverviewHref = LinkUtil::link($aLink);
+		} else {
+			$sOverviewHref = LinkUtil::link($this->oPage->getLink());
+		}
+		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.return_to_overview')), StringPeer::getString('journal.return_to_overview')));
+		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
 	}
 	
 	// Override from parent
@@ -531,6 +549,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		
 		$oTemplate = $this->constructTemplate('widget_tree');
+		if($this->archiveIsActive()) {
+			$sHref = LinkUtil::link($this->oPage->getLinkArray());
+			$oTemplate->replaceIdentifier('reset_archive_href', ' href="'.$sHref.'"', null, Template::NO_HTML_ESCAPE);
+			$oTemplate->replaceIdentifier('reset_archive_title', StringPeer::getString('journal.reset_archive_filter'));
+		}
+
 		$oItemPrototype = $this->constructTemplate('widget_tree_item');
 		
 		$sPreviousYear = null;
@@ -547,19 +571,22 @@ class JournalPageTypeModule extends PageTypeModule {
 		};
 		
 		$oPage = $this->oPage;
-		$cOutput = function($aDate, $sFormat) use (&$aStack, $oItemPrototype, $oPage) {
+		$cOutput = function($aDate, $sFormat, $bIsActive) use (&$aStack, $oItemPrototype, $oPage) {
 			$oTemplate = clone $oItemPrototype;
 			array_push($aStack, $oTemplate);
 			foreach($aDate as $sPeriod => $sValue) {
 				$oTemplate->replaceIdentifier(strtolower($sPeriod), $sValue);
 			}
 			$oDate = new DateTime();
-			$oDate->setDate($aDate['Year'], @$aDate['Month'] ? $aDate['Month'] : 1, @$aDate['Day'] ? @$aDate['Day'] : 1);
+			$oDate->setDate($aDate['Year'], @$aDate['Month'] ? $aDate['Month'] : 1, @$aDate['Day'] ? $aDate['Day'] : 1);
 			$oTemplate->replaceIdentifier('full_name', LocaleUtil::localizeDate($oDate, null, $sFormat));
 			$aKeys = array_keys($aDate);
 			$oTemplate->replaceIdentifier('name', $aDate[$aKeys[count($aKeys)-1]]);
 			$oTemplate->replaceIdentifier('level', count($aKeys));
 			$oTemplate->replaceIdentifier('link', LinkUtil::link($oPage->getFullPathArray(array_values($aDate))));
+			if($bIsActive) {
+				$oTemplate->replaceIdentifier('class_is_active', 'is_active');
+			}
 		};
 		
 		foreach($aResult as $aDate) {
@@ -569,7 +596,8 @@ class JournalPageTypeModule extends PageTypeModule {
 			if($aDate['Year'] !== $sPreviousYear) {
 				$cReduceToLevel(1);
 				$sPreviousYear = $aDate['Year'];
-				$cOutput(array('Year' => $aDate['Year']), 'Y');
+				
+				$cOutput(array('Year' => $aDate['Year']), 'Y', $this->iYear === $aDate['Year']);
 			}
 			
 			// Render 2nd level months
@@ -579,13 +607,13 @@ class JournalPageTypeModule extends PageTypeModule {
 			if($aDate['Year'] !== $sPreviousYear || $aDate['Month'] !== $sPreviousMonth) {
 				$cReduceToLevel(2);
 				$sPreviousMonth = $aDate['Month'];
-				$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month']), 'B');
+				$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month']), 'B', $this->iMonth === $aDate['Month']);
 			}
 			
 			// Render 3rd level days
 			if($iTreeWidgetLevels === 2) continue;
 			$cReduceToLevel(3);
-			$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month'], 'Day' => $aDate['Day']), 'x');
+			$cOutput(array('Year' => $aDate['Year'], 'Month' => $aDate['Month'], 'Day' => $aDate['Day']), 'x', $this->iDay === $aDate['Day']);
 		}
 		
 		$cReduceToLevel(1);
