@@ -12,4 +12,4 @@ The Journal-Plugin was designed with the following goals in mind:
 
 ## Diving in
 
-Get more information and installation instructions in the [Wiki](https://github.com/rapila/journal-plugin/wiki/Installation).
+Get more information and installation instructions in the [Wiki](https://github.com/rapila/plugin-journal/wiki/Installation).
