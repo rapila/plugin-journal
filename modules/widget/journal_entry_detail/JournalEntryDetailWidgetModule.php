@@ -20,7 +20,10 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 
 	public function setJournalId($iJournalId) {
-		$this->iJournalId = $iJournalId;
+		if(is_numeric($iJournalId)){
+			$this->iJournalId = $iJournalId;
+		}
+		$this->iJournalId = null;
 	}
 
 	public function setJournalEntryId($iJournalEntryId) {
@@ -112,7 +115,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$oDocument->save();
 		}
 	}
-
+	
+	private function validate($aJournalData, $oJournal) {
+		// $oFlash = Flash::getFlash();
+		// $oFlash->setArrayToCheck($aJournalData);
+		// $oFlash->checkForValue('journal_id', 'name_required');
+		// $oFlash->finishReporting();
+	}
+	
 	public function saveData($aData) {
 		$oEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if($oEntry === null) {
@@ -121,6 +131,9 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		$oEntry->setTitle($aData['title']);
 		$oEntry->setIsPublished($aData['is_published']);
+		if(isset($aData['journal_id'])) {
+			$oEntry->setJournalId($aData['journal_id']);
+		}
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
 		$oEntry->setText($oRichtextUtil->getTagParser($aData['text']));

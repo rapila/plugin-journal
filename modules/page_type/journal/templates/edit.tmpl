@@ -1,16 +1,14 @@
-<label for="journal">{{writeString=wns.journal.select}}</label>
-<select name="journal" class="ui-widget-content" style="margin-bottom:1em;"></select>
 <div class="journal_detail">
 	<ul>
 		<li><a href="#journal-journal_entries">{{writeString=wns.journal.journal_entries}}</a></li>
-		<li><a href="#journal-journal_config">{{writeString=wns.journal.journal_config}}</a></li>
 		<li><a href="#journal-page_config">{{writeString=wns.journal.page_config}}</a></li>
 	</ul>
-	<div id="journal-journal_config">
-		<label for="journal_name" class="validate-journal.name_required">{{writeString=wns.journal.name}}</label><input type="text" name="journal_name" class="ui-widget-content" /><br />
-		<label for="journal_description">{{writeString=wns.journal.description}}</label><textarea type="text" name="journal_description" class="ui-widget-content"></textarea>
-	</div>
 	<div id="journal-page_config">
+		<div class="group_fields">
+			<label for="journal_ids" class="validate-journal_ids_required">{{writeString=journal.journals_to_be_displayed}}</label>
+			<select name="journal_ids" multiple="multiple" class="ui-widget-content" data-widget-type="journal_input">
+			</select><span class="edit_journal_button ui-icon ui-icon-pencil" title="{{writeString=journal.edit_create_journal}}" style="float: right; cursor: pointer;"></span><br />
+		</div>
 		<div class="group_fields">
 			<label for="mode">{{writeString=wns.journal.action}}</label>
 			<select name="mode" class="ui-widget-content">
@@ -32,16 +30,16 @@
 				<option value="moderated">{{writeString=wns.journal.comments.moderated}}</option>
 				<option value="notified">{{writeString=wns.journal.comments.notified}}</option>
 			</select><br />
-			<label for="template_set">{{writeString=wns.journal.template_set}}</label>
-			<select name="template_set" class="ui-widget-content"></select><br />
+			<label for="captcha_enabled" class="with_comment_active_only">{{writeString=wns.journal.comments_captcha.on}}</label>
+			<input type="checkbox" name="captcha_enabled" class="ui-widget-content with_comment_active_only" /><br />
 		</div>
 		<div class="group_fields">
+			<label for="template_set">{{writeString=wns.journal.template_set}}</label>
+			<select name="template_set" class="ui-widget-content"></select><br />
 			<label for="container">{{writeString=wns.journal.container}}</label>
 			<select name="container" class="ui-widget-content"></select><br />
 			<label for="auxiliary_container">{{writeString=wns.journal.auxiliary_container}}</label>
 			<select name="auxiliary_container" class="ui-widget-content"><option value="">--</option></select><br />
-			<label for="captcha_enabled" class="with_comment_active_only">{{writeString=wns.journal.comments_captcha.on}}</label>
-			<input type="checkbox" name="captcha_enabled" class="ui-widget-content with_comment_active_only" /><br />
 			<label for="date_navigation_items_visible">{{writeString=wns.journal.date_navigation_items_visible}}</label>
 			<input type="checkbox" name="date_navigation_items_visible" class="ui-widget-content" />
 		</div>

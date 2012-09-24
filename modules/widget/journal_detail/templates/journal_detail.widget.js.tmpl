@@ -1,0 +1,30 @@
+Widget.types.journal_detail = {
+	initialize: function() {
+		var _this = this;
+		this.content = Widget.parseHTML("{{includeTemplate=edit}}");
+		this.content.find('div.hide_if_not_saved').hide();
+		Widget.callStatic('detail', 'create_for_instance', this);
+	},
+
+	fill_data: function() {
+		this.detail_widget.disable();
+		this.journalData(function(journal_data) {
+			this.content.find("input[name='name']").val(journal_data.Name);
+			this.content.find("textarea[name='description']").val(journal_data.Description);
+			this.content.find(".updated_info").text(journal_data.UpdatedInfo);
+			this.content.find(".created_info").text(journal_data.CreatedInfo);
+			this.content.find(".detail_id").text(journal_data.Id);
+			this.detail_widget.set_title(this.detail_widget.settings.title = journal_data.Name);
+			this.content.find('div.hide_if_not_saved').show();
+			this.detail_widget.enable();
+		});
+	},
+	
+	settings: {
+		detail_widget: {
+			title: "{{writeString=wns.journal.create}}",
+			width: 550
+		},
+		select: 'name'
+	}
+};

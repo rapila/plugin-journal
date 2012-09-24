@@ -1,23 +1,35 @@
 (function() {
 	function JournalController(page_id, container, page_type) {
-		this.page_id = page_id;
 		this.container = container;
 		this.page_type = page_type;
-		page_type.methods.detailWidget(function(session) {
-			Widget.create('journal_entry_detail', function(detail) {
-				this.journal_entry_detail = detail;
-				detail.save_callback = this.reload_entries.bind(this);
-			}.bind(this), jQuery.noop, session);
-		}.bind(this));
 	}
 	
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
 			var _this = this;
-			this.form = jQuery('<form/>').append(jQuery.parseHTML('{{includeTemplate=edit}}'));
+			
+			this.form = jQuery('<form/>').append(Widget.parseHTML('{{includeTemplate=edit}}'));
 			this.container.append(this.form);
-			//Lists to be filled
-			this.journal_list = this.container.find('select[name="journal"]').bind('change', this.journal_changed.bind(this));
+
+			this.journal_list = this.container.find('select[name="journal_ids"]').prepareWidget(function(journal_input) {
+				journal_input._element.change(_this.journal_changed.bind(_this));
+			});
+
+			this.page_type.methods.detailWidget(function(session) {
+				Widget.create('journal_entry_detail', function(detail) {
+					_this.journal_entry_detail = detail;
+					_this.journal_entry_detail.save_callback = _this.reload_entries.bind(_this);
+					_this.journal_list.ensureWidget(function(journal_input) {
+						_this.journal_entry_detail.journal_ids_configured(journal_input.val() || []);
+					});
+				}, jQuery.noop, session);
+			});
+			
+			// Lists to be filled
+			this.container.find('span.edit_journal_button').click(function() {
+				_this.edit_journal();
+			});
+			
 			this.template_list = this.container.find('select[name="template_set"]');
 			this.widget_list = this.container.find('div.journal-widgets');
 			this.widget_list.sortable({
@@ -26,13 +38,15 @@
 			});
 			this.container_list = this.container.find('select[name="container"]');
 			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
-			//Elements used later on
+			
+			// Elements used later on
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
 			this.captcha_enabled_checkbox = this.container.find('input[name="captcha_enabled"]');
-			this.add_journal_entry_button = this.container.find('a.add_journal_entry').hide().click(this.add_journal_entry.bind(this));
+			this.add_journal_entry_button = this.container.find('a.add_journal_entry').click(this.add_journal_entry.bind(this)).hide();
+			
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.with_comment_active_only = this.container.find('.with_comment_active_only');
@@ -43,15 +57,22 @@
 
 			this.reload();
 		},
-
+		
 		reload: function() {
 			var _this = this;
 			var waiters = [];
 			
-			this.page_type.methods.listJournals(function(result) {
-				_this.journal_list.empty().populate({'': "{{writeString=wns.journal.add}}"});
-				_this.journal_list.populate(result.options, result.current || '');
-			}.deferred(waiters));
+			this.container.find('.journal_detail').tabs();
+			
+			this.journal_ids = null;
+			this.page_type.methods.currentJournalIds(function(journal_ids) {
+				_this.journal_ids = journal_ids;
+				_this.journal_list.ensureWidget(function(journal_input) {
+					journal_input.val(journal_ids);
+					_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(journal_input.val() || []);
+				});
+				_this.add_journal_entry_button.show();
+			});
 			
 			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.empty().populate(result.options, result.current);
@@ -94,48 +115,49 @@
 				_this.entries_per_page_list.val(result);
 			}.deferred(waiters));
 
-			this.container.find('.journal_detail').tabs();
-			
 			jQuery.when.apply(jQuery, waiters).then(function() {
-				_this.reload_properties();
+				_this.reload_entries();
 			});
 		},
 
 		add_journal_entry: function() {
 			var _this = this;
-			this.page_type.methods.currentJournalId(function(id) {
-				if(id && _this.journal_entry_detail) {
-					_this.journal_entry_detail.setJournalId(id);
-					_this.journal_entry_detail.setJournalEntryId(null);
-					_this.journal_entry_detail.fill_data();
-					_this.journal_entry_detail.open();
-				}
-			});
+			if(_this.journal_entry_detail) {
+				_this.journal_entry_detail.setJournalEntryId(null);
+				_this.journal_entry_detail.fill_data();
+				_this.journal_entry_detail.open();
+			}
 			return false;
 		},
-
-		journal_changed: function() {
+		
+		edit_journal: function() {
 			var _this = this;
-			var value = this.journal_list.val() ? this.journal_list.val() : null;
-			this.page_type.methods.setCurrentJournal(value, function() {
-				_this.reload_properties();
+			var journal_id = this.journal_list.val();	
+			if(journal_id && journal_id.length !== 1) {
+				journal_id = null;
+			}
+			Widget.create('journal_detail', function(widget) {
+				if(journal_id) {
+					widget.setJournalId(journal_id);
+					widget.fill_data();
+				}
+				widget.open();
+				widget.save_callback = function(journal_id) {
+					Widget.fire('rapila-journals_changed');
+					_this.journal_list.ensureWidget(function(journal_input_widget) {
+						journal_input_widget.val(journal_input_widget.val().concat([journal_id]));
+					});
+				};
 			});
 		},
-
-		reload_properties: function() {
+		
+		journal_changed: function() {
 			var _this = this;
-			this.page_type.methods.journalProperties(function(result) {
-				if(result) {
-					_this.name_input.val(result.Name);
-					_this.description_input.val(result.Description);
-					_this.add_journal_entry_button.show();
-				} else {
-					_this.name_input.val('');
-					_this.description_input.val('');
-					_this.add_journal_entry_button.hide();
-				}
+			var value = this.journal_list.val() || [];
+			_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(value);
+			this.page_type.methods.setCurrentJournal(value, function() {
+				_this.reload_entries();
 			});
-			this.reload_entries();
 		},
 
 		reload_entries: function() {
@@ -159,7 +181,7 @@
 
 		save: function() {
 			var _this = this;
-			this.page_type.methods.saveJournal(this.form.serializeArrayKV(), function(result, error) {
+			this.page_type.methods.saveJournalPageConfiguration(this.form.serializeArrayKV(), function(result, error) {
 				if(error) {
 					if(error.exception_type === 'ValidationException') {
 						Widget.callStatic('detail', 'validate_with', error.parameters, _this.form);
@@ -198,7 +220,6 @@
 		handle_admin: function(page_id, container, page_type) {
 			this.controller = init_journal_controls(page_id, container, page_type);
 		},
-
 
 		did_save: function(page_id, container, page_type) {
 			this.controller.save();

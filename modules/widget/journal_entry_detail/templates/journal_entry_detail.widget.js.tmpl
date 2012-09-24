@@ -8,9 +8,13 @@ Widget.types.journal_entry_detail = {
 	
 	init_content: function() {
 		var _this = this;
-		this._element = jQuery.parseHTML('{{includeTemplate=edit}}');
-		this.comment_row = jQuery.parseHTML("{{includeTemplate=comment_row}}", true, 'tbody');
+		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
+		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
+		this.journals = this._element.find("select[name='journal_id']").prepareWidget(function(journal_input) {
+			_this.journal_input = journal_input;
+			journal_input.settings.journal_ids_configured = _this.settings.journal_ids_configured;
+		}, jQuery.noop);
 		
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
 		Widget.createWithElement('tag_area', function(widget) {
@@ -61,25 +65,15 @@ Widget.types.journal_entry_detail = {
 				this.set_text(data.Text);
 				title.val(data.Title);
 				is_published.prop('checked', data.IsPublished);
+				this.journals.ensureWidget(function(journal_input) {
+					journal_input.val(data.JournalId);
+				});
 				if(data.Id) {
 					this.tag_area.setTaggedItemId(data.Id);
 					this.tag_area.reload_tags();
 				}
-				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}"
-				this.comment_list.empty();
-				jQuery.each(data.comments, function(i, comment) {
-					var comment_row = _this.comment_row.clone();
-					var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'is_published[]', value : comment.Id, title: toggle_is_published_title}).prop('checked', comment.IsPublished).change(function() {
-						_this.toggleCommentIsPublished(comment.Id, function(result) {
-							online_checkbox.prop('checked', result === true);
-						});
-					});
-					comment_row.find('td.date').append(comment.CreatedAtFormatted);
-					comment_row.find('td.email').append(comment.Email);
-					comment_row.find('td.comment').append(comment.Text);
-					comment_row.find('td.is_published').append(online_checkbox);
-					_this.comment_list.append(comment_row);
-				});
+				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}";
+				this.update_comments(data.comments);
 				this.update_documents();
 			} else {
 				this.current_detail_id = null;
@@ -87,6 +81,24 @@ Widget.types.journal_entry_detail = {
 				this.set_text('');
 				title.val('');
 			}
+		});
+	},
+	
+	update_comments: function(comments) {
+		var _this = this;
+		this.comment_list.empty();
+		jQuery.each(comments, function(i, comment) {
+			var comment_row = _this.comment_row.clone();
+			var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'is_published[]', value : comment.Id, title: toggle_is_published_title}).prop('checked', comment.IsPublished).change(function() {
+				_this.toggleCommentIsPublished(comment.Id, function(result) {
+					online_checkbox.prop('checked', result === true);
+				});
+			});
+			comment_row.find('td.date').append(comment.CreatedAtFormatted);
+			comment_row.find('td.email').append(comment.Email);
+			comment_row.find('td.comment').append(comment.Text);
+			comment_row.find('td.is_published').append(online_checkbox);
+			_this.comment_list.append(comment_row);
 		});
 	},
 
@@ -125,7 +137,7 @@ Widget.types.journal_entry_detail = {
 			});
 			return false;
 		}).appendTo(doc);
-		var document_object = jQuery.parseHTML(document_data.Preview);
+		var document_object = Widget.parseHTML(document_data.Preview);
 		doc.addClass('pointer').attr('title', '{{writeString=wns.edit_file.dblclick}}').dblclick(function() {
 			Widget.create('document_detail', function(detail) {
 				detail.settings.hide_inputs_if_called_externally = true;
@@ -149,11 +161,19 @@ Widget.types.journal_entry_detail = {
 	upload_error: function(error) {
 	},
 
+	journal_ids_configured: function(journal_ids_configured) {
+		this.settings.journal_ids_configured = journal_ids_configured;
+		if(this.journal_input) {
+			this.journal_input.settings.journal_ids_configured = journal_ids_configured;
+			this.journal_input.reload();
+		}
+	},
 	
 	settings: {
 		"detail_widget": {
 			width: 800 
 		},
-		thumbnail_size: 180
+		thumbnail_size: 180,
+		journal_ids_configured: null
 	}
 };

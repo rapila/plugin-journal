@@ -27,10 +27,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'is_published', 'count_comments');
-		if($this->oDelegateProxy->getJournalId() === CriteriaListWidgetDelegate::SELECT_ALL) {
-			$aColumns = array_merge($aColumns, array('journal_name'));
-		}
+		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'is_published', 'journal_name');
 		return array_merge($aColumns, array('delete'));
 	}
 	
@@ -42,7 +39,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 				$aResult['field_name'] = 'title';
 				break;
 			case 'created_at_formatted':
-				$aResult['heading'] = StringPeer::getString('wns.date');
+				$aResult['heading'] = StringPeer::getString('wns.journal_entry.created_at');
 				break;
 			case 'is_published':
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.is_published');
@@ -66,7 +63,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 
 	public function getFilterTypeForColumn($sColumnIdentifier) {
 		if($sColumnIdentifier === 'journal_id') {
-			return CriteriaListWidgetDelegate::FILTER_TYPE_IS;
+			return CriteriaListWidgetDelegate::FILTER_TYPE_IN;
 		}
 		return null;
 	}
@@ -74,7 +71,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	public function getDatabaseColumnForColumn($sColumnIdentifier) {
 		if($sColumnIdentifier === 'created_at_formatted') {
 			return JournalEntryPeer::CREATED_AT;
-		}		
+		}
 		if($sColumnIdentifier === 'journal_name') {
 			return JournalPeer::NAME;
 		}
@@ -82,7 +79,11 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 	
 	public function getJournalName() {
-		$oJournal = JournalPeer::retrieveByPK($this->oDelegateProxy->getJournalId());
+		$iId = $this->oDelegateProxy->getJournalId();
+		if(is_array($iId)) {
+			$iId = @$iId[0];
+		}
+		$oJournal = JournalQuery::create()->findPk($iId);
 		if($oJournal) {
 			return $oJournal->getName();
 		}
