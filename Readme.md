@@ -1,15 +1,15 @@
 # Journal-Plugin
 
-The Journal-Plugin is a blog plugin that works seamlessly with Raplia
+The Journal-Plugin is a blog plugin that works seamlessly with [Raplia](https://github.com/rapila/cms-base)
 
 ## Goals
 
 The Journal-Plugin was designed with the following goals in mind:
 
-* Should be a plugin that works perfectly with Raplia
-* Have all the important features of a blog system but be as lean as possible
-* Should work seamlessly with other Raplia plugins like Newsletter
+* Easy integration with the Rapila CMS
+* All the important features of a blog system but be as lean as possible
+* Work seamlessly with other Raplia plugins like [Newsletter](https://github.com/rapila/plugin-newsletter/wiki/).
 
 ## Diving in
 
-Get more information and installation instructions in the [Wiki](https://github.com/rapila/plugin-journal/wiki/Installation).
+Get more information and installation instructions in the [Wiki](https://github.com/rapila/plugin-journal/wiki/).
