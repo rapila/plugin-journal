@@ -3,6 +3,11 @@ Widget.types.journal_detail = {
 		var _this = this;
 		this.content = Widget.parseHTML("{{includeTemplate=edit}}");
 		this.content.find('div.hide_if_not_saved').hide();
+		this.with_comment_active_only = this.content.find('.with_comment_active_only');
+		this.comment_mode_select = this.content.find("select[name='comment_mode']").change(function() {
+			_this.with_comment_active_only.css('visibility' , jQuery(this).val() ===  'off' ? 'hidden' : 'visible');
+		});
+		
 		Widget.callStatic('detail', 'create_for_instance', this);
 	},
 
@@ -12,15 +17,14 @@ Widget.types.journal_detail = {
 			this.content.find("input[name='name']").val(journal_data.Name);
 			this.content.find("textarea[name='description']").val(journal_data.Description);
 			this.content.find("input[name='use_captcha']").prop('checked', journal_data.UseCaptcha);
-			var comment_mode_select = this.content.find("select[name='comment_mode']");
 			if(journal_data.EnableComments && journal_data.NotifyComments) {
-				comment_mode_select.val('notified');
+				this.comment_mode_select.val('notified');
 			} else if(journal_data.NotifyComments) {
-				comment_mode_select.val('moderated');
+				this.comment_mode_select.val('moderated');
 			} else if(journal_data.EnableComments) {
-				comment_mode_select.val('on');
+				this.comment_mode_select.val('on');
 			} else {
-				comment_mode_select.val('off');
+				this.comment_mode_select.val('off');
 			}
 			this.content.find(".updated_info").text(journal_data.UpdatedInfo);
 			this.content.find(".created_info").text(journal_data.CreatedInfo);

@@ -15,8 +15,8 @@ journal:
   # that is externally managed, to store the data in - solely a question of internal organisation.     
   externally_managed_images_category: null
   
-  # Calendar tree widget: render years [1] and months [2] and days [3]
-  display_journal_tree_levels: 2
+  # Calendar collapsible date tree widget: render years [1] and months [2] and days [3]
+  display_journal_collapsible_tree_levels: 2
   
   # Tag cloud widget tag style size settings: set pixel_size_min parameters to null, if you do not want variable style attributes
   tag_cloud:

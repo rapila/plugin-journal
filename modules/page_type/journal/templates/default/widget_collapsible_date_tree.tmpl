@@ -1,0 +1,10 @@
+{{addResourceInclude=jquery;library=1.7.1}}{{addResourceInclude=journal-collapsible-date-tree.js}}
+<div id="journal_collapsible_page_tree" class="journal_widget">
+	<h3>{{writeString=journal.label_for_archive}}{{if=ne;1=\{\{reset_archive_href\}\}}}<a href="{{reset_archive_href}}"
+	title="{{writeString=journal.reset_archive_filter}}">(-)</a>{{endIf}}</h3>
+{{identifierContext=start;name=items}}
+	<ol class="journal-tree-level-0">
+		{{items}}
+	</ol>
+{{identifierContext=end;name=items}}
+</div>

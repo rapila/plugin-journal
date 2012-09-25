@@ -188,7 +188,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		// Basic page link without page number
 		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::ALLOWED_POINTER_PAGE)));
-		$oPager->setPageLinkBase($sBasePageLink.'/');
+		$oPager->setPageLinkBase($sBasePageLink);
 		$oQuery = $oPager->getQuery();
 
 		$oPagerTemplate = $this->constructTemplate('pagination');
@@ -271,7 +271,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function archiveIsActive() {
-		return is_null($this->iYear) || is_null($this->iMonth) || is_null($this->iDay);
+		return !is_null($this->iYear) || !is_null($this->iMonth) || !is_null($this->iDay);
 	}
 
 	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
@@ -416,7 +416,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		} else {
 			$sOverviewHref = LinkUtil::link($this->oPage->getLink());
 		}
-		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.return_to_overview')), StringPeer::getString('journal.return_to_overview')));
+		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.reset_page_navigation')), StringPeer::getString('journal.reset_page_navigation')));
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
 	}
 	
@@ -435,11 +435,51 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
  /**
+	* renderRssFeedWidget()
+	* 
+	* description: display rss feed link
+	* @return Template object
+	*/	
+	private function renderRssFeedWidget() {
+		$oTemplate = $this->constructTemplate('widget_rss_feed');
+		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($this->oPage->getFullPathArray()));
+		if($sTitle = StringPeer::getString('journal.feed_title}}')) {
+			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
+		}
+		return $oTemplate;
+	}
+
+ /**
+	* renderJournalsWidget()
+	* 
+	* description: renders a journals list with links, like the tag cloud, but fixed categories
+	* @return Template object
+	*/	
+	private function renderJournalsWidget() {
+		if(!is_array($this->aJournalIds) || count($this->aJournalIds) < 2) {
+			return;
+		}
+		$oTemplate = $this->constructTemplate('widget_journals');
+		if($this->journalFilterIsActive()) {
+			$sHref = LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::RESET_JOURNALS => 'true'));
+			$oTemplate->replaceIdentifier('activate_journals_href', $sHref, null, Template::NO_HTML_ESCAPE);
+		}
+		foreach(JournalQuery::create()->findPks($this->aJournalIds) as $oJournal) {
+			if(is_array($this->aFilteredJournalIds) && in_array($oJournal->getId(), $this->aFilteredJournalIds)) {
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+			} else {
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+			}
+			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
+		}
+		return $oTemplate;
+	}
+
+ /**
 	* renderTagCloudWidget()
 	* 
 	* description: 
 	* display tags with variable font-size, @see config.yml section journal tag_cloud [pixel_size_min, pixel_size_max]
-	* 
 	* @return Template object / null
 	*/	
 	private function renderTagCloudWidget() {
@@ -528,19 +568,61 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return $oTemplate;
 	}
+
+ /**
+	* renderDateNavigationWidget()
+	* 
+	* description: display date tree configured in journal/config/config.yml
+	* @return Template object
+	*/
+	private function renderDateNavigationWidget() {
+		$oTemplate = $this->constructTemplate('widget_date_navigation');
+		if($this->archiveIsActive()) {
+			$sHref = LinkUtil::link($this->oPage->getLinkArray());
+			$oTemplate->replaceIdentifier('overview_page_href', $sHref, null, Template::NO_HTML_ESCAPE);
+		}
+		$oNavigation = new Navigation('journal_date_navigation_widget');
+		$oTemplate->replaceIdentifier('date_navigation', $oNavigation->parse(PageNavigationItem::navigationItemForPage($this->oPage)));
+		return $oTemplate;
+	}
 	
-	private function renderTreeWidget() {
-		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_tree_levels', 2);
+ /**
+	* renderRecentEntriesWidget()
+	* 
+	* description: renders a journal entry list
+	* change limit count by overwriting the config param "recent_entry_widget_limit" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderRecentEntriesWidget() {
+		$oTemplate = $this->constructTemplate('widget_recent_entries');
+		$oItemPrototype = $this->constructTemplate('widget_recent_entry_item');
+		$iLimit = Settings::getSetting('journal', 'recent_entries_widget_limit', 7);
+		$oQuery	= FrontendJournalEntryQuery::create()->mostRecent()->filterByJournalId($this->aJournalIds);
+		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->limit($iLimit)->find() as $oEntry) {
+			$oTemplate->replaceIdentifierMultiple('entries', $this->renderEntry($oEntry, clone $oItemPrototype));
+		}
+		return $oTemplate;
+	}
+
+ /**
+	* renderCollapsibleDateTreeWidget()
+	* 
+	* description: display collapsible date tree without link on year
+	* include javascript file web/js/journal-collapsible-date-tree.js
+	* @return Template object
+	*/	
+	private function renderCollapsibleDateTreeWidget() {
+		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_collapsible_tree_levels', 2);
 		
 		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		
-		$oTemplate = $this->constructTemplate('widget_tree');
+		$oTemplate = $this->constructTemplate('widget_collapsible_date_tree');
 		if($this->archiveIsActive()) {
 			$sHref = LinkUtil::link($this->oPage->getLinkArray());
-			$oTemplate->replaceIdentifier('reset_archive_href', ' href="'.$sHref.'"', null, Template::NO_HTML_ESCAPE);
+			$oTemplate->replaceIdentifier('reset_archive_href', $sHref, null, Template::NO_HTML_ESCAPE);
 		}
 
-		$oItemPrototype = $this->constructTemplate('widget_tree_item');
+		$oItemPrototype = $this->constructTemplate('widget_collapsible_date_tree_item');
 		
 		$sPreviousYear = null;
 		$sPreviousMonth = null;
@@ -605,82 +687,11 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		return $oTemplate;
 	}
-
- /**
-	* renderRssFeedWidget()
-	* 
-	* description: display rss feed link
-	* @return Template object
-	*/	
-	private function renderRssFeedWidget() {
-		$oTemplate = $this->constructTemplate('widget_rss_feed');
-		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($this->oPage->getFullPathArray()));
-		if($sTitle = StringPeer::getString('journal.feed_title}}')) {
-			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
-		}
-		return $oTemplate;
-	}
-
- /**
-	* renderJournalsWidget()
-	* 
-	* description: renders a journals list with links, like the tag cloud, but fixed categories
-	* @return Template object
-	*/	
-	private function renderJournalsWidget() {
-		if(!is_array($this->aJournalIds) || count($this->aJournalIds) < 2) {
-			return;
-		}
-		$oTemplate = $this->constructTemplate('widget_journals');
-		if($this->journalFilterIsActive()) {
-			$sHref = LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::RESET_JOURNALS => 'true'));
-			$oTemplate->replaceIdentifier('activate_journals_href', $sHref, null, Template::NO_HTML_ESCAPE);
-		}
-		foreach(JournalQuery::create()->findPks($this->aJournalIds) as $oJournal) {
-			if(is_array($this->aFilteredJournalIds) && in_array($oJournal->getId(), $this->aFilteredJournalIds)) {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
-			} else {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
-			}
-			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
-		}
-		return $oTemplate;
-	}
-	
-	private function renderDateNavigationWidget() {
-		$oTemplate = $this->constructTemplate('widget_date_navigation');
-		if($this->archiveIsActive()) {
-			$sHref = LinkUtil::link($this->oNavigationItem->getLink());
-			$oTemplate->replaceIdentifier('overview_page_href', $sHref, null, Template::NO_HTML_ESCAPE);
-		}
-		$oNavigation = new Navigation('journal_date_navigation_widget');
-		$oTemplate->replaceIdentifier('date_navigation', $oNavigation->parse(PageNavigationItem::navigationItemForPage($this->oPage)));
-		return $oTemplate;
-	}
-	
- /**
-	* renderRecentEntriesWidget()
-	* 
-	* description: renders a journal entry list
-	* change limit count by overwriting the config param "recent_entry_widget_limit" in your site/config/config.yml
-	* @return Template object
-	*/	
-	private function renderRecentEntriesWidget() {
-		$oTemplate = $this->constructTemplate('widget_recent_entries');
-		$oItemPrototype = $this->constructTemplate('widget_recent_entry_item');
-		$iLimit = Settings::getSetting('journal', 'recent_entries_widget_limit', 7);
-		$oQuery	= FrontendJournalEntryQuery::create()->mostRecent()->filterByJournalId($this->aJournalIds);
-		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->limit($iLimit)->find() as $oEntry) {
-			$oTemplate->replaceIdentifierMultiple('entries', $this->renderEntry($oEntry, clone $oItemPrototype));
-		}
-		return $oTemplate;
-	}
 	
  /**
 	* renderGallery()
 	* 
 	* description: display image gallery
-	* 
 	* @return Template object
 	*/	
 	private function renderGallery(JournalEntry $oEntry) {
