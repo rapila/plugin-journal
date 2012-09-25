@@ -195,8 +195,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		
 		// Basic page link without page number
-		$sBasePageLink = LinkUtil::link(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink()).'/'.self::ALLOWED_POINTER_PAGE.'/';
-		$oPager->setPageLinkBase($sBasePageLink);
+		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::ALLOWED_POINTER_PAGE)));
+		$oPager->setPageLinkBase($sBasePageLink.'/');
 		$oQuery = $oPager->getQuery();
 
 		$oPagerTemplate = $this->constructTemplate('pagination');
@@ -207,7 +207,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			if($i === $iPage) {
 				$oPageLink = TagWriter::quickTag('span', array(), $i);
 			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => LinkUtil::link($this->oPage->getLinkArray(self::ALLOWED_POINTER_PAGE, $i))), $i);
+				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPager->getPageLink($i)), $i);
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
@@ -256,14 +256,16 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderNoResult() {
 		$oTemplate = $this->constructTemplate('no_result');
 		if($this->tagFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.tags')), null, Template::NO_HTML_ESCAPE);
-			
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.tags')), null);
 		}
 		if($this->journalFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')), null, Template::NO_HTML_ESCAPE);
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')));
 		}
 		if($this->archiveIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.archive')), null, Template::NO_HTML_ESCAPE);
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.archive')));
+		}
+		if($this->tagFilterIsActive() || $this->journalFilterIsActive() || $this->archiveIsActive()) {
+			$oTemplate->replaceIdentifierMultiple('search_information_note', TagWriter::quickTag('p', array(), StringPeer::getString('journal_entries.no_result.reset_filter_note')));
 		}
 		return $oTemplate;
 	}
@@ -493,9 +495,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		// Render tags
 		$oTemplate = $this->constructTemplate('widget_tag');
 		if($this->tagFilterIsActive()) {
-			$sHref = LinkUtil::link($this->oPage->getLinkArray(), null, array(self::RESET_TAGS => 'true'));
-			$oTemplate->replaceIdentifier('reset_tags_href', ' href="'.$sHref.'"', null, Template::NO_HTML_ESCAPE);
-			$oTemplate->replaceIdentifier('reset_tags_title', StringPeer::getString('journal.reset_tags_filter'));
+			$sHref = LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::RESET_TAGS => 'true'));
+			$oTemplate->replaceIdentifier('reset_tags_href', $sHref, null, Template::NO_HTML_ESCAPE);
 		}
 		
 		$oItemPrototype = $this->constructTemplate('widget_tag_item');
@@ -509,9 +510,9 @@ class JournalPageTypeModule extends PageTypeModule {
 			if(is_array($this->aFilteredTags) && in_array($sName, $this->aFilteredTags)) {
 				$oItemTemplate->replaceIdentifier('class_active', ' active');
 				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.remove'));
-				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_TAG => $sName)));
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_TAG => $sName)));
 			} else {
-				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_TAG => $sName)));
+				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_TAG => $sName)));
 				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
 			}
 			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
@@ -552,7 +553,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->archiveIsActive()) {
 			$sHref = LinkUtil::link($this->oPage->getLinkArray());
 			$oTemplate->replaceIdentifier('reset_archive_href', ' href="'.$sHref.'"', null, Template::NO_HTML_ESCAPE);
-			$oTemplate->replaceIdentifier('reset_archive_title', StringPeer::getString('journal.reset_archive_filter'));
 		}
 
 		$oItemPrototype = $this->constructTemplate('widget_tree_item');
@@ -648,18 +648,28 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$oTemplate = $this->constructTemplate('widget_journals');
 		if($this->journalFilterIsActive()) {
-			$sHref = LinkUtil::link($this->oPage->getLinkArray(), null, array(self::RESET_JOURNALS => 'true'));
-			$oTemplate->replaceIdentifier('activate_journals_href', ' href="'.$sHref.'"', null, Template::NO_HTML_ESCAPE);
-			$oTemplate->replaceIdentifier('activate_journals_title', StringPeer::getString('journal.reset_journals_filter'));
+			$sHref = LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::RESET_JOURNALS => 'true'));
+			$oTemplate->replaceIdentifier('activate_journals_href', $sHref, null, Template::NO_HTML_ESCAPE);
 		}
 		foreach(JournalQuery::create()->findPks($this->aJournalIds) as $oJournal) {
 			if(is_array($this->aFilteredJournalIds) && in_array($oJournal->getId(), $this->aFilteredJournalIds)) {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			} else {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oPage->getLinkArray(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			}
 			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
 		}
+		return $oTemplate;
+	}
+	
+	private function renderDateNavigationWidget() {
+		$oTemplate = $this->constructTemplate('widget_date_navigation');
+		if($this->archiveIsActive()) {
+			$sHref = LinkUtil::link($this->oNavigationItem->getLink());
+			$oTemplate->replaceIdentifier('overview_page_href', $sHref, null, Template::NO_HTML_ESCAPE);
+		}
+		$oNavigation = new Navigation('journal_date_navigation_widget');
+		$oTemplate->replaceIdentifier('date_navigation', $oNavigation->parse(PageNavigationItem::navigationItemForPage($this->oPage)));
 		return $oTemplate;
 	}
 	

@@ -1,4 +1,4 @@
 <div class="widget_journals journal_widget">
-	<h3><a{{activate_journals_href}} title="{{activate_journals_title}}">{{writeString=journal.label_for_journals}}</a></h3>
+	<h3>{{writeString=journal.label_for_journals}}{{if=ne;1=\{\{activate_journals_href\}\};}}<a href="{{activate_journals_href}}" title="{{writeString=journal.reset_journals_filter}}">(-)</a>{{endIf}}</h3>
 	{{journal_link}}
 </div>

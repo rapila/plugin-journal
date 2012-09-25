@@ -26,6 +26,13 @@ journal:
   # Query limit of entries
   recent_entries_widget_limit: 7
 
-    
-  
-
+navigations:
+  journal_date_navigation_widget:
+    show_hidden: true
+    0:
+      - {template: tree_wrapper}
+    1:
+      - {template: tree_active, on: is_active, page_type: 'journal-year'}
+      - {template: tree_default, page_type: journal-year}
+    2:
+      - {template: tree_default}

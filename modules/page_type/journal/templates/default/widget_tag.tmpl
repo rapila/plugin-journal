@@ -1,5 +1,6 @@
 <div id="tag_cloud" class="journal_widget">
-	<h3 title="{{writeString=journal.tags.help_info}}"><a{{reset_tags_href}} title="{{reset_tags_title}}">{{writeString=journal.label_for_tags}}</a></h3>
+	<h3 title="{{writeString=journal.tags.help_info}}">{{writeString=journal.label_for_tags}}{{if=ne;1=\{\{reset_tags_href\}\}}}<a href="{{reset_tags_href}}"
+	title="{{writeString=journal.reset_tags_filter}}">(-)</a>{{endIf}}</h3>
 	<div>
 	{{tag_item}}
 	</div>
