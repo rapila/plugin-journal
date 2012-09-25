@@ -2,6 +2,9 @@
 	<column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
 	<column name="name" type="varchar" size="200" required="true" />
 	<column name="description" type="varchar" size="255" />
+	<column name="enable_comments" type="boolean" size="1" default="1" />
+	<column name="notify_comments" type="boolean" size="1" default="0" />
+	<column name="use_captcha" type="boolean" size="1" default="1" />
 	<behavior name="denyable">
 		<parameter name="role_key" value="journal" />
 	</behavior>
@@ -11,7 +14,7 @@
 	<column name="id" type="integer" required="true" autoIncrement="true" primaryKey="true"/>
 	<column name="journal_id" type="integer"/>
 	<foreign-key foreignTable="journals">
-	 <reference local="journal_id" foreign="id" />
+		<reference local="journal_id" foreign="id" />
 	</foreign-key>
 	<column name="title" type="varchar" size="180" required="true"/>
 	<column name="slug" type="varchar" size="50" required="true"/>

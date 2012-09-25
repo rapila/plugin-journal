@@ -11,5 +11,9 @@ class Journal extends BaseJournal {
 	public function getJournalPage() {
 		return PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('blog_journal_id')->filterBySplitValue($this->getId())->endUse()->findOne();
 	}
+	
+	public function commentsEnabled() {
+		return $this->getEnableComments() || $this->getNotifyComments();
+	}
 }
 

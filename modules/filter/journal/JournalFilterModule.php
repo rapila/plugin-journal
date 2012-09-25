@@ -110,21 +110,18 @@ class JournalFilterModule extends FilterModule {
 		
 		// Add-Comment handling/validation
 		else if($oNavigationItem instanceof VirtualNavigationItem && $oNavigationItem->getType() === 'journal-add_comment' && Manager::isPost()) {
-			$sCommentMode = $oPage->getPagePropertyValue('blog_comment_mode', 'on');
 			$oEntry = $oNavigationItem->getData();
-			if($sCommentMode !== 'off') {
-				$this->handleNewJournalComment($oPage, $sCommentMode, $oEntry);
-			} else {
+			if(!$oEntry->commentsEnabled()) {
 				LinkUtil::redirect(LinkUtil::link($oEntry->getLink()));
 			}
+			$this->handleNewJournalComment($oPage, $oEntry);
 		}
 		//Add the feed include
 		ResourceIncluder::defaultIncluder()->addCustomResource(array('template' => 'feed', 'location' => LinkUtil::link($oPage->getLinkArray('feed'))));
 	}
 	
-	private function handleNewJournalComment($oPage, $sCommentMode, $oEntry) {
+	private function handleNewJournalComment($oPage, $oEntry) {
 		$oFlash = Flash::getFlash();
-		$bCheckCaptcha = $oPage->getPagePropertyValue('blog_captcha_enabled', true);
 		
 		// Validate form and create new comment and
 		$oComment = new JournalComment();
@@ -132,7 +129,7 @@ class JournalFilterModule extends FilterModule {
 		$oFlash->checkForValue('comment_name', 'comment_name_required');
 		$oComment->setEmail($_POST['comment_email']);
 		$oFlash->checkForEmail('comment_email', 'comment_email_required');
-		if($bCheckCaptcha && !FormFrontendModule::validateRecaptchaInput() && !isset($_POST['preview'])) {
+		if($oEntry->getJournal()->getUseCaptcha() && !FormFrontendModule::validateRecaptchaInput() && !isset($_POST['preview'])) {
 			$oFlash->addMessage('captcha_required');
 		}
 		$oPurifierConfig = HTMLPurifier_Config::createDefault();
@@ -153,30 +150,28 @@ class JournalFilterModule extends FilterModule {
 		} else if(Flash::noErrors()) {
 			// Save and notify if required if no errors
 			$oEntry->addJournalComment($oComment);
-			if($sCommentMode === 'moderated') {
+			if(!$oEntry->getJournal()->getEnableComments()) {
 				$oComment->setIsPublished(false);
 			}
 			$oComment->save();
-			switch($sCommentMode) {
-				case "moderated":
-				case "notified":
-					$oEmailContent = JournalPageTypeModule::template('e_mail_comment_'.$sCommentMode, $oPage->getPagePropertyValue('blog_template_set', 'default'));
-					$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
-					$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
-					$oEmailContent->replaceIdentifier('comment', $oComment->getText());
-					$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
-					$oEmailContent->replaceIdentifier('journal', $oEntry->getJournal()->getName());
-					$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($oEntry->getLink($oPage))));
-					$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager'), null, LinkUtil::isSSL()));
-					$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager'), null, LinkUtil::isSSL()));
-					$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager'), null, LinkUtil::isSSL()));
-					$oEmail = new EMail("New comment on your journal entry ".$oEntry->getTitle(), $oEmailContent);
-					$oSender = $oEntry->getUserRelatedByCreatedBy();
-					$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
-					$oEmail->send();
+			if($oEntry->getJournal()->getNotifyComments()) {
+				$oEmailContent = JournalPageTypeModule::template('e_mail_comment_'.($oEntry->getJournal()->getEnableComments() ? 'notified' : 'moderated'), $oPage->getPagePropertyValue('blog_template_set', 'default'));
+				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
+				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
+				$oEmailContent->replaceIdentifier('comment', $oComment->getText());
+				$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
+				$oEmailContent->replaceIdentifier('journal', $oEntry->getJournal()->getName());
+				$oEmailContent->replaceIdentifier('entry_link', LinkUtil::absoluteLink(LinkUtil::link($oEntry->getLink($oPage))));
+				$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager'), null, LinkUtil::isSSL()));
+				$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager'), null, LinkUtil::isSSL()));
+				$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager'), null, LinkUtil::isSSL()));
+				$oEmail = new EMail("New comment on your journal entry ".$oEntry->getTitle(), $oEmailContent);
+				$oSender = $oEntry->getUserRelatedByCreatedBy();
+				$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
+				$oEmail->send();
 			}
 			$oSession = Session::getSession();
-			Flash::getFlash()->unfinishReporting()->addMessage('journal.has_new_comment', array(), "journal_entry.new_comment_thank_you.$sCommentMode", 'new_comment_thank_you_message', 'p')->stick();
+			Flash::getFlash()->unfinishReporting()->addMessage('journal.has_new_comment', array(), "journal_entry.new_comment_thank_you".($oEntry->getJournal()->getEnableComments() ? '' : '.moderated'), 'new_comment_thank_you_message', 'p')->stick();
 			LinkUtil::redirect(LinkUtil::link($oEntry->getLink($oPage))."#comments");
 		}
 	}

@@ -15,6 +15,10 @@ class JournalEntry extends BaseJournalEntry {
 		return LocaleUtil::localizeDate($this->created_at, null, $sFormat);
 	}
 	
+	public function commentsEnabled() {
+		return $this->getJournal()->commentsEnabled();
+	}
+	
 	public function getJournalComments($oCriteria = null, PropelPDO $oConnection = null) {
 		if($oCriteria === null) {
 			$oCriteria = new Criteria();

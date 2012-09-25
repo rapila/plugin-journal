@@ -34,7 +34,10 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		} else {
 			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
 		}
+		$sCommentMode = $aJournalData['comment_mode'];
 		$oJournal->fromArray($aJournalData, BasePeer::TYPE_FIELDNAME);
+		$oJournal->setEnableComments($sCommentMode === 'on' || $sCommentMode === 'notified');
+		$oJournal->setNotifyComments($sCommentMode === 'moderated' || $sCommentMode === 'notified');
 		$this->validate($aJournalData, $oJournal);
 		if(!Flash::noErrors()) {
 			throw new ValidationException();

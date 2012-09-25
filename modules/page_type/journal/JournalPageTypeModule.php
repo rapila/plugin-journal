@@ -2,9 +2,6 @@
 
 class JournalPageTypeModule extends PageTypeModule {
 	
-	// Comment mode options: [on, off, moderated]
-	private $sCommentMode;
-	
 	// Overview mode options: [list, truncated, full]
 	private $sOverviewMode;
 	
@@ -28,9 +25,6 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	// Show year, month, day virtual navigation items
 	private $bDateNavigationItemsVisible;
-	
-	// Anti spam check with Captcha
-	private $bCaptchaEnabled;
 	
 	// Widgets [recent entries, calendar, collapsible-date-tree]
 	private $aWidgets;
@@ -87,15 +81,13 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	public function updateFlagsFromProperties() {
 		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
-		$this->sCommentMode = $this->oPage->getPagePropertyValue('blog_comment_mode', 'on');
 		$this->aJournalIds = explode(',', $this->oPage->getPagePropertyValue('blog_journal_id', ''));
 		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
 		$this->sContainer = $this->oPage->getPagePropertyValue('blog_container', 'content');
 		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
 		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
 		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
-		$this->bCaptchaEnabled = !!$this->oPage->getPagePropertyValue('blog_captcha_enabled', true);
-		
+
 		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
 		if($this->aWidgets === '') {
 			$this->aWidgets = array();
@@ -343,24 +335,17 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oEntry === null) {
 			$oEntry = $this->oEntry;
 		}
-		if($this->sCommentMode === 'off') {
+		if(!$oEntry->commentsEnabled()) {
 			return null;
 		}
-		$oLeaveCommentTemplate = $this->constructTemplate('leave_comment');
-		
-		switch($this->sCommentMode) {
-			case "moderated":
-				$oLeaveCommentTemplate = $this->constructTemplate('leave_comment_moderated');
-			case "notified":
-			case "on":
-				if($this->bCaptchaEnabled) {
-					$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
-				}
-				$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
-				break;
-			default:
-				$oLeaveCommentTemplate = null;
+
+		//Disabled comments at this point means moderated
+		$oLeaveCommentTemplate = $this->constructTemplate(!$oEntry->getJournal()->getEnableComments() ? 'leave_comment_moderated' : 'leave_comment');
+
+		if($oEntry->getJournal()->getUseCaptcha()) {
+			$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
 		}
+		$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
 		return $oLeaveCommentTemplate;
 	}
 
@@ -382,7 +367,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->oEntry === null) {
 			return $this->displayEntry($oTemplate);
 		}
-		if($this->sCommentMode === 'off') {
+		if(!$this->oEntry->commentsEnabled()) {
 			LinkUtil::redirect(LinkUtil::link($this->oEntry->getLink()));
 		}
 		if(Manager::isPost() && isset($_POST['preview'])) {
@@ -727,10 +712,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $this->sOverviewMode;
 	}
 
-	public function currentCommentMode() {
-		return $this->sCommentMode;
-	}
-
 	public function currentEntriesPerPage() {
 		return $this->iEntriesPerPage;
 	}
@@ -741,10 +722,6 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	public function dateNavigationItemsVisible() {
 		return $this->bDateNavigationItemsVisible;
-	}
-
-	public function captchaEnabled() {
-		return $this->bCaptchaEnabled;
 	}
 
 	public function listTemplateSets() {
@@ -830,9 +807,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
-		$this->oPage->updatePageProperty('blog_comment_mode', $aData['comment_mode']);
 		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
-		$this->oPage->updatePageProperty('blog_captcha_enabled', $aData['captcha_enabled'] ? 1 : 0);
 		
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
