@@ -150,14 +150,23 @@ class JournalFilterModule extends FilterModule {
 		} else if(Flash::noErrors()) {
 			// Save and notify if required if no errors
 			$oEntry->addJournalComment($oComment);
-			if(!$oEntry->getJournal()->getEnableComments()) {
+			
+			// If comments are not enabled or the sent post is considered as spam
+			$bIsProblablySpam = isset($_POST['important_note']) && $_POST['important_note'] != null;
+			$sCommentNotificationTemplate = 'e_mail_comment_notified';
+			if(!$oEntry->getJournal()->getEnableComments() || $bIsProblablySpam) {
 				$oComment->setIsPublished(false);
+				$sCommentNotificationTemplate = 'e_mail_comment_moderated';
 			}
 			$oComment->save();
 			if($oEntry->getJournal()->getNotifyComments()) {
-				$oEmailContent = JournalPageTypeModule::template('e_mail_comment_'.($oEntry->getJournal()->getEnableComments() ? 'notified' : 'moderated'), $oPage->getPagePropertyValue('blog_template_set', 'default'));
+				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('blog_template_set', 'default'));
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
 				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
+				if($bIsProblablySpam) {
+					$oEmailContent->replaceIdentifier('this_comment_is_spam_note', StringPeer::getString('journal.this_comment_is_spam_note'));
+					$oEmailContent->replaceIdentifier('important_note_content', $_POST['important_note']);
+				}
 				$oEmailContent->replaceIdentifier('comment', $oComment->getText());
 				$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
 				$oEmailContent->replaceIdentifier('journal', $oEntry->getJournal()->getName());
