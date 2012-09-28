@@ -6,7 +6,7 @@ journal:
         - ["Bold", "Italic"]
         - ["Link", "Unlink", "Anchor", "-", "Image"]
         - ["NumberedList", "BulletedList", "Blockquote"]
-        - ["Undo", "Redo", "-", "Find"]
+        - ["Undo", "Redo", "RemoveFormat", "-", "Find"]
       -
         - ["Subscript", "Superscript", "-", "Maximize"]
         - ["Source"]
