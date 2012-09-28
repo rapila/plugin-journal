@@ -3,7 +3,7 @@
 <div class="journal_content">
   {{text_short}}<a href="{{link}}" class="read_more">{{writeString=journal_entry.read_more}}</a>
 </div>{{identifierContext=start;name=tags}}
-<div class="tags"><span>{{writeString=journal_entry.related_tags}}:</span> {{tags}}</div>{{identifierContext=end;name=tags}}
+<p class="tags"><span>{{writeString=journal_entry.related_tags}}:</span> {{tags}}</p>{{identifierContext=end;name=tags}}
 <div class="journal_info info">
 	<a rel="internal" href="{{link}}#comments" title="{{detail_link_title}}">
 		{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}
