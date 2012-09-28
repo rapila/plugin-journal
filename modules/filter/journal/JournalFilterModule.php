@@ -164,8 +164,7 @@ class JournalFilterModule extends FilterModule {
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
 				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
 				if($bIsProblablySpam) {
-					$oEmailContent->replaceIdentifier('this_comment_is_spam_note', StringPeer::getString('journal.this_comment_is_spam_note'));
-					$oEmailContent->replaceIdentifier('important_note_content', $_POST['important_note']);
+					$oEmailContent->replaceIdentifier('this_comment_is_spam_note', StringPeer::getString('journal.this_comment_is_spam_note', null, null, array('important_note_content' => $_POST['important_note'])));
 				}
 				$oEmailContent->replaceIdentifier('comment', $oComment->getText());
 				$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
@@ -174,7 +173,8 @@ class JournalFilterModule extends FilterModule {
 				$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager'), null, LinkUtil::isSSL()));
 				$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager'), null, LinkUtil::isSSL()));
 				$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager'), null, LinkUtil::isSSL()));
-				$oEmail = new EMail("New comment on your journal entry ".$oEntry->getTitle(), $oEmailContent);
+				$sSubject = StringPeer::getString('journal.notification_subject', null, null, array('entry' => $oEntry->getTitle()));
+				$oEmail = new EMail($sSubject, $oEmailContent);
 				$oSender = $oEntry->getUserRelatedByCreatedBy();
 				$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());
 				$oEmail->send();
