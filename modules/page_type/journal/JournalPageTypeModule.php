@@ -702,6 +702,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		foreach($this->oEntry->getJournalEntryImages() as $oJournalEntryImage) {
 			$oDocument = $oJournalEntryImage->getDocument();
 			$oItemTemplate = new Template('helpers/gallery_item');
+			$oItemTemplate->replaceIdentifier('jounal_entry_id', $this->oEntry->getId());
 			$oDocument->renderListItem($oItemTemplate);
 			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
 		}
