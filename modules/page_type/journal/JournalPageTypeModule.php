@@ -156,7 +156,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->oEntry = $this->oNavigationItem->getData();
 			}
 		}
-		// whenever there is no detail requested, store current navigation item for overview link
+		// whenever there is no detail requested, store current navigation item for return_to_list_view link
 		if($this->oEntry === null) {
 			Session::getSession()->setAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK, $this->oNavigationItem->getLink());
 		}
@@ -309,7 +309,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 		}
 		if($oEntryTemplate->hasIdentifier('journal_comments')) {
-			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry));
+			$oEntryTemplate->replaceIdentifier('journal_comments', $this->renderComments($oEntry->getJournalComments($oCommentQuery), $oEntry, $oEntry === $this->oEntry));
 		}
 		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
@@ -317,10 +317,22 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oEntryTemplate;
 	}
 
-	private function renderComments($aComments, JournalEntry $oEntry = null) {
+	private function renderComments($aComments, JournalEntry $oEntry = null, $bIsDetailView = false) {
 		$oEntryTemplate = $this->constructTemplate('comments');
 		$iCountComments = count($aComments);
-		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
+
+		// don't display "no comments" in journal entry detail because it is obvious and only disturbing
+		$sCountMessage = null;
+		if($iCountComments === 0) {
+			if(!$bIsDetailView) {
+				$sCountMessage = StringPeer::getString('journal.comment_count.none');
+			}
+		} else {
+			$sCountMessage = $iCountComments;
+		}
+		if($sCountMessage !== null) {
+			$oEntryTemplate->replaceIdentifier('comment_count_info', StringPeer::getString('journal.comment_count', null, null, array('comment_count' => $sCountMessage)));
+		}
 		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
 		foreach($aComments as $iCounter => $oComment) {
 			$oEntryTemplate->replaceIdentifierMultiple('comments', $this->renderComment($oComment, clone $oCommentTemplatePrototype, $iCounter), null, Template::LEAVE_IDENTIFIERS);
