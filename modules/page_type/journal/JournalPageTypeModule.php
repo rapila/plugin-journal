@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @package modules.page_type
+ * @subpackage journal-plugin
+ */
 class JournalPageTypeModule extends PageTypeModule {
 	
 	// Overview mode options: [list, truncated, full]
