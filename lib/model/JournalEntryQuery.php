@@ -6,12 +6,8 @@
  */
 class JournalEntryQuery extends BaseJournalEntryQuery {
 
-	public function mostRecent($iLimit = null) {
-		$this->orderByCreatedAt(Criteria::DESC);
-		if($iLimit) {
-			$this->setLimit($iLimit);
-		}
-		return $this;
+	public function mostRecent() {
+		return $this->orderByCreatedAt(Criteria::DESC);
 	}
 	
 	public function filterByDate($iYear, $iMonth, $iDay) {
@@ -32,12 +28,10 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	}
 	
 	public function mostRecentByJournalId($mJournalId = null) {
-		$this->filterByIsPublished(true)->filterByText('', Criteria::NOT_EQUAL);
 		if($mJournalId) {
-			$mJournalId = is_array($mJournalId) ? $mJournalId : array($mJournalId);
-			$this->filterByJournalId($mJournalId, Criteria::IN);
+			$this->filterByJournalId($mJournalId);
 		}
-		return $this->orderByUpdatedAt(Criteria::DESC);
+		return $this->mostRecent();
 	}
 
 	public function orderByYearMonthDay() {
