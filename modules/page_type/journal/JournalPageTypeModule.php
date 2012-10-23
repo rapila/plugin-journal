@@ -56,7 +56,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	const SESSION_TAG_FILTER = 'tag_filter';
 	const SESSION_JOURNAL_FILTER = 'journal_filter';
-	const SESSION_LAST_OVERVIEW_ITEM_LINK = null;
+	const SESSION_LAST_OVERVIEW_ITEM_LINK = 'last_overview_link';
 
 	/**
 	 * @var JournalEntry the entry to be viewed
