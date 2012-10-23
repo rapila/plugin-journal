@@ -42,7 +42,7 @@ class JournalTableMap extends TableMap
         $this->addColumn('NAME', 'Name', 'VARCHAR', true, 200, null);
         $this->addColumn('DESCRIPTION', 'Description', 'VARCHAR', false, 255, null);
         $this->addColumn('ENABLE_COMMENTS', 'EnableComments', 'BOOLEAN', false, 1, true);
-        $this->addColumn('NOTIFY_COMMENTS', 'NotifyComments', 'BOOLEAN', false, 1, true);
+        $this->addColumn('NOTIFY_COMMENTS', 'NotifyComments', 'BOOLEAN', false, 1, false);
         $this->addColumn('USE_CAPTCHA', 'UseCaptcha', 'BOOLEAN', false, 1, true);
         $this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
         $this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);

@@ -56,7 +56,7 @@ abstract class BaseJournal extends BaseObject implements Persistent
 
     /**
      * The value for the notify_comments field.
-     * Note: this column has a database default value of: true
+     * Note: this column has a database default value of: false
      * @var        boolean
      */
     protected $notify_comments;
@@ -137,7 +137,7 @@ abstract class BaseJournal extends BaseObject implements Persistent
     public function applyDefaultValues()
     {
         $this->enable_comments = true;
-        $this->notify_comments = true;
+        $this->notify_comments = false;
         $this->use_captcha = true;
     }
 
@@ -565,7 +565,7 @@ abstract class BaseJournal extends BaseObject implements Persistent
                 return false;
             }
 
-            if ($this->notify_comments !== true) {
+            if ($this->notify_comments !== false) {
                 return false;
             }
 
