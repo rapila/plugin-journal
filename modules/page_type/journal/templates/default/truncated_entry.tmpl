@@ -1,11 +1,12 @@
 <h2 class="journal_title"><a rel="internal" href="{{link}}">{{title}}</a></h2>
-<div class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}{{identifierContext=start;name=user_name}}, {{user_name}}{{identifierContext=end;name=user_name}}</div>
+<p class="journal_sub">{{writeParameterizedString=journal.publish_date;date=\{\{date\}\}}}{{identifierContext=start;name=user_name}}, {{user_name}}{{identifierContext=end;name=user_name}}</p>
 <div class="journal_content">
-  {{text_short}}<a href="{{link}}" class="read_more more_link">{{writeString=journal_entry.read_more}}</a>
+  {{text_short}}
+<p class="read_more"><a href="{{link}}" class="more_link">{{writeString=journal_entry.read_more}}</a></p>
 </div>{{identifierContext=start;name=tags}}
 <p class="tags"><span>{{writeString=journal_entry.related_tags}}:</span> {{tags}}</p>{{identifierContext=end;name=tags}}
-<div class="journal_info info">
+<p class="journal_info info">
 	<a rel="internal" href="{{link}}#comments" title="{{detail_link_title}}">
 		{{writeParameterizedString=journal.comment_count;comment_count=\{\{comment_count\}\}}}
 	</a>
-</div>
+</p>
