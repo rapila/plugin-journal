@@ -1,28 +1,28 @@
 {{writeFlashValue=journal.has_new_comment}}
 
 <form class="leave_comment" action="{{comment_action}}#comments" method="post">
-	<fieldset class="journal_comment"><legend>{{writeString=journal.comment.add}}</legend>
-  <p><label for="comment_name">{{writeString=journal_comment.name}}</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=comment_name_required\}\}}}
-  <p>{{writeFlashValue=comment_name_required}}</p>
-  {{endIf}}
-  <p><label for="comment_email">{{writeString=journal_comment.email}}</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
-  {{if=ne;1=\{\{writeFlashValue\=comment_email_required\}\}}}
-  <p>{{writeFlashValue=comment_email_required}}</p>
-  {{endIf}}
-  <p><label for="comment_text">{{writeString=journal_comment.comment}}</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
-  {{if=ne;1=\{\{writeFlashValue\=comment_required\}\}}}
-  <p>{{writeFlashValue=comment_required}}</p>
-  {{endIf}}
+	<span>{{writeString=journal.comment.add}}</span>
+	<div class="journal_comment">
+	<p><label for="comment_name">{{writeString=wns.name}} *</label> <input id="comment_name" name="comment_name" type="text" size="40" value="{{writeRequestValue=comment_name}}" /></p>
+	{{if=ne;1=\{\{writeFlashValue\=comment_name_required\}\}}}
+	{{writeFlashValue=comment_name_required}}
+	{{endIf}}
+	<p><label for="comment_email">{{writeString=wns.email}} *</label> <input id="comment_email" name="comment_email" type="text" size="40" value="{{writeRequestValue=comment_email}}" /></p>
+	{{if=ne;1=\{\{writeFlashValue\=comment_email_required\}\}}}
+	{{writeFlashValue=comment_email_required}}
+	{{endIf}}
+	<p><label for="comment_text">{{writeString=journal.form.comment}} *</label><textarea id="comment_text" name="comment_text" cols="50" rows="6">{{writeRequestValue=comment_text}}</textarea></p>
+	{{if=ne;1=\{\{writeFlashValue\=comment_required\}\}}}
+	{{writeFlashValue=comment_required}}
+	{{endIf}}
 	{{identifierContext=start;name=captcha}}
-  <p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}</p>
-  {{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
-  {writeFlashValue=captcha_required}}
-  {{endIf}}
-	{{identifierContext=end;name=captcha}}
+	<p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}
+	{{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
+	{{writeFlashValue=captcha_required}}{{endIf}}
+	</p>{{identifierContext=end;name=captcha}}
 	<p class="important_note"><label for="important_note">Important Note *</label><input type="text" name="important_note" value="" />
-	</p>	
+	</p>
 	<p class="fields_required_legend">{{writeString=journal_comment.required_fields}}</p>
-  <p><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
-	</fieldset>
+	<p><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
+	</div>
 </form>
