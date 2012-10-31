@@ -431,7 +431,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		} else {
 			$sOverviewHref = LinkUtil::link($this->oPage->getLink());
 		}
-		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.reset_page_navigation')), StringPeer::getString('journal.reset_page_navigation')));
+		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.back_to_list_view')), StringPeer::getString('journal.back_to_list_view')));
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
 	}
 	
