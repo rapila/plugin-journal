@@ -17,7 +17,7 @@
 	{{identifierContext=start;name=captcha}}
   <p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}</p>
   {{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
-  <p>{{writeFlashValue=captcha_required}}</p>
+  {writeFlashValue=captcha_required}}
   {{endIf}}
 	{{identifierContext=end;name=captcha}}
 	<p class="important_note"><label for="important_note">Important Note *</label><input type="text" name="important_note" value="" />
