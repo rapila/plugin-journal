@@ -36,7 +36,8 @@ class JournalFilterModule extends FilterModule {
 		$sJournalId = $oNavigationItem->getMe()->getPagePropertyValue('blog_journal_id', null);
 		$aJournalIds = explode(',',$sJournalId);
 		$bDateNavigationItemsVisible = !!$oNavigationItem->getMe()->getPagePropertyValue('blog_date_navigation_items_visible', null);
-		$sDateNavigationItemClass = $bDateNavigationItemsVisible ? 'HiddenVirtualNavigationItem' : 'VirtualNavigationItem';
+		$sDateNavigationItemClass = !$bDateNavigationItemsVisible ? 'HiddenVirtualNavigationItem' : 'VirtualNavigationItem';
+		ErrorHandler::log('$sDateNavigationItemClass', $bDateNavigationItemsVisible, $sDateNavigationItemClass);
 			
 		// Feed item
 		$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $aJournalIds);
