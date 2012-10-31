@@ -13,10 +13,5 @@ class JournalCommentQuery extends BaseJournalCommentQuery {
 	public function findHash($sHash) {
 		return $this->filterByActivationHash($sHash)->findOne();
 	}
-	
-	public function mostRecent() {
-		return $this->orderByCreatedAt(Criteria::DESC);
-	}
-	
 }
 
