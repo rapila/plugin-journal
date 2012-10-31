@@ -6,7 +6,7 @@
  */
 class JournalEntryQuery extends BaseJournalEntryQuery {
 
-	public function mostRecent() {
+	public function mostRecentFirst() {
 		return $this->orderByCreatedAt(Criteria::DESC);
 	}
 	
@@ -27,13 +27,6 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this->filterByIsPublished(true);
 	}
 	
-	public function mostRecentByJournalId($mJournalId = null) {
-		if($mJournalId) {
-			$this->filterByJournalId($mJournalId);
-		}
-		return $this->mostRecent();
-	}
-
 	public function orderByYearMonthDay() {
 		parent::orderByYear(Criteria::DESC)->orderByMonth(Criteria::DESC)->orderByDay(Criteria::DESC);
 		return $this;

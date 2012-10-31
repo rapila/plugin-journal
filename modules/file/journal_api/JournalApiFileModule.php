@@ -14,16 +14,16 @@ class JournalApiFileModule extends FileModule {
 		require_once('xmlrpc/xmlrpcs.php');
 		
 		$this->oServer = new xmlrpc_server(array('metaWeblog.newPost' => array('function' => 'JournalApiFileModule::newPost'),
-		                                         'metaWeblog.editPost' => array('function' => 'JournalApiFileModule::editPost'),
-		                                         'metaWeblog.getPost' => array('function' => 'JournalApiFileModule::getPost'),
-		                                         'metaWeblog.getRecentPosts' => array('function' => 'JournalApiFileModule::getRecentPosts'),
-		                                         'metaWeblog.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
-		                                         'metaWeblog.getCategories' => array('function' => 'JournalApiFileModule::getCategories'),
-		                                         'blogger.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
-		                                         'blogger.getUsersBlogs' => array('function' => 'JournalApiFileModule::getUsersBlogs'),
-		                                         'blogger.deletePost' => array('function' => 'JournalApiFileModule::deletePost')
-		                                         ), false
-		                                  );
+																						'metaWeblog.editPost' => array('function' => 'JournalApiFileModule::editPost'),
+																						'metaWeblog.getPost' => array('function' => 'JournalApiFileModule::getPost'),
+																						'metaWeblog.getRecentPosts' => array('function' => 'JournalApiFileModule::getRecentPosts'),
+																						'metaWeblog.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
+																						'metaWeblog.getCategories' => array('function' => 'JournalApiFileModule::getCategories'),
+																						'blogger.getUserInfo' => array('function' => 'JournalApiFileModule::getUserInfo'),
+																						'blogger.getUsersBlogs' => array('function' => 'JournalApiFileModule::getUsersBlogs'),
+																						'blogger.deletePost' => array('function' => 'JournalApiFileModule::deletePost')
+																						), false
+																			);
 		
 		$this->oServer->functions_parameters_type = 'phpvals';
 		$this->oServer->response_charset_encoding = 'UTF-8';
@@ -106,7 +106,7 @@ class JournalApiFileModule extends FileModule {
 		if(!self::checkLogin($sUserName, $sPassword)) {
 			return self::loginError();
 		}
-		$oQuery = JournalEntryQuery::create()->filterByJournalId($iBlogId)->mostRecent($iCount);
+		$oQuery = JournalEntryQuery::create()->filterByJournalId($iBlogId)->mostRecentFirst()->limit($iCount);
 		$oJournalPage = JournalQuery::create()->findPk($iBlogId)->getJournalPage();
 		$aResult = array();
 		foreach($oQuery->find() as $oJournalEntry) {

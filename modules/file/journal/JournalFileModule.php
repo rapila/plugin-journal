@@ -26,7 +26,10 @@ class JournalFileModule extends FileModule {
 		$oRoot->setAttribute('version', "2.0");
 		$oDocument->appendChild($oRoot);
 		$oChannel = $oDocument->createElement("channel");
-		$oQuery = FrontendJournalEntryQuery::create()->mostRecent(10);
+    /**
+    * @todo parametrize the argument
+    */
+		$oQuery = FrontendJournalEntryQuery::create()->mostRecentFirst()->limit(10);
 		if($this->aJournalIds) {
 			$oQuery->filterByJournalId($this->aJournalIds);
 		}

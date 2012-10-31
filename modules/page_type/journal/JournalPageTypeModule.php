@@ -612,8 +612,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate = $this->constructTemplate('widget_recent_entries');
 		$oItemPrototype = $this->constructTemplate('widget_recent_entry_item');
 		$iLimit = Settings::getSetting('journal', 'recent_entries_widget_limit', 7);
-		$oQuery	= FrontendJournalEntryQuery::create()->mostRecent()->filterByJournalId($this->aJournalIds);
-		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->limit($iLimit)->find() as $oEntry) {
+		$oQuery	= FrontendJournalEntryQuery::create()->mostRecentFirst()->($iLimit)->filterByJournalId($this->aJournalIds);
+		foreach($oQuery->find() as $oEntry) {
 			$oTemplate->replaceIdentifierMultiple('entries', $this->renderEntry($oEntry, clone $oItemPrototype));
 		}
 		return $oTemplate;
