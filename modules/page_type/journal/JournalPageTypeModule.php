@@ -168,15 +168,24 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayOverviewList($oTemplate, $oQuery = null) {
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oTemplate);
+		$oListTemplate = $this->constructTemplate('overview_list');
+		$oListTemplate->replaceIdentifier('overview_type', 'list');
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('list_entry'), $oListTemplate, null, null, 'items');
+		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
 	}
 	
 	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oTemplate);
+		$oListTemplate = $this->constructTemplate('overview_list');
+		$oListTemplate->replaceIdentifier('overview_type', 'truncated');
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oListTemplate, null, null, 'items');
+		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
 	}
 	
 	private function displayOverviewFull($oTemplate, $oQuery = null) {
-		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oTemplate);
+		$oListTemplate = $this->constructTemplate('overview_list');
+		$oListTemplate->replaceIdentifier('overview_type', 'short');
+		$this->renderJournalEntries($oQuery, $this->constructTemplate('short_entry'), $oListTemplate, null, null, 'items');
+		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
 	}
 	
 	private function addPagination(&$oQuery, $oTemplate) {
@@ -220,12 +229,15 @@ class JournalPageTypeModule extends PageTypeModule {
 		return $oTemplate;
 	}
 
-	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null) {
+	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null, $sIdentifier = null) {
 		if($oQuery === null) {
 			$oQuery = FrontendJournalEntryQuery::create();
 		}
-		if($sContainer === null) {
-			$sContainer = $this->sContainer;
+		if($sIdentifier === null) {
+			$sIdentifier = 'container';
+			if($sContainer === null) {
+				$sContainer = $this->sContainer;
+			}
 		}
 		if(null !== $this->aFilteredJournalIds) {
 			$oQuery->filterByJournalId($this->aFilteredJournalIds);
@@ -244,7 +256,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			return;
 		}
 		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
-			$oFullTemplate->replaceIdentifierMultiple('container', $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
+			$oFullTemplate->replaceIdentifierMultiple($sIdentifier, $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
 		}
 	}
 	
