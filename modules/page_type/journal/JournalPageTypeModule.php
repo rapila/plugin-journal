@@ -329,6 +329,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
 		}
+		
 		return $oEntryTemplate;
 	}
 
@@ -376,6 +377,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$_REQUEST['comment_name'] = session::user()->getFullName();
 			$_REQUEST['comment_email'] = session::user()->getEmail();
 		}
+		$oLeaveCommentTemplate->replaceIdentifier('is_authenticated', Session::getSession()->isAuthenticated() ? true : null);
 		$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
 		return $oLeaveCommentTemplate;
 	}
