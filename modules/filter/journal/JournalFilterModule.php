@@ -129,7 +129,8 @@ class JournalFilterModule extends FilterModule {
 		$oFlash->checkForValue('comment_name', 'comment_name_required');
 		$oComment->setEmail($_POST['comment_email']);
 		$oFlash->checkForEmail('comment_email', 'comment_email_required');
-		if($oEntry->getJournal()->getUseCaptcha() && !FormFrontendModule::validateRecaptchaInput() && !isset($_POST['preview'])) {
+		if($oEntry->getJournal()->getUseCaptcha() && !Session::getSession()->isAuthenticated() 
+				&& !FormFrontendModule::validateRecaptchaInput() && !isset($_POST['preview'])) {
 			$oFlash->addMessage('captcha_required');
 		}
 		$oPurifierConfig = HTMLPurifier_Config::createDefault();
@@ -144,21 +145,25 @@ class JournalFilterModule extends FilterModule {
 		$oFlash->finishReporting();
 
 		if(isset($_POST['preview'])) {
-			// Display preview
 			$oComment->setCreatedAt(date('c'));
 			$_POST['preview'] = $oComment;
 		} else if(Flash::noErrors()) {
-			// Save and notify if required if no errors
 			$oEntry->addJournalComment($oComment);
 			
-			// If comments are not enabled or the sent post is considered as spam
+			// Post is considered as spam
 			$bIsProblablySpam = isset($_POST['important_note']) && $_POST['important_note'] != null;
 			$sCommentNotificationTemplate = 'e_mail_comment_notified';
+			
+			// Prevent publication if comments are not enabled or post is spam
 			if(!$oEntry->getJournal()->getEnableComments() || $bIsProblablySpam) {
-				$oComment->setIsPublished(false);
-				$sCommentNotificationTemplate = 'e_mail_comment_moderated';
+				if(!Session::getSession()->isAuthenticated()) {
+					$oComment->setIsPublished($bIsPublished);
+					$sCommentNotificationTemplate = 'e_mail_comment_moderated';
+				}
 			}
 			$oComment->save();
+			
+			// Notify new comment
 			if($oEntry->getJournal()->getNotifyComments()) {
 				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('blog_template_set', 'default'));
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());

@@ -369,8 +369,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		//Disabled comments at this point means moderated
 		$oLeaveCommentTemplate = $this->constructTemplate(!$oEntry->getJournal()->getEnableComments() ? 'leave_comment_moderated' : 'leave_comment');
 
-		if($oEntry->getJournal()->getUseCaptcha()) {
+		// Display catcha if enabled and user is not authenticated
+		if($oEntry->getJournal()->getUseCaptcha() && !Session::getSession()->isAuthenticated()) {
 			$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
+		} elseif(!Manager::isPost()) {
+			$_REQUEST['comment_name'] = session::user()->getFullName();
+			$_REQUEST['comment_email'] = session::user()->getEmail();
 		}
 		$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
 		return $oLeaveCommentTemplate;
