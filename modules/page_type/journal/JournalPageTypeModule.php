@@ -722,6 +722,34 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
  /**
+	* renderBlogrollWidget()
+	* 
+	* description: renders a simple list of link managed in the links admin module
+	* define the required link cagegory by overwriting the config param "blogroll_link_category_id" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderBlogrollWidget() {
+		$iLinkCategoryId = Settings::getSetting('journal', 'blogroll_link_category_id', null);
+		if($iLinkCategoryId === null) {
+			return null;
+		}
+		$aLinks = LinkQuery::create()->filterByLinkCategoryId($iLinkCategoryId)->orderBySort()->find();
+		if(empty($aLinks)) {
+			return null;
+		}
+		$oTemplate = $this->constructTemplate('widget_blogroll');
+		$oLinkPrototype = $this->constructTemplate('widget_blogroll_link');
+		foreach($aLinks as $oLink) {
+			$oLinkTemplate = clone $oLinkPrototype;
+			$oLinkTemplate->replaceIdentifier('name', $oLink->getName());
+			$oLinkTemplate->replaceIdentifier('description', $oLink->getDescription());
+			$oLinkTemplate->replaceIdentifier('url', $oLink->getUrl());
+			$oTemplate->replaceIdentifierMultiple('link', $oLinkTemplate);
+		}
+		return $oTemplate;
+	}
+	
+ /**
 	* renderGallery()
 	* 
 	* description: display image gallery
