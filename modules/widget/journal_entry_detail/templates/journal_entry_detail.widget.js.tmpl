@@ -89,7 +89,7 @@ Widget.types.journal_entry_detail = {
 		this.comment_list.empty();
 		jQuery.each(comments, function(i, comment) {
 			var comment_row = _this.comment_row.clone();
-			var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'is_published[]', value : comment.Id, text: Text}).prop('checked', comment.IsPublished).change(function() {
+			var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'is_published[]', value : comment.Id }).prop('checked', comment.IsPublished).change(function() {
 				_this.toggleCommentIsPublished(comment.Id, function(result) {
 					online_checkbox.prop('checked', result === true);
 				});
