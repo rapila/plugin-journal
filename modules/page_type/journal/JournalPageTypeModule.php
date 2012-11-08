@@ -814,6 +814,10 @@ class JournalPageTypeModule extends PageTypeModule {
 		return array('options' => $aResult, 'current' => $this->sContainer, 'current_auxiliary' => $this->sAuxiliaryContainer);
 	}
 	
+	public function listJournals() {
+		return JournalQuery::create()->orderByName()->find()->toKeyValue('Id', 'Name');
+	}
+	
 	public function listWidgets() {
 		$aWidgetTypes = array();
 		$aWidgetTypesOrdered = array();
