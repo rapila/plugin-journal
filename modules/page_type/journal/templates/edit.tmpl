@@ -4,12 +4,10 @@
 		<li><a href="#journal-page_config">{{writeString=wns.journal.page_config}}</a></li>
 	</ul>
 	<div id="journal-page_config">
-		<div class="group_fields">
-			<label for="journal_ids" class="validate-journal_ids_required">{{writeString=journal.journals_to_be_displayed}}</label>
-			<select name="journal_ids" multiple="multiple" class="ui-widget-content" data-widget-type="journal_input">
-			</select><span class="edit_journal_button ui-icon ui-icon-pencil" title="{{writeString=journal.edit_create_journal}}" style="float: right; cursor: pointer;"></span><br />
-			<label for="date_navigation_items_visible">{{writeString=wns.journal.date_navigation_items_visible}}</label>
-			<input type="checkbox" name="date_navigation_items_visible" class="ui-widget-content" />
+		<div class="group_fields" style="width: 250px;margin-right:10px">
+			<label class="validate-journal_ids_required">{{writeString=journal.journals_to_be_displayed}}</label>
+			<div class="journal_list" style="border: 1px solid #f2f2f2;padding;8px;"></div>
+			<a class="info-bar-button info-bar-element add-new-item add_new_journal" style="margin: 3px" title="{{writeString=journal.new_entry}}">&nbsp;</a>		
 		</div>
 		<div class="group_fields">
 			<label for="mode">{{writeString=wns.journal.action}}</label>
@@ -31,6 +29,10 @@
 			<select name="container" class="ui-widget-content"></select><br />
 			<label for="auxiliary_container">{{writeString=wns.journal.auxiliary_container}}</label>
 			<select name="auxiliary_container" class="ui-widget-content"><option value="">--</option></select><br />
+			<label for="date_navigation_items_visible">{{writeString=wns.journal.date_navigation_items_visible}}</label>
+			<select name="date_navigation_items_visible" class="ui-widget-content">
+				<option value="0">{{writeString=wns.journal.dont_display_date_navigation}}</option><option value="1">{{writeString=wns.journal.display_date_navigation}}</option>
+			</select><br />
 		</div>
 		<div class="group_fields" style="margin-left:1em;">
 			<label>{{writeString=wns.journal.widgets}}</label><div class="journal-widgets ui-widget-content" style="'border:1px solid #e2e2e2;padding:2px;"></div>
