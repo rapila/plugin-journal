@@ -877,14 +877,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
-		$this->oPage->updatePageProperty('blog_journal_id', implode(',', $aData['journal_ids']));
+		$this->oPage->updatePageProperty('blog_journal_id', implode(',', array_filter($aData['journal_ids'])));
 		// reset journal filter because a journal id that is not configured anymore might be in the session and take effect
 		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER);
 		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] === '1' ? 1 : 0);
 		
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
