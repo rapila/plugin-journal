@@ -875,6 +875,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
 		}
+		if($this->oJournalEntryList) {
+			$this->oJournalEntryList->getDelegate()->setJournalId($aData['journal_ids']);
+		}
 		
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('blog_journal_id', implode(',', array_filter($aData['journal_ids'])));
