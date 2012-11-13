@@ -169,17 +169,18 @@
 		
 		edit_journal: function(journal_id) {
 			var _this = this;
-			Widget.create('journal_detail', function(widget) {
+			Widget.createOnce('journal_detail', function(widget) {
 				if(journal_id) {
 					widget.setJournalId(journal_id);
 					widget.fill_data();
 				}
 				widget.open();
+			}, function(widget) {
 				widget.save_callback = function(journal_id) {
 					Widget.fire('rapila-journals_changed');
 					_this.reload_journals();
 				};
-			});
+			}, null, journal_id ? null : [this, 'new_journal_detail_instance']);
 		},
 		
 		journal_changed: function() {
