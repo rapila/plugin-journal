@@ -653,12 +653,12 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oCommentTemplate = clone $oItemPrototype;
 			if($oEntry = $oComment->getJournalEntry()) {
 				$oCommentTemplate->replaceIdentifier('title', $oEntry->getTitle());
-				$oDetailLink = TagWriter::quickTag('a', array('class' => 'read_more', 'href' => $oEntry->getLink($this->oPage)), StringPeer::getString('journal_entry_teaser.read_more'));
+				$oDetailLink = TagWriter::quickTag('a', array('class' => 'read_more', 'href' => LinkUtil::link($oEntry->getLink($this->oPage)).'#comments'), StringPeer::getString('journal_entry_teaser.read_more'));
 				$oCommentTemplate->replaceIdentifier('more_link', $oDetailLink);
 			}
 			$oCommentTemplate->replaceIdentifier('name', $oComment->getUsername());
 			$oCommentTemplate->replaceIdentifier('date', $oComment->getCreatedAtLocalized());
-			$oCommentTemplate->replaceIdentifier('text_stripped', strip_tags($oComment->getText()));
+			$oCommentTemplate->replaceIdentifier('text_stripped', StringUtil::truncate(strip_tags($oComment->getText()), 45));
 			$oCommentTemplate->replaceIdentifier('text', $oComment->getText());
 			$oTemplate->replaceIdentifierMultiple('comments', $oCommentTemplate);
 		}
