@@ -636,6 +636,34 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return $oTemplate;
 	}
+	
+ /**
+	* renderRecentCommentsWidget()
+	* 
+	* description: renders a comments teaser list
+	* change limit count by overwriting the config param "recent_comments_limit" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderRecentCommentsWidget() {
+		$oTemplate = $this->constructTemplate('widget_recent_comments');
+		$oItemPrototype = $this->constructTemplate('widget_recent_comment_item');
+		$iLimit = Settings::getSetting('journal', 'recent_comments_limit', 3);
+		$oQuery	= JournalCommentQuery::create()->excludeUnverified()->mostRecentFirst()->limit($iLimit)->useJournalEntryQuery()->filterByJournalId($this->aJournalIds)->endUse()->groupByJournalEntryId();
+		foreach($oQuery->find() as $oComment) {
+			$oCommentTemplate = clone $oItemPrototype;
+			if($oEntry = $oComment->getJournalEntry()) {
+				$oCommentTemplate->replaceIdentifier('title', $oEntry->getTitle());
+				$oDetailLink = TagWriter::quickTag('a', array('class' => 'read_more', 'href' => $oEntry->getLink($this->oPage)), StringPeer::getString('journal_entry_teaser.read_more'));
+				$oCommentTemplate->replaceIdentifier('more_link', $oDetailLink);
+			}
+			$oCommentTemplate->replaceIdentifier('name', $oComment->getUsername());
+			$oCommentTemplate->replaceIdentifier('date', $oComment->getCreatedAtLocalized());
+			$oCommentTemplate->replaceIdentifier('text_stripped', strip_tags($oComment->getText()));
+			$oCommentTemplate->replaceIdentifier('text', $oComment->getText());
+			$oTemplate->replaceIdentifierMultiple('comments', $oCommentTemplate);
+		}
+		return $oTemplate;
+	}
 
  /**
 	* renderCollapsibleDateTreeWidget()
@@ -826,6 +854,8 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oWidget = new StdClass();
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
 				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
+				$sStringKey = 'journal_config.'.$oWidget->name;
+				ErrorHandler::log('StringKey', $sStringKey);
 				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
 					$iKey = array_search($oWidget->name, $this->aWidgets);
