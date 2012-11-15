@@ -173,6 +173,9 @@
 				if(journal_id) {
 					widget.setJournalId(journal_id);
 					widget.fill_data();
+				} else {
+					widget.content.find("input[name='name']").val('');
+					widget.content.find("textarea[name='description']").val('');
 				}
 				widget.open();
 			}, function(widget) {
