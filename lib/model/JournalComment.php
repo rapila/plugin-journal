@@ -21,5 +21,6 @@ class JournalComment extends BaseJournalComment {
 		}
 		return parent::preSave($oConnection);
 	}
+
 }
 

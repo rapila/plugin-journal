@@ -24,6 +24,9 @@ journal:
   
   # Query limit of entries
   recent_entries_widget_limit: 7
+  
+  # Blogroll link category
+  blogroll_link_category_id: null
 
 navigations:
   journal_date_navigation_widget:
