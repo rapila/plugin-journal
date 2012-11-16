@@ -148,7 +148,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			return;
 		}
 		if($bIsPreview) {
-			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing'));
+			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing page-type-journal'));
 			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainer);
 			return;
 		}
@@ -636,6 +636,34 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		return $oTemplate;
 	}
+	
+ /**
+	* renderRecentCommentsWidget()
+	* 
+	* description: renders a comments teaser list
+	* change limit count by overwriting the config param "recent_comments_limit" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderRecentCommentsWidget() {
+		$oTemplate = $this->constructTemplate('widget_recent_comments');
+		$oItemPrototype = $this->constructTemplate('widget_recent_comment_item');
+		$iLimit = Settings::getSetting('journal', 'recent_comments_limit', 3);
+		$oQuery	= JournalCommentQuery::create()->excludeUnverified()->mostRecentFirst()->limit($iLimit)->useJournalEntryQuery()->filterByJournalId($this->aJournalIds)->endUse()->groupByJournalEntryId();
+		foreach($oQuery->find() as $oComment) {
+			$oCommentTemplate = clone $oItemPrototype;
+			if($oEntry = $oComment->getJournalEntry()) {
+				$oCommentTemplate->replaceIdentifier('title', $oEntry->getTitle());
+				$oDetailLink = TagWriter::quickTag('a', array('class' => 'read_more', 'href' => LinkUtil::link($oEntry->getLink($this->oPage)).'#comments'), StringPeer::getString('journal_entry_teaser.read_more'));
+				$oCommentTemplate->replaceIdentifier('more_link', $oDetailLink);
+			}
+			$oCommentTemplate->replaceIdentifier('name', $oComment->getUsername());
+			$oCommentTemplate->replaceIdentifier('date', $oComment->getCreatedAtLocalized());
+			$oCommentTemplate->replaceIdentifier('text_stripped', StringUtil::truncate(strip_tags($oComment->getText()), 45));
+			$oCommentTemplate->replaceIdentifier('text', $oComment->getText());
+			$oTemplate->replaceIdentifierMultiple('comments', $oCommentTemplate);
+		}
+		return $oTemplate;
+	}
 
  /**
 	* renderCollapsibleDateTreeWidget()
@@ -722,6 +750,34 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
  /**
+	* renderBlogrollWidget()
+	* 
+	* description: renders a simple list of link managed in the links admin module
+	* define the required link cagegory by overwriting the config param "blogroll_link_category_id" in your site/config/config.yml
+	* @return Template object
+	*/	
+	private function renderBlogrollWidget() {
+		$iLinkCategoryId = Settings::getSetting('journal', 'blogroll_link_category_id', null);
+		if($iLinkCategoryId === null) {
+			return null;
+		}
+		$aLinks = LinkQuery::create()->filterByLinkCategoryId($iLinkCategoryId)->orderBySort()->find();
+		if(empty($aLinks)) {
+			return null;
+		}
+		$oTemplate = $this->constructTemplate('widget_blogroll');
+		$oLinkPrototype = $this->constructTemplate('widget_blogroll_link');
+		foreach($aLinks as $oLink) {
+			$oLinkTemplate = clone $oLinkPrototype;
+			$oLinkTemplate->replaceIdentifier('name', $oLink->getName());
+			$oLinkTemplate->replaceIdentifier('description', $oLink->getDescription());
+			$oLinkTemplate->replaceIdentifier('url', $oLink->getUrl());
+			$oTemplate->replaceIdentifierMultiple('link', $oLinkTemplate);
+		}
+		return $oTemplate;
+	}
+	
+ /**
 	* renderGallery()
 	* 
 	* description: display image gallery
@@ -786,6 +842,10 @@ class JournalPageTypeModule extends PageTypeModule {
 		return array('options' => $aResult, 'current' => $this->sContainer, 'current_auxiliary' => $this->sAuxiliaryContainer);
 	}
 	
+	public function listJournals() {
+		return JournalQuery::create()->orderByName()->find()->toKeyValue('Id', 'Name');
+	}
+	
 	public function listWidgets() {
 		$aWidgetTypes = array();
 		$aWidgetTypesOrdered = array();
@@ -794,6 +854,8 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oWidget = new StdClass();
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
 				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
+				$sStringKey = 'journal_config.'.$oWidget->name;
+				ErrorHandler::log('StringKey', $sStringKey);
 				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
 					$iKey = array_search($oWidget->name, $this->aWidgets);
@@ -843,16 +905,19 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
 		}
+		if($this->oJournalEntryList) {
+			$this->oJournalEntryList->getDelegate()->setJournalId($aData['journal_ids']);
+		}
 		
 		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
-		$this->oPage->updatePageProperty('blog_journal_id', implode(',', $aData['journal_ids']));
+		$this->oPage->updatePageProperty('blog_journal_id', implode(',', array_filter($aData['journal_ids'])));
 		// reset journal filter because a journal id that is not configured anymore might be in the session and take effect
 		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER);
 		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('blog_container', $aData['container']);
 		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] ? 1 : 0);
+		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] === '1' ? 1 : 0);
 		
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {

@@ -9,10 +9,11 @@
 			var _this = this;
 			
 			this.form = jQuery('<form/>').append(Widget.parseHTML('{{includeTemplate=edit}}'));
+			this.journal_checkbox_prototype = Widget.parseHTML('{{includeTemplate=edit_journal}}')
 			this.container.append(this.form);
-
-			this.journal_list = this.container.find('select[name="journal_ids"]').prepareWidget(function(journal_input) {
-				journal_input._element.change(_this.journal_changed.bind(_this));
+			this.journal_list = this.form.find('div.journal_list');
+			this.add_new_journal_button = this.form.find('a.add_new_journal').click(function(){
+				_this.edit_journal();
 			});
 
 			this.page_type.methods.detailWidget(function(session) {
@@ -43,7 +44,7 @@
 			this.entry_area = this.container.find('div.journal-entries');
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
-			this.date_navigation_items_visible_checkbox = this.container.find('input[name="date_navigation_items_visible"]');
+			this.date_navigation_items_visible = this.container.find('select[name="date_navigation_items_visible"]');
 			this.add_journal_entry_button = this.container.find('a.add_journal_entry').click(this.add_journal_entry.bind(this)).hide();
 			
 			//Static value lists
@@ -51,6 +52,30 @@
 			this.entries_per_page_list = this.container.find('select[name="entries_per_page"]');
 
 			this.reload();
+		},
+		
+		journal_ids: function() {
+			this.journal_list.find('input[name="journal_ids[]"]').each(function() {
+			  result.push(jQuery(this).val());
+			});
+			return result;
+		},
+		
+		set_journal_ids: function(values) {
+			this.journal_list.find('input[name="journal_ids[]"]').each(function() {
+				var journal_input = jQuery(this);
+				journal_input.prop('checked', jQuery.inArray(journal_input.val(), values) != -1);
+			});
+		},
+		
+		reload_journals: function() {
+			var _this = this;
+			this.page_type.methods.listJournals(function(result) {
+				_this.journal_list.empty();
+				jQuery.each(result, function(id, name) {
+					_this.add_journal_input(id, name)
+				});
+			});
 		},
 		
 		reload: function() {
@@ -62,17 +87,28 @@
 			this.journal_ids = null;
 			this.page_type.methods.currentJournalIds(function(journal_ids) {
 				_this.journal_ids = journal_ids;
-				_this.journal_list.ensureWidget(function(journal_input) {
-					journal_input.val(journal_ids);
-					_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(journal_input.val() || []);
-				});
+				_this.set_journal_ids(journal_ids);
+				_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(journal_ids || []);
 				_this.add_journal_entry_button.show();
 			});
 			
+			// List journals
+			this.page_type.methods.listJournals(function(result) {
+				_this.journal_list.empty();
+				jQuery.each(result, function(id, name) {
+					_this.add_journal_input(id, name)
+				});
+				if(_this.journal_ids) {
+					_this.set_journal_ids(_this.journal_ids);
+				}
+			}.deferred(waiters));
+			
+			// List templates
 			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.empty().populate(result.options, result.current);
 			}.deferred(waiters));
 			
+			// List widgets
 			this.page_type.methods.listWidgets(function(result) {
 				_this.widget_list.empty();
 				var sortable_container = jQuery('<div/>').attr({ style: 'padding:1px;'});
@@ -85,17 +121,20 @@
 				});
 			}.deferred(waiters));
 
+			// List containers
 			this.page_type.methods.listContainers(function(result) {
 				_this.container_list.empty().populate(result.options, result.current);
 				_this.auxiliary_container_list.empty().populate(result.options, result.current_auxiliary);
 			}.deferred(waiters));
 			
+			// List overview modes
 			this.page_type.methods.currentOverviewMode(function(result) {
 				_this.mode_list.val(result);
 			}.deferred(waiters));
 			
+			// Further settings
 			this.page_type.methods.dateNavigationItemsVisible(function(hidden) {
-				_this.date_navigation_items_visible_checkbox.prop('checked', hidden === '1');
+				_this.date_navigation_items_visible.val(hidden === false ? '0' : '1');
 			}.deferred(waiters));
 			
 			this.page_type.methods.currentEntriesPerPage(function(result) {
@@ -105,6 +144,17 @@
 			jQuery.when.apply(jQuery, waiters).then(function() {
 				_this.reload_entries();
 			});
+		},
+		
+		add_journal_input: function(id, name) {
+			var _this = this;
+			var journal_input = this.journal_checkbox_prototype.clone();
+			journal_input.find('input[type="checkbox"]').val(id);
+			journal_input.find('label').text(name);
+			journal_input.find('span.edit_journal_button').click(function() {
+				_this.edit_journal(id);
+			});
+			this.journal_list.append(journal_input);
 		},
 
 		add_journal_entry: function() {
@@ -117,30 +167,28 @@
 			return false;
 		},
 		
-		edit_journal: function() {
+		edit_journal: function(journal_id) {
 			var _this = this;
-			var journal_id = this.journal_list.val();	
-			if(journal_id && journal_id.length !== 1) {
-				journal_id = null;
-			}
-			Widget.create('journal_detail', function(widget) {
+			Widget.createOnce('journal_detail', function(widget) {
 				if(journal_id) {
 					widget.setJournalId(journal_id);
 					widget.fill_data();
+				} else {
+					widget.content.find("input[name='name']").val('');
+					widget.content.find("textarea[name='description']").val('');
 				}
 				widget.open();
+			}, function(widget) {
 				widget.save_callback = function(journal_id) {
 					Widget.fire('rapila-journals_changed');
-					_this.journal_list.ensureWidget(function(journal_input_widget) {
-						journal_input_widget.val(journal_input_widget.val().concat([journal_id]));
-					});
+					_this.reload_journals();
 				};
-			});
+			}, null, journal_id ? null : [this, 'new_journal_detail_instance']);
 		},
 		
 		journal_changed: function() {
 			var _this = this;
-			var value = this.journal_list.val() || [];
+			var value = this.journal_ids() || [];
 			_this.journal_entry_detail && _this.journal_entry_detail.journal_ids_configured(value);
 			this.page_type.methods.setCurrentJournal(value, function() {
 				_this.reload_entries();
