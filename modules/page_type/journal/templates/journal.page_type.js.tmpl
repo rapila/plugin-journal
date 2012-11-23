@@ -159,11 +159,12 @@
 
 		add_journal_entry: function() {
 			var _this = this;
-			if(_this.journal_entry_detail) {
-				_this.journal_entry_detail.setJournalEntryId(null);
-				_this.journal_entry_detail.fill_data();
-				_this.journal_entry_detail.open();
-			}
+			Widget.create('journal_entry_detail', function(widget) {
+				widget.open();
+				widget.save_callback = function() {
+					_this.reload_entries();
+				};
+			});
 			return false;
 		},
 		
