@@ -24,9 +24,10 @@ Widget.types.journal_entry_detail = {
 			widget.settings.deletable = true;
 			widget.setModelName('JournalEntry');
 			widget.handle('element_set', function(event, element) {
-				_this._element.find('div.general_info').prepend(element);
+				_this._element.find('div.tags_in_detail').append(element);
 			});
 		}, jQuery.noop);
+		
 		this.uploader = Widget.create('file_upload');
 		this.droppable_area = this._element.find('.droppable_area');
 		this.droppable_area.sortable({
@@ -55,32 +56,26 @@ Widget.types.journal_entry_detail = {
 	},
 	
 	fill_data: function() {
+		this.detail_widget.disable();
 		var _this = this;
 		this.loadData(function(data) {
-			var title = this._element.find('input[name="title"]');
-			var is_published = this._element.find('input[name="is_published"]');
-			if(data) {
-				this.current_detail_id = data.Id;
-				this.detail_widget.set_title(data.Title);
-				this.set_text(data.Text);
-				title.val(data.Title);
-				is_published.prop('checked', data.IsPublished);
-				this.journals.ensureWidget(function(journal_input) {
-					journal_input.val(data.JournalId);
-				});
-				if(data.Id) {
-					this.tag_area.setTaggedItemId(data.Id);
-					this.tag_area.reload_tags();
-				}
-				var toggle_is_published_title = "{{writeString=journal_comment.toggle_is_published}}";
-				this.update_comments(data.comments);
-				this.update_documents();
-			} else {
-				this.current_detail_id = null;
-				this.detail_widget.set_title('{{writeString=wns.journal.add_entry}}');
-				this.set_text('');
-				title.val('');
+			this.current_detail_id = data.Id;
+			this._element.find('input[name="title"]').val(data.Title);
+			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
+			this.set_text(data.Text);
+			this.journals.ensureWidget(function(journal_input) {
+				journal_input.val(data.JournalId);
+			});
+			
+			this.update_comments(data.comments);
+			this.update_documents();
+			
+			if(data.Id) {
+				this.tag_area.setTaggedItemId(data.Id);
+				this.tag_area.reload_tags();
 			}
+			this.detail_widget.set_title(this.detail_widget.settings.title = data.Title);
+			this.detail_widget.enable();
 		});
 	},
 	
@@ -170,8 +165,9 @@ Widget.types.journal_entry_detail = {
 	},
 	
 	settings: {
-		"detail_widget": {
-			width: 800 
+		detail_widget: {
+			width: 800,
+			title: "{{writeString=wns.journal.add_entry}}"
 		},
 		thumbnail_size: 180,
 		journal_ids_configured: null
