@@ -374,8 +374,10 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oEntry->getJournal()->getUseCaptcha() && !Session::getSession()->isAuthenticated()) {
 			$oLeaveCommentTemplate->replaceIdentifier('captcha', FormFrontendModule::getRecaptchaCode('journal_comment'));
 		} elseif(!Manager::isPost()) {
-			$_REQUEST['comment_name'] = session::user()->getFullName();
-			$_REQUEST['comment_email'] = session::user()->getEmail();
+			if($oUser = Session::user()) {
+				$_REQUEST['comment_name'] = $oUser->getFullName();
+				$_REQUEST['comment_email'] = $oUser->getEmail();
+			}
 		}
 		$oLeaveCommentTemplate->replaceIdentifier('is_authenticated', Session::getSession()->isAuthenticated() ? true : null);
 		$oLeaveCommentTemplate->replaceIdentifier('comment_action', LinkUtil::link($oEntry->getLink($this->oPage, 'add_comment')));
