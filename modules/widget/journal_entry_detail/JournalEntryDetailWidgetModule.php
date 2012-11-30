@@ -13,7 +13,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 		if($oPage === null) {
 			// get any blog page in site
-			$oPage = PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('blog_journal_id')->endUse()->findOne();
+			$oPage = PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('journal:journal_id')->endUse()->findOne();
 		} 
 		if($oPage) {
 			$this->oRichTextWidget->setTemplate($oPage->getTemplateNameUsed());

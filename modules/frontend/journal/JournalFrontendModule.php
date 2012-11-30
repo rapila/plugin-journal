@@ -16,7 +16,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		// get journal ids
 		if(isset($aJournalParams[1])) {
 			$this->oJournalPage = PageQuery::create()->active()->findPk($aJournalParams[1]);
-			$mJournalId = explode(',', $this->oJournalPage->getPagePropertyValue('blog_journal_id', ''));
+			$mJournalId = explode(',', $this->oJournalPage->getPagePropertyValue('journal:journal_id', ''));
 		} else {
 			$mJournalId = $aJournalParams[0];
 		}

@@ -83,15 +83,15 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	public function updateFlagsFromProperties() {
-		$this->sOverviewMode = $this->oPage->getPagePropertyValue('blog_overview_action', 'list');
-		$this->aJournalIds = explode(',', $this->oPage->getPagePropertyValue('blog_journal_id', ''));
-		$this->sTemplateSet = $this->oPage->getPagePropertyValue('blog_template_set', 'default');
-		$this->sContainer = $this->oPage->getPagePropertyValue('blog_container', 'content');
-		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('blog_auxiliary_container', null);
-		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('blog_entries_per_page', null);
-		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('blog_date_navigation_items_visible', false);
+		$this->sOverviewMode = $this->oPage->getPagePropertyValue('journal:overview_action', 'list');
+		$this->aJournalIds = explode(',', $this->oPage->getPagePropertyValue('journal:journal_id', ''));
+		$this->sTemplateSet = $this->oPage->getPagePropertyValue('journal:template_set', 'default');
+		$this->sContainer = $this->oPage->getPagePropertyValue('journal:container', 'content');
+		$this->sAuxiliaryContainer = $this->oPage->getPagePropertyValue('journal:auxiliary_container', null);
+		$this->iEntriesPerPage = $this->oPage->getPagePropertyValue('journal:entries_per_page', null);
+		$this->bDateNavigationItemsVisible = !!$this->oPage->getPagePropertyValue('journal:date_navigation_items_visible', false);
 
-		$this->aWidgets = $this->oPage->getPagePropertyValue('blog_widgets', '');
+		$this->aWidgets = $this->oPage->getPagePropertyValue('journal:widgets', '');
 		if($this->aWidgets === '') {
 			$this->aWidgets = array();
 		} else {
@@ -910,15 +910,15 @@ class JournalPageTypeModule extends PageTypeModule {
 			$this->oJournalEntryList->getDelegate()->setJournalId($aData['journal_ids']);
 		}
 		
-		$this->oPage->updatePageProperty('blog_overview_action', $aData['mode']);
-		$this->oPage->updatePageProperty('blog_journal_id', implode(',', array_filter($aData['journal_ids'])));
+		$this->oPage->updatePageProperty('journal:overview_action', $aData['mode']);
+		$this->oPage->updatePageProperty('journal:journal_id', implode(',', array_filter($aData['journal_ids'])));
 		// reset journal filter because a journal id that is not configured anymore might be in the session and take effect
 		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER);
-		$this->oPage->updatePageProperty('blog_entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
-		$this->oPage->updatePageProperty('blog_template_set', $aData['template_set']);
-		$this->oPage->updatePageProperty('blog_container', $aData['container']);
-		$this->oPage->updatePageProperty('blog_auxiliary_container', $aData['auxiliary_container']);
-		$this->oPage->updatePageProperty('blog_date_navigation_items_visible', $aData['date_navigation_items_visible'] === '1' ? 1 : 0);
+		$this->oPage->updatePageProperty('journal:entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
+		$this->oPage->updatePageProperty('journal:template_set', $aData['template_set']);
+		$this->oPage->updatePageProperty('journal:container', $aData['container']);
+		$this->oPage->updatePageProperty('journal:auxiliary_container', $aData['auxiliary_container']);
+		$this->oPage->updatePageProperty('journal:date_navigation_items_visible', $aData['date_navigation_items_visible'] === '1' ? 1 : 0);
 		
 		$aWidgets =  array();
 		foreach($aData['widgets'] as $sWidgetName) {
@@ -926,7 +926,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$aWidgets[] = $sWidgetName;
 			}
 		}
-		$this->oPage->updatePageProperty('blog_widgets', implode(',', $aWidgets));
+		$this->oPage->updatePageProperty('journal:widgets', implode(',', $aWidgets));
 		$this->updateFlagsFromProperties();
 	}
 }

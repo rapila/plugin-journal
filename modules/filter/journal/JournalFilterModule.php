@@ -33,9 +33,9 @@ class JournalFilterModule extends FilterModule {
 	
 	private function addChildrenToPageNavigationItem($oNavigationItem) {
 		// Append virtual navigation items for year, overview and feed
-		$sJournalId = $oNavigationItem->getMe()->getPagePropertyValue('blog_journal_id', null);
+		$sJournalId = $oNavigationItem->getMe()->getPagePropertyValue('journal:journal_id', null);
 		$aJournalIds = explode(',',$sJournalId);
-		$bDateNavigationItemsVisible = (bool) $oNavigationItem->getMe()->getPagePropertyValue('blog_date_navigation_items_visible', null);
+		$bDateNavigationItemsVisible = (bool) $oNavigationItem->getMe()->getPagePropertyValue('journal:date_navigation_items_visible', null);
 		$sDateNavigationItemClass = $bDateNavigationItemsVisible ? 'VirtualNavigationItem' : 'HiddenVirtualNavigationItem';
 			
 		// Feed item
@@ -44,7 +44,7 @@ class JournalFilterModule extends FilterModule {
 		$oNavigationItem->addChild($oFeedItem);
 			
 		// Overview list
-		$bOverviewIsList = $oNavigationItem->getMe()->getPagePropertyValue('blog_overview_action', 'list') === 'list';
+		$bOverviewIsList = $oNavigationItem->getMe()->getPagePropertyValue('journal:overview_action', 'list') === 'list';
 		if(!$bOverviewIsList) {
 			$oOverviewItem = new VirtualNavigationItem('journal-overview_list', 'list', StringPeer::getString('wns.journal.list'), null, $aJournalIds);
 			$oOverviewItem->bIsIndexed = false;
@@ -165,7 +165,7 @@ class JournalFilterModule extends FilterModule {
 			
 			// Notify new comment
 			if($oEntry->getJournal()->getNotifyComments()) {
-				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('blog_template_set', 'default'));
+				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('journal:template_set', 'default'));
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
 				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
 				if($bIsProblablySpam) {
