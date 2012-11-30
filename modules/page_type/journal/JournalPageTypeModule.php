@@ -857,7 +857,6 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
 				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
 				$sStringKey = 'journal_config.'.$oWidget->name;
-				ErrorHandler::log('StringKey', $sStringKey);
 				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
 					$iKey = array_search($oWidget->name, $this->aWidgets);
