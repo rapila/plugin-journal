@@ -15,10 +15,31 @@
 	margin-top: .3em;
 }
 
-.page-type-journal div.ui-widget-content.journal-widgets {
-	margin-top: 3px;
-	border: 1px solid #e2e2e2;
-	padding: 3px;
+.ui-accordion .page-type-journal div.ui-widget-content.journal-widgets {
+	margin-top: 0;
+	border: 1px solid #f2f2f2;
+}
+
+div.journal_list > div {
+	border-top: 1px solid #f2f2f2;
+	padding-bottom: 1px;
+}
+
+div.journal_list > div:first-child {
+	border-top: none;
+}
+
+div.ui-widget-content.journal-widgets .widget_item {
+	padding: 0 5px 1px 5px;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+div.ui-widget-content.journal-widgets .widget_item label {
+	margin-top: 0;
+}
+
+div.ui-widget-content.journal-widgets.ui-sortable .ui-sortable-handle {
+	background-position: 0 5px;
 }
 
 .page-type-journal .journal_detail .group_fields {
