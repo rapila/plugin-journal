@@ -35,9 +35,10 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		}
 		$oTemplate = $this->constructTemplate('journal_entry_teaser');
 		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
-		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('rel' => 'internal', 'href' => $sHref), $oJournalEntry->getTitle()));
+		$oTemplate->replaceIdentifier('title', $oJournalEntry->getTitle());
 		$oTemplate->replaceIdentifier('more_link', $sHref);
 		$oTemplate->replaceIdentifier('created_at', $oJournalEntry->getCreatedAt('U'));
+		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
 		$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
 		$oTemplate->replaceIdentifier('text_short', $sTextShort);
 		$oTemplate->replaceIdentifier('text_short_truncated', StringUtil::truncate(strip_tags($sTextShort), 300));
