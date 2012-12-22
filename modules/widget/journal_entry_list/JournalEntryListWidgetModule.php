@@ -6,12 +6,19 @@ class JournalEntryListWidgetModule extends WidgetModule {
 
 	private $oListWidget;
 	private $oDelegateProxy;
+	private $oTagFilter;
 	
 	public function __construct() {
 		$this->oListWidget = new ListWidgetModule();
 		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "created_at_formatted", "desc");
 		$this->oListWidget->setDelegate($this->oDelegateProxy);
 		$this->oListWidget->setSetting('row_model_drag_and_drop_identifier', "id");
+		$this->oTagFilter = WidgetModule::getWidget('tag_input', null, true);
+		$this->oTagFilter->setSetting('model_name', 'JournalEntry');
+	}
+	
+	private static function hasTags() {
+		return TagInstanceQuery::create()->filterByModelName('JournalEntry')->count() > 0;
 	}
 	
 	public function getDelegate() {
@@ -28,6 +35,9 @@ class JournalEntryListWidgetModule extends WidgetModule {
 
 	public function getColumnIdentifiers() {
 		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'is_published', 'journal_name');
+		if(self::hasTags()) {
+			$aColumns[] = 'has_tags';
+		}
 		return array_merge($aColumns, array('delete'));
 	}
 	
@@ -48,6 +58,11 @@ class JournalEntryListWidgetModule extends WidgetModule {
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_comments');
 				$aResult['is_sortable'] = false;
 				break;
+			case 'has_tags':
+				$aResult['heading'] = '';
+				$aResult['heading_filter'] = array('tag_input', $this->oTagFilter->getSessionKey());
+				$aResult['is_sortable'] = false;
+				break;
 			case 'journal_name':
 				$aResult['heading'] = StringPeer::getString('wns.journal.name');
 				break;
@@ -64,6 +79,9 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	public function getFilterTypeForColumn($sColumnIdentifier) {
 		if($sColumnIdentifier === 'journal_id') {
 			return CriteriaListWidgetDelegate::FILTER_TYPE_IN;
+		}
+		if($sColumnIdentifier === 'has_tags') {
+			return CriteriaListWidgetDelegate::FILTER_TYPE_MANUAL;
 		}
 		return null;
 	}
@@ -92,6 +110,9 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	
 	public function getCriteria() {
 		$oQuery = JournalEntryQuery::create()->joinJournal();
+		if($this->oTagFilter && $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags') !== CriteriaListWidgetDelegate::SELECT_ALL) {
+			$oQuery->filterByTagId($this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags'));
+		}
 		return $oQuery;
 	}
 }

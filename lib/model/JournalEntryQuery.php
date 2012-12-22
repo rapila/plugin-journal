@@ -38,6 +38,11 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this;
 	}
 	
+	public function filterByTagId($aTagId) {
+		$aTaggedLinkIds = TagInstanceQuery::create()->filterByTagId($aTagId)->filterByModelName('JournalEntry')->select(array('TaggedItemId'))->find();
+		return $this->filterById($aTaggedLinkIds, Criteria::IN);
+	}
+	
 	public function findDistinctDates() {
 		$this->distinct()->clearSelectColumns();
 		$this->withColumn('DAY(created_at)', 'Day');

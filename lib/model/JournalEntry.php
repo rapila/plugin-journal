@@ -145,5 +145,13 @@ class JournalEntry extends BaseJournalEntry {
 		$this->setText($aAttributes['description']);
 		$this->setTitle($aAttributes['title']);
 	}
+	
+	public function hasTags() {
+		return $this->getHasTags();
+	}
+	
+	public function getHasTags() {
+		return TagQuery::create()->filterByTagged($this)->count() > 0;
+	}
 
 } // JournalEntry

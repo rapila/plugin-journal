@@ -36,7 +36,8 @@ jQuery(document).ready(function() {
 		
 
 		// add row_count_info
-		info_bar.add_row_count_info_for_list(content_list);
+		info_bar.add_row_count_info_for_list(content_list).add_tag_panel();
+		Widget.handle('tag_input_visibility_changed', content_list.reload.bind(content_list, 'force'));
 		
 		// sidebar selection changed
 		sidebar.handle('list-selection_changed', function(event, selection) {
