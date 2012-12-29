@@ -6,7 +6,7 @@
 	<column name="notify_comments" type="boolean" size="1" default="0" />
 	<column name="use_captcha" type="boolean" size="1" default="1" />
 	<behavior name="denyable">
-		<parameter name="role_key" value="journal" />
+		<parameter name="role_key" value="journals" />
 	</behavior>
 </table>
 
