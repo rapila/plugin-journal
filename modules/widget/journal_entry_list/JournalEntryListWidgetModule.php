@@ -17,10 +17,6 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		$this->oTagFilter->setSetting('model_name', 'JournalEntry');
 	}
 	
-	private static function hasTags() {
-		return TagInstanceQuery::create()->filterByModelName('JournalEntry')->count() > 0;
-	}
-	
 	public function getDelegate() {
 		return $this->oDelegateProxy;
 	}
@@ -34,11 +30,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		$aColumns = array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'is_published', 'journal_name');
-		if(self::hasTags()) {
-			$aColumns[] = 'has_tags';
-		}
-		return array_merge($aColumns, array('delete'));
+		return array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'is_published', 'journal_name', 'has_tags', 'delete');
 	}
 	
 	public function getMetadataForColumn($sColumnIdentifier) {
