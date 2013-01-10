@@ -21,6 +21,7 @@
 	<column name="text" type="longvarchar" required="true" />
 	<column name="text_short" type="longvarchar" required="true" />
 	<column name="is_published" type="boolean" size="1" default="0" />
+  <column name="publish_at" type="date"/>
 	<behavior name="taggable" />
 	<behavior name="denyable">
 		<parameter name="role_key" value="journal_entries" />

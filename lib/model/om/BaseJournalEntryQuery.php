@@ -13,6 +13,7 @@
  * @method JournalEntryQuery orderByText($order = Criteria::ASC) Order by the text column
  * @method JournalEntryQuery orderByTextShort($order = Criteria::ASC) Order by the text_short column
  * @method JournalEntryQuery orderByIsPublished($order = Criteria::ASC) Order by the is_published column
+ * @method JournalEntryQuery orderByPublishAt($order = Criteria::ASC) Order by the publish_at column
  * @method JournalEntryQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method JournalEntryQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  * @method JournalEntryQuery orderByCreatedBy($order = Criteria::ASC) Order by the created_by column
@@ -25,6 +26,7 @@
  * @method JournalEntryQuery groupByText() Group by the text column
  * @method JournalEntryQuery groupByTextShort() Group by the text_short column
  * @method JournalEntryQuery groupByIsPublished() Group by the is_published column
+ * @method JournalEntryQuery groupByPublishAt() Group by the publish_at column
  * @method JournalEntryQuery groupByCreatedAt() Group by the created_at column
  * @method JournalEntryQuery groupByUpdatedAt() Group by the updated_at column
  * @method JournalEntryQuery groupByCreatedBy() Group by the created_by column
@@ -64,6 +66,7 @@
  * @method JournalEntry findOneByText(string $text) Return the first JournalEntry filtered by the text column
  * @method JournalEntry findOneByTextShort(string $text_short) Return the first JournalEntry filtered by the text_short column
  * @method JournalEntry findOneByIsPublished(boolean $is_published) Return the first JournalEntry filtered by the is_published column
+ * @method JournalEntry findOneByPublishAt(string $publish_at) Return the first JournalEntry filtered by the publish_at column
  * @method JournalEntry findOneByCreatedAt(string $created_at) Return the first JournalEntry filtered by the created_at column
  * @method JournalEntry findOneByUpdatedAt(string $updated_at) Return the first JournalEntry filtered by the updated_at column
  * @method JournalEntry findOneByCreatedBy(int $created_by) Return the first JournalEntry filtered by the created_by column
@@ -76,6 +79,7 @@
  * @method array findByText(string $text) Return JournalEntry objects filtered by the text column
  * @method array findByTextShort(string $text_short) Return JournalEntry objects filtered by the text_short column
  * @method array findByIsPublished(boolean $is_published) Return JournalEntry objects filtered by the is_published column
+ * @method array findByPublishAt(string $publish_at) Return JournalEntry objects filtered by the publish_at column
  * @method array findByCreatedAt(string $created_at) Return JournalEntry objects filtered by the created_at column
  * @method array findByUpdatedAt(string $updated_at) Return JournalEntry objects filtered by the updated_at column
  * @method array findByCreatedBy(int $created_by) Return JournalEntry objects filtered by the created_by column
@@ -169,7 +173,7 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `ID`, `JOURNAL_ID`, `TITLE`, `SLUG`, `TEXT`, `TEXT_SHORT`, `IS_PUBLISHED`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journal_entries` WHERE `ID` = :p0';
+        $sql = 'SELECT `ID`, `JOURNAL_ID`, `TITLE`, `SLUG`, `TEXT`, `TEXT_SHORT`, `IS_PUBLISHED`, `PUBLISH_AT`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journal_entries` WHERE `ID` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -469,6 +473,49 @@ abstract class BaseJournalEntryQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(JournalEntryPeer::IS_PUBLISHED, $isPublished, $comparison);
+    }
+
+    /**
+     * Filter the query on the publish_at column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByPublishAt('2011-03-14'); // WHERE publish_at = '2011-03-14'
+     * $query->filterByPublishAt('now'); // WHERE publish_at = '2011-03-14'
+     * $query->filterByPublishAt(array('max' => 'yesterday')); // WHERE publish_at > '2011-03-13'
+     * </code>
+     *
+     * @param     mixed $publishAt The value to use as filter.
+     *              Values can be integers (unix timestamps), DateTime objects, or strings.
+     *              Empty strings are treated as NULL.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return JournalEntryQuery The current query, for fluid interface
+     */
+    public function filterByPublishAt($publishAt = null, $comparison = null)
+    {
+        if (is_array($publishAt)) {
+            $useMinMax = false;
+            if (isset($publishAt['min'])) {
+                $this->addUsingAlias(JournalEntryPeer::PUBLISH_AT, $publishAt['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($publishAt['max'])) {
+                $this->addUsingAlias(JournalEntryPeer::PUBLISH_AT, $publishAt['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(JournalEntryPeer::PUBLISH_AT, $publishAt, $comparison);
     }
 
     /**

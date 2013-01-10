@@ -70,7 +70,7 @@ class JournalTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
-            'denyable' => array('mode' => '', 'role_key' => 'journal', 'owner_allowed' => '', ),
+            'denyable' => array('mode' => '', 'role_key' => 'journals', 'owner_allowed' => '', ),
             'extended_timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_updated_at' => 'false', ),
             'attributable' => array('create_column' => 'created_by', 'update_column' => 'updated_by', ),
         );
