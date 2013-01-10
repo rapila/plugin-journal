@@ -138,17 +138,18 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$oEntry = new JournalEntry();
 			$oEntry->setJournalId($this->iJournalId);
 		}
-		$oEntry->setTitle($aData['title']);
-		$oEntry->setIsPublished($aData['is_published']);
+		if($aData['publish_at'] == null) {
+			$aData['publish_at'] = date('c');
+		} 		
+		$oEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
+		
 		if(isset($aData['journal_id'])) {
 			$oEntry->setJournalId($aData['journal_id']);
 		}
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
 		$oEntry->setText($oRichtextUtil->getTagParser($aData['text']));
-		if($aData['publish_at'] == null) {
-			$oEntry->setPublishAt(date('c'));
-		}
+
 		return $oEntry->save();
 	}
 }
