@@ -10,7 +10,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	
 	public function __construct() {
 		$this->oListWidget = new ListWidgetModule();
-		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "created_at_formatted", "desc");
+		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "publish_at", "desc");
 		$this->oListWidget->setDelegate($this->oDelegateProxy);
 		$this->oListWidget->setSetting('row_model_drag_and_drop_identifier', "id");
 		$this->oTagFilter = WidgetModule::getWidget('tag_input', null, true);
@@ -30,7 +30,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		return array('id', 'title_truncated', 'created_at_formatted', 'count_comments', 'is_published', 'journal_name', 'has_tags', 'delete');
+		return array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published', 'journal_name', 'has_tags', 'delete');
 	}
 	
 	public function getMetadataForColumn($sColumnIdentifier) {
@@ -40,8 +40,8 @@ class JournalEntryListWidgetModule extends WidgetModule {
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.title');
 				$aResult['field_name'] = 'title';
 				break;
-			case 'created_at_formatted':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.created_at');
+			case 'publish_at_formatted':
+				$aResult['heading'] = StringPeer::getString('wns.journal_entry.publish_at');
 				break;
 			case 'is_published':
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.is_published');
@@ -79,8 +79,8 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getDatabaseColumnForColumn($sColumnIdentifier) {
-		if($sColumnIdentifier === 'created_at_formatted') {
-			return JournalEntryPeer::CREATED_AT;
+		if($sColumnIdentifier === 'publish_at_formatted') {
+			return JournalEntryPeer::PUBLISH_AT;
 		}
 		if($sColumnIdentifier === 'journal_name') {
 			return JournalPeer::NAME;

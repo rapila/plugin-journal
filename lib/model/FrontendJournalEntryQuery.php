@@ -18,6 +18,7 @@ class FrontendJournalEntryQuery extends JournalEntryQuery {
 			$oQuery->mergeWith($oCriteria);
 		}
 		$oQuery->filterByIsPublished(true);
+		$oQuery->filterByPublishAt(date('c'), Criteria::LESS_EQUAL);
 		return $oQuery;
 	}
 }

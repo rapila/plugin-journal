@@ -7,18 +7,18 @@
 class JournalEntryQuery extends BaseJournalEntryQuery {
 
 	public function mostRecentFirst() {
-		return $this->orderByCreatedAt(Criteria::DESC);
+		return $this->orderByPublishAt(Criteria::DESC);
 	}
 	
 	public function filterByDate($iYear, $iMonth, $iDay) {
 		if($iYear) {
-			$this->add('YEAR(created_at)', (int)$iYear);
+			$this->add('YEAR(publish_at)', (int)$iYear);
 		}
 		if($iMonth) {
-			$this->add('MONTH(created_at)', (int)$iMonth);
+			$this->add('MONTH(publish_at)', (int)$iMonth);
 		}
 		if($iDay) {
-			$this->add('DAY(created_at)', (int)$iDay);
+			$this->add('DAY(publish_at)', (int)$iDay);
 		}
 		return $this;
 	}
@@ -45,9 +45,9 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	
 	public function findDistinctDates() {
 		$this->distinct()->clearSelectColumns();
-		$this->withColumn('DAY(created_at)', 'Day');
-		$this->withColumn('MONTH(created_at)', 'Month');
-		$this->withColumn('YEAR(created_at)', 'Year');
+		$this->withColumn('DAY(publish_at)', 'Day');
+		$this->withColumn('MONTH(publish_at)', 'Month');
+		$this->withColumn('YEAR(publish_at)', 'Year');
 		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
 	}
 	
@@ -56,7 +56,7 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		if($mJournalId) {
 			$this->filterByJournalId($mJournalId);
 		} 
-		$this->withColumn('YEAR(created_at)', 'Year');
+		$this->withColumn('YEAR(publish_at)', 'Year');
 		$this->orderBy('Year');
 		return $this->select(array('Year'))->find();
 	}
@@ -66,10 +66,10 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		if($mJournalId) {
 			$this->filterByJournalId($mJournalId);
 		} 
-		$this->withColumn('MONTH(created_at)', 'Month');
+		$this->withColumn('MONTH(publish_at)', 'Month');
 		$oYearInterval = new DateInterval('P1Y');
 		$oYear = DateTime::createFromFormat('!Y', $iYear);
-		$this->filterByCreatedAt(array('min' => clone $oYear, 'max' => $oYear->add($oYearInterval)));
+		$this->filterByPublishAt(array('min' => clone $oYear, 'max' => $oYear->add($oYearInterval)));
 		$this->orderBy('Month');
 		return $this->select(array('Month'))->find();
 	}
@@ -79,10 +79,10 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		if($mJournalId) {
 			$this->filterByJournalId($mJournalId);
 		} 
-		$this->withColumn('DAY(created_at)', 'Day');
+		$this->withColumn('DAY(publish_at)', 'Day');
 		$oMonthInterval = new DateInterval('P1M');
 		$oMonth = DateTime::createFromFormat('!Y-m', "$iYear-$iMonth");
-		$this->filterByCreatedAt(array('min' => clone $oMonth, 'max' => $oMonth->add($oMonthInterval)));
+		$this->filterByPublishAt(array('min' => clone $oMonth, 'max' => $oMonth->add($oMonthInterval)));
 		$this->orderBy('Day');
 		return $this->select(array('Day'))->find();
 	}

@@ -75,9 +75,9 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iMonth = @$aData[2];
 				$this->iDay = @$aData[3];
 			} elseif($aData instanceof JournalEntry) {
-				$this->iYear = $aData->getCreatedAt('Y');
-				$this->iMonth = $aData->getCreatedAt('n');
-				$this->iDay = $aData->getCreatedAt('j');
+				$this->iYear = $aData->getPublishAt('Y');
+				$this->iMonth = $aData->getPublishAt('n');
+				$this->iDay = $aData->getPublishAt('j');
 			}
 		}
 	}
@@ -250,12 +250,12 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oQuery->filterByTagName($this->aFilteredTags);
 		}
 		$this->addPagination($oQuery, $oFullTemplate);
-		$aEntries = $oQuery->orderByCreatedAt(Criteria::DESC)->find();
+		$aEntries = $oQuery->orderByPublishAt(Criteria::DESC)->find();
 		if(count($aEntries) === 0) {
 			$oFullTemplate->replaceIdentifier('no_result_info', $this->renderNoResult());
 			return;
 		}
-		foreach($oQuery->orderByCreatedAt(Criteria::DESC)->find() as $oEntry) {
+		foreach($oQuery->orderByPublishAt(Criteria::DESC)->find() as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple($sIdentifier, $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
 		}
 	}
@@ -296,7 +296,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('user_name', $oEntry->getUserRelatedByCreatedBy()->getFullName());
 		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
-		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getCreatedAtTimestamp()));
+		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getPublishAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
 		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
@@ -391,8 +391,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oCommentTemplate->replaceIdentifier('email_hash', md5($oComment->getEmail()));
 		$oCommentTemplate->replaceIdentifier('id', $oComment->getId());
 		$oCommentTemplate->replaceIdentifier('text', $oComment->getText(), null, Template::NO_HTML_ESCAPE);
-		if($oComment->getCreatedAtTimestamp() !== null) {
-			$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getCreatedAtTimestamp()));
+		if($oComment->getPublishAtTimestamp() !== null) {
+			$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getPublishAtTimestamp()));
 		}
 		return $oCommentTemplate;
 	}
@@ -435,7 +435,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayFilteredOverview($oTemplate) {
-		$oQuery = JournalEntryQuery::create();
+		$oQuery = FrontendJournalEntryQuery::create();
 		$oQuery->filterByDate($this->iYear, $this->iMonth, $this->iDay);
 		$sMethodName = StringUtil::camelize("display_overview_$this->sOverviewMode");
 		$this->$sMethodName($oTemplate, $oQuery);

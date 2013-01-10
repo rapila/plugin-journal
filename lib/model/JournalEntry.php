@@ -8,11 +8,22 @@ require_once 'model/om/BaseJournalEntry.php';
  */ 
 class JournalEntry extends BaseJournalEntry {
 
-	public function getCreatedAtLocalized($sFormat = ' %e. %B %Y') {
+	public function getPublishAtLocalized($sFormat = ' %e. %B %Y') {
 		if(Session::language() === 'en') {
 			$sFormat = ' %e %B %Y';
 		}
-		return LocaleUtil::localizeDate($this->created_at, null, $sFormat);
+		return LocaleUtil::localizeDate($this->publish_at, null, $sFormat);
+	}
+	
+	public function getPublishAtTimestamp() {
+		return (int)$this->getPublishAt('U');
+	}
+
+	public function getPublishAtFormatted($sLanguageId = null, $sFormatString = 'x') {
+		if($this->publish_at === null) {
+			return null;
+		}
+		return LocaleUtil::localizeDate($this->publish_at, $sLanguageId, $sFormatString);
 	}
 	
 	public function commentsEnabled() {
