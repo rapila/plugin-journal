@@ -5,9 +5,12 @@ Widget.types.journal_entry_detail = {
 		Widget.callStatic('detail', 'set_instance', this);
 		this.current_detail_id = null;
 	},
-	
+
 	init_content: function() {
 		var _this = this;
+		this._element.find("input[name='publish_at']").datepicker({
+			dateFormat: 'dd.mm.yy'
+		});
 		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
 		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
@@ -15,7 +18,7 @@ Widget.types.journal_entry_detail = {
 			_this.journal_input = journal_input;
 			journal_input.settings.journal_ids_configured = _this.settings.journal_ids_configured;
 		}, jQuery.noop);
-		
+
 		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
 		Widget.createWithElement('tag_area', function(widget) {
 			_this.tag_area = widget;
@@ -27,7 +30,7 @@ Widget.types.journal_entry_detail = {
 				_this._element.find('div.tags_in_detail').append(element);
 			});
 		}, jQuery.noop);
-		
+
 		this.uploader = Widget.create('file_upload');
 		this.droppable_area = this._element.find('.droppable_area');
 		this.droppable_area.sortable({
@@ -54,7 +57,7 @@ Widget.types.journal_entry_detail = {
 			});
 		}.bind(this));
 	},
-	
+
 	fill_data: function() {
 		this.detail_widget.disable();
 		var _this = this;
@@ -62,14 +65,18 @@ Widget.types.journal_entry_detail = {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
 			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
+			this._element.find('input[name="publish_at"]').val(data.PublishAt);
 			this.set_text(data.Text);
+			this._element.find(".updated_info").text(data.UpdatedInfo);
+			this._element.find(".created_info").text(data.CreatedInfo);
+			this._element.find(".detail_id").text(data.Id);
 			this.journals.ensureWidget(function(journal_input) {
 				journal_input.val(data.JournalId);
 			});
-			
+
 			this.update_comments(data.comments);
 			this.update_documents();
-			
+
 			if(data.Id) {
 				this.tag_area.setTaggedItemId(data.Id);
 				this.tag_area.reload_tags();
@@ -78,7 +85,7 @@ Widget.types.journal_entry_detail = {
 			this.detail_widget.enable();
 		});
 	},
-	
+
 	update_comments: function(comments) {
 		var _this = this;
 		this.comment_list.empty();
@@ -102,7 +109,7 @@ Widget.types.journal_entry_detail = {
 			widget.set_data(text);
 		}.bind(this));
 	},
-	
+
 	update_documents: function() {
 		var _this = this;
 		this.droppable_area.empty();
@@ -112,7 +119,7 @@ Widget.types.journal_entry_detail = {
 			});
 		});
 	},
-	
+
 	insert_thumbnail: function(document_data) {
 		var _this = this;
 		var document_id = document_data.Id;
@@ -120,7 +127,7 @@ Widget.types.journal_entry_detail = {
 		var doc = jQuery('<div/>').addClass('ui-widget ui-widget-content ui-image-picker-image ui-placeholder');
 		doc.css({width: px_size, height: px_size});
 		doc.data('document_id', document_id);
-		
+
 		jQuery('<span/>').addClass('ui-icon ui-icon-trash').click(function(event) {
 			var delete_message = AdminInterface.strings.get_string('wns.document.delete_warning', { document_name: document_data.Name});
 			Widget.confirm("{{writeString=wns.delete_warning_title}}", delete_message, function(confirmed) {
@@ -145,14 +152,14 @@ Widget.types.journal_entry_detail = {
 		doc.append(document_object);
 		this.droppable_area.append(doc);
 	},
-	
+
 	upload_success: function(document_id, options) {
 		var _this = this;
 		this.addJournalEntryImage(document_id, function() {
-			_this.insert_thumbnail(_this.getSingleDocument(document_id, _this.settings.thumbnail_size));				
+			_this.insert_thumbnail(_this.getSingleDocument(document_id, _this.settings.thumbnail_size));
 		});
 	},
-	
+
 	upload_error: function(error) {
 	},
 
@@ -163,7 +170,7 @@ Widget.types.journal_entry_detail = {
 			this.journal_input.reload();
 		}
 	},
-	
+
 	settings: {
 		detail_widget: {
 			width: 800,

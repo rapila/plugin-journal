@@ -49,12 +49,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 	
 	public function loadData() {
-		$aResult = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
-		if(!$aResult) {
+		$oJournalEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
+		if(!$oJournalEntry) {
 			return;
 		}
-		$aResult = $aResult->toArray();
+		$aResult = array();
+		$aResult = $oJournalEntry->toArray();
 		$aResult['Text'] = RichtextUtil::parseStorageForBackendOutput($aResult['Text'])->render();
+		$aResult['PublishAt'] = $oJournalEntry->getPublishAt('d.m.Y');
 		$aResult['comments'] = array();
 		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
 			$aComment = array();
@@ -142,7 +144,9 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oEntry);
 		$oEntry->setText($oRichtextUtil->getTagParser($aData['text']));
-
+		if($aData['publish_at'] == null) {
+			$oEntry->setPublishAt(date('c'));
+		}
 		return $oEntry->save();
 	}
 }
