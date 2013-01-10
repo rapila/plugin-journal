@@ -1,5 +1,7 @@
 <?php
 
+require_once($_SERVER['PWD'].'/base/lib/inc.php');
+
 /**
  * Data object containing the SQL and PHP code to migrate the database
  * up to version 1357821739.
