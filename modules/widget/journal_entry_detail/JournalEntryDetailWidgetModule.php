@@ -57,6 +57,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$aResult = $oJournalEntry->toArray();
 		$aResult['Text'] = RichtextUtil::parseStorageForBackendOutput($aResult['Text'])->render();
 		$aResult['PublishAt'] = $oJournalEntry->getPublishAt('d.m.Y');
+		$aResult['CreatedInfo'] = Util::formatCreatedInfo($oJournalEntry);
+		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournalEntry);
 		$aResult['comments'] = array();
 		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
 			$aComment = array();

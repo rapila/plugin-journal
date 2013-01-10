@@ -8,10 +8,10 @@ Widget.types.journal_entry_detail = {
 
 	init_content: function() {
 		var _this = this;
+		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
 		this._element.find("input[name='publish_at']").datepicker({
 			dateFormat: 'dd.mm.yy'
 		});
-		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
 		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
 		this.journals = this._element.find("select[name='journal_id']").prepareWidget(function(journal_input) {
