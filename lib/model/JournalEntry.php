@@ -123,9 +123,9 @@ class JournalEntry extends BaseJournalEntry {
 			return null;
 		}
 		if($sSubpage) {
-			return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('n'), $this->getCreatedAt('j'), $this->getSlug(), $sSubpage);
+			return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug(), $sSubpage);
 		}
-		return $oPage->getLinkArray($this->getCreatedAt('Y'), $this->getCreatedAt('n'), $this->getCreatedAt('j'), $this->getSlug());
+		return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug());
 	}
 
 	public function setTitle($sTitle) {
