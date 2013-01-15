@@ -19,7 +19,7 @@ jQuery(document).ready(function() {
 	jQuery.when.apply(jQuery, handlers).then(function() {
 		// All widgets are ready to be used	
 		
-		// init info_bar
+		// Init info_bar
 		info_bar.add_button('add-new-item', function() {
 			Widget.create('journal_entry_detail', function(widget) {
 				widget.settings.journal_id = sidebar.active_row().data('journal_id');
@@ -33,19 +33,22 @@ jQuery(document).ready(function() {
 				content_list.reload();
 			}
 		});
-		
 
-		// add row_count_info
+		// Add row_count_info
 		info_bar.add_row_count_info_for_list(content_list).add_tag_panel();
-		Widget.handle('tag_input_visibility_changed', content_list.reload.bind(content_list, 'force'));
-		
-		// sidebar selection changed
+
+		// Tag remove handler
+		Widget.handle('rapila-tag-removed-from-JournalEntry', function(event, result) {
+			content_list.update_row(content_list.row_from_row_data({id: result.tagged_item_id}));
+		});
+
+		// Sidebar selection changed
 		sidebar.handle('list-selection_changed', function(event, selection) {
 			content_list.setOption('journal_id', selection[0] && selection[0].journal_id);
 			content_list.reload();
 		});
 		
-		// init sidebar
+		// Init sidebar
 		sidebar.settings.row_click_active_mode = 'activate';
 	});
 });
