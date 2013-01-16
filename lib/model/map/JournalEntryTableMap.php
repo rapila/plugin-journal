@@ -74,6 +74,7 @@ class JournalEntryTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
+            'referencing' => array(),
             'taggable' => array(),
             'denyable' => array('mode' => '', 'role_key' => 'journal_entries', 'owner_allowed' => '', ),
             'extended_timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_updated_at' => 'false', ),

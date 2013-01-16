@@ -912,6 +912,8 @@ abstract class BaseJournalEntry extends BaseObject implements Persistent
                 $affectedRows = $this->doSave($con);
                 if ($isInsert) {
                     $this->postInsert($con);
+                    // referencing behavior
+                    ReferencePeer::saveUnsavedReferences($this);
                 } else {
                     $this->postUpdate($con);
                 }
@@ -2461,6 +2463,15 @@ abstract class BaseJournalEntry extends BaseObject implements Persistent
         return $this->alreadyInSave;
     }
 
+    // referencing behavior
+
+    /**
+     * @return A list of References (not Objects) which this JournalEntry references
+     */
+    public function getReferenced()
+    {
+        return ReferencePeer::getReferencesFromObject($this);
+    }
     // taggable behavior
 
     /**
