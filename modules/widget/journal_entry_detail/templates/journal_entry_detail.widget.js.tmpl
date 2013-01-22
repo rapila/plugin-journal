@@ -4,13 +4,19 @@ Widget.types.journal_entry_detail = {
 		this.init_content();
 		Widget.callStatic('detail', 'set_instance', this);
 		this.current_detail_id = null;
+		this.handle('opened', function() {
+			if(_this._element.find('input[name="publish_at"]').val() === '') {
+				_this._element.find('input[name="publish_at"]').val(_this.settings.date_today);
+			}
+		});
 	},
 
 	init_content: function() {
 		var _this = this;
 		this._element = Widget.parseHTML('{{includeTemplate=edit}}');
+		this._element.find('div.hide_if_not_saved').hide();
 		this._element.find("input[name='publish_at']").datepicker({
-			dateFormat: 'dd.mm.yy'
+			dateFormat: _this.settings.date_format
 		});
 		this.comment_row = Widget.parseHTML("{{includeTemplate=comment_row}}");
 		this.comment_list = this._element.find('tbody.comments');
@@ -65,7 +71,7 @@ Widget.types.journal_entry_detail = {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
 			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
-			this._element.find('input[name="publish_at"]').val(data.PublishAt);
+			this._element.find('input[name="publish_at"]').val(data.PublishAt).prop('disabled', data.PublishAtDisabled);
 			this.set_text(data.Text);
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);
@@ -82,6 +88,7 @@ Widget.types.journal_entry_detail = {
 				this.tag_area.reload_tags();
 			}
 			this.detail_widget.set_title(this.detail_widget.settings.title = data.Title);
+			this._element.find('div.hide_if_not_saved').show();
 			this.detail_widget.enable();
 		});
 	},

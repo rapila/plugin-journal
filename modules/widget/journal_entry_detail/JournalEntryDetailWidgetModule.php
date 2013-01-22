@@ -22,6 +22,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		
 		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
 		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
+		$this->setSetting('date_today', date('d.m.Y'));
+		$this->setSetting('date_format', 'dd.mm.yy');
 	}
 
 	public function setJournalId($iJournalId) {
@@ -57,6 +59,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$aResult = $oJournalEntry->toArray();
 		$aResult['Text'] = RichtextUtil::parseStorageForBackendOutput($aResult['Text'])->render();
 		$aResult['PublishAt'] = $oJournalEntry->getPublishAt('d.m.Y');
+		$aResult['PublishAtDisabled'] = $oJournalEntry->getPublishAt('c') <= date('c');
 		$aResult['CreatedInfo'] = Util::formatCreatedInfo($oJournalEntry);
 		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournalEntry);
 		$aResult['comments'] = array();
