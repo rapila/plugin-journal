@@ -390,7 +390,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oCommentTemplate->replaceIdentifier('email', $oComment->getEmail());
 		$oCommentTemplate->replaceIdentifier('email_hash', md5($oComment->getEmail()));
 		$oCommentTemplate->replaceIdentifier('id', $oComment->getId());
-		$oCommentTemplate->replaceIdentifier('text', $oComment->getText(), null, Template::NO_HTML_ESCAPE);
+		$oCommentTemplate->replaceIdentifier('text', nl2br($oComment->getText()), null, Template::NO_HTML_ESCAPE);
 		if($oComment->getCreatedAtTimestamp() !== null) {
 			$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getCreatedAtTimestamp()));
 		}
