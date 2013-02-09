@@ -88,6 +88,14 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		return null;
 	}
 	
+	public function toggleIsPublished($aRowData) {
+		$oJournalEntry = JournalEntryQuery::create()->findPk($aRowData['id']);
+		if($oJournalEntry) {
+			$oJournalEntry->setIsPublished(!$oJournalEntry->getIsPublished());
+			$oJournalEntry->save();
+		}
+	}
+	
 	public function getJournalName() {
 		$iId = $this->oDelegateProxy->getJournalId();
 		if(is_array($iId)) {
