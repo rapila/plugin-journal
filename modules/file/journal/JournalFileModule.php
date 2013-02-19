@@ -43,34 +43,38 @@ class JournalFileModule extends FileModule {
 		foreach($aJournalEntries as $oJournalEntry) {
 			$oItem = $oDocument->createElement('item');
 			foreach($oJournalEntry->getRssAttributes($this->aJournalIds ? $this->oJournalPage : null) as $sAttributeName => $mAttributeValue) {
-				if(is_array($mAttributeValue)) {
-					if(ArrayUtil::arrayIsAssociative($mAttributeValue)) {
-						//Add one elements with attributes
-						$oAttribute = $oDocument->createElement($sAttributeName);
-						foreach($mAttributeValue as $sSubAttributeName => $sSubAttributeValue) {
-							if($sSubAttributeName === '__content') {
-								$oAttribute->appendChild($oDocument->createTextNode($sSubAttributeValue));
-							} else {
-								$oAttribute->setAttribute($sSubAttributeName, $sSubAttributeValue);
-							}
-						}
-						$oChannel->appendChild($oAttribute);
-					} else {
-						//Add multiple elements with the same name
-						foreach($mAttributeValue as $sSubAttributeValue) {
-							self::addSimpleAttribute($oDocument, $oItem, $sAttributeName, $sSubAttributeValue);
-						}
-					}
-				} else {
-					self::addSimpleAttribute($oDocument, $oItem, $sAttributeName, $mAttributeValue);
-				}
+				self::attributeToNode($oDocument, $oItem, $sAttributeName, $mAttributeValue);
 			}
 			$oChannel->appendChild($oItem);
 		}
 		print $oDocument->saveXML();
 	}
 	
-	private static function addSimpleAttribute($oDocument, $oChannel, $sAttributeName, $sAttributeValue, $sNamespace = null) {
+	private static function attributeToNode($oDocument, $oItem, $sAttributeName, $mAttributeValue) {
+		if(is_array($mAttributeValue)) {
+			if(ArrayUtil::arrayIsAssociative($mAttributeValue)) {
+				//Add one element with attributes
+				$oAttribute = $oDocument->createElement($sAttributeName);
+				foreach($mAttributeValue as $sSubAttributeName => $sSubAttributeValue) {
+					if($sSubAttributeName === '__content') {
+						$oAttribute->appendChild($oDocument->createTextNode($sSubAttributeValue));
+					} else {
+						$oAttribute->setAttribute($sSubAttributeName, $sSubAttributeValue);
+					}
+				}
+				$oItem->appendChild($oAttribute);
+			} else {
+				//Add multiple elements with the same name
+				foreach($mAttributeValue as $mSubAttributeValue) {
+					self::attributeToNode($oDocument, $oItem, $sAttributeName, $mSubAttributeValue);
+				}
+			}
+		} else {
+			self::addSimpleAttribute($oDocument, $oItem, $sAttributeName, $mAttributeValue);
+		}
+	}
+	
+	private static function addSimpleAttribute($oDocument, $oChannel, $sAttributeName, $sAttributeValue = '', $sNamespace = null) {
 		if($sNamespace === 'http://www.itunes.com/dtds/podcast-1.0.dtd') {
 			$sAttributeName = "itunes:$sAttributeName";
 		}
