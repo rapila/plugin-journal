@@ -39,6 +39,10 @@ class JournalEntry extends BaseJournalEntry {
 		return parent::getJournalComments($oCriteria, $oConnection);
 	}
 	
+	public function getImages() {
+		return $this->getJournalEntryImages(JournalEntryImageQuery::create()->orderBySort(Criteria::ASC));
+	}
+	
 	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
 		$aResult = array();
 		$aResult['title'] = $this->getTitle();
@@ -66,6 +70,13 @@ class JournalEntry extends BaseJournalEntry {
 			$aResult['dateCreated'] = new xmlrpcval(iso8601_encode((int)$this->getCreatedAtTimestamp()), 'dateTime.iso8601');
 			$aResult['date_created_gmt'] = new xmlrpcval(iso8601_encode((int)$this->getCreatedAtTimestamp(), 1), 'dateTime.iso8601');
 			$aResult['postid'] = $this->getId();
+		} else {
+			$aEnclosures = array();
+			foreach($this->getImages() as $oImage) {
+				$oDocument = $oImage->getDocument();
+				$aEnclosures[] = array('length' => $oDocument->getDataSize(), 'type' => $oDocument->getMimetype(), 'url' => LinkUtil::absoluteLink($oDocument->getLink(), null, LinkUtil::isSSL()));
+			}
+			$aResult['enclosure'] = $aEnclosures;
 		}
 		return $aResult;
 	}
