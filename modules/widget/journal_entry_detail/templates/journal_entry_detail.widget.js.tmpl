@@ -35,12 +35,12 @@ Widget.types.journal_entry_detail = {
 		this.droppable_area = this._element.find('.droppable_area');
 		this.droppable_area.sortable({
 			update: function(document, ui) {
-				var ids = this.droppable_area.children().map(function() {
+				var ids = _this.droppable_area.children().map(function() {
 					return jQuery(this).data('document_id');
 				}).get();
-				if(this.current_detail_id !== null) {
+				if(_this.current_detail_id !== null) {
 					// only reorder if detail has been saved, otherwise sort order is taken from dom at saving time
-					this.reorderDocuments(ids);
+					_this.reorderDocuments(ids);
 				}
 			}
 		});
