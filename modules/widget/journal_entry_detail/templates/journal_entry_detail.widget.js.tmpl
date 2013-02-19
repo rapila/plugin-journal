@@ -38,6 +38,7 @@ Widget.types.journal_entry_detail = {
 		}, jQuery.noop);
 
 		this.uploader = Widget.create('file_upload');
+		this.no_images_upload_info = jQuery('<div/>').html("{{writeString=wns.journal_entry.no_images_and_upload_info}}").addClass('no_images_placeholder');
 		this.droppable_area = this._element.find('.droppable_area');
 		this.droppable_area.sortable({
 			update: function(document, ui) {
@@ -66,7 +67,6 @@ Widget.types.journal_entry_detail = {
 
 	fill_data: function() {
 		this.detail_widget.disable();
-		var _this = this;
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
@@ -96,6 +96,10 @@ Widget.types.journal_entry_detail = {
 	update_comments: function(comments) {
 		var _this = this;
 		this.comment_list.empty();
+		if(comments.length === 0) {
+			var comment = jQuery('<tr/>');
+			this.comment_list.append(comment.append(jQuery('<td/>').attr('colspan', 4).text("{{writeString=wns.journal_entry.no_comments}}")));
+		}
 		jQuery.each(comments, function(i, comment) {
 			var comment_row = _this.comment_row.clone();
 			var online_checkbox = jQuery('<input/>').attr({ type: 'checkbox', name: 'comment_is_published[]', value : comment.Id }).prop('checked', comment.IsPublished).change(function() {
@@ -121,6 +125,9 @@ Widget.types.journal_entry_detail = {
 		var _this = this;
 		this.droppable_area.empty();
 		this.allDocuments(_this.settings.thumbnail_size, function(documents) {
+			if(documents.length === 0) {
+				_this.droppable_area.append(_this.no_images_upload_info);
+			}
 			jQuery.each(documents, function(i, document_data) {
 				_this.insert_thumbnail(document_data);
 			});
@@ -128,6 +135,7 @@ Widget.types.journal_entry_detail = {
 	},
 
 	insert_thumbnail: function(document_data) {
+		this.droppable_area.find('div.no_images_placeholder').remove();
 		var _this = this;
 		var document_id = document_data.Id;
 		var px_size = ''+this.settings.thumbnail_size+'px';
@@ -135,12 +143,15 @@ Widget.types.journal_entry_detail = {
 		doc.css({width: px_size, height: px_size});
 		doc.data('document_id', document_id);
 
-		jQuery('<span/>').addClass('ui-icon ui-icon-trash').click(function(event) {
+		jQuery('<span/>').attr('title', "{{writeString=wns.journal_entry.delete_file}}").addClass('ui-icon ui-icon-trash').click(function(event) {
 			var delete_message = AdminInterface.strings.get_string('wns.document.delete_warning', { document_name: document_data.Name});
 			Widget.confirm("{{writeString=wns.delete_warning_title}}", delete_message, function(confirmed) {
 				if(confirmed) {
 					_this.deleteDocument( document_id, function(result) {
 						jQuery(doc).remove();
+						if(_this.droppable_area.find('div.ui-image-picker-image').length === 0) {
+							_this.droppable_area.empty().append(_this.no_images_upload_info);
+						}
 					});
 				}
 			});
@@ -148,12 +159,12 @@ Widget.types.journal_entry_detail = {
 		}).appendTo(doc);
 		var document_object = Widget.parseHTML(document_data.Preview);
 		doc.addClass('pointer').attr('title', '{{writeString=wns.edit_file.dblclick}}').dblclick(function() {
-			Widget.create('document_detail', function(detail) {
-				detail.settings.hide_inputs_if_called_externally = true;
-				detail.auto_open = true;
-			}, function(detail) {
-				detail.setDocumentId(document_id);
-				detail.fill_data();
+			Widget.create('document_detail', function(widget) {
+				widget.settings.hide_inputs_if_called_externally = true;
+				widget.auto_open = true;
+			}, function(widget) {
+				widget.setDocumentId(document_id);
+				widget.fill_data();
 			});
 		});
 		doc.append(document_object);
@@ -163,6 +174,7 @@ Widget.types.journal_entry_detail = {
 	upload_success: function(document_id, options) {
 		var _this = this;
 		this.addJournalEntryImage(document_id, function() {
+			console.log('upload_success document_id', document_id);
 			_this.insert_thumbnail(_this.getSingleDocument(document_id, _this.settings.thumbnail_size));
 		});
 	},
