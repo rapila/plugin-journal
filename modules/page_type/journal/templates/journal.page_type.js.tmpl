@@ -88,7 +88,7 @@
 				var sortable_container = jQuery('<div/>').addClass('widget_item');
 				jQuery.each(result, function(i, widget) {
 					var container = sortable_container.clone();
-					jQuery('<span/>', {style: 'display:inline-block;height:16px;'}).addClass('ui-sortable-handle').appendTo(container);
+					jQuery('<span/>', {className: 'ui-sortable-handle', style: 'display:inline-block;height:16px;'}).appendTo(container);
 					jQuery('<input/>', {type: 'checkbox', name: 'widgets[]', value: widget.name, checked: widget.current}).appendTo(container);
 					jQuery('<label/>', {"for": 'widgets[]'}).css({display: 'inline'}).appendTo(container).text(widget.title);
 					container.appendTo(_this.widget_list);
