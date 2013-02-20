@@ -1,23 +1,26 @@
 Widget.types.journal_input = {
 	prepare: function() {
 		this.reload();
-		Widget.handle('rapila-journals_changed', this.reload.bind(this));		
+		Widget.handle('rapila-journals_changed', this.reload.bind(this));
 	},
-	
+
 	reload: function() {
+		var _this = this;
 		var current = this._element.val();
 		this._element.empty();
-		if(this.settings.initial_selection !== null) {
-			this._element.populate({'': "{{writeString=wns.choose}}"});
-		}
-		this._element.populate(this.getJournals(this.settings.journal_ids_configured));
-		if(current) {
-			this.val(current);
-		} 
+		this.listJournals(this.settings.journal_ids_configured, function(journals) {
+			if(this.settings.initial_selection !== null) {
+				_this._element.populate({'': "{{writeString=wns.choose}}"});
+			}
+			_this._element.populate(journals);
+			if(current) {
+				this._element.val(current);
+			}
+		});
 	},
 	
 	val: function(value) {
-		if(value) {
+		if(arguments.length) {
 			this._element.val(value);
 			return;
 		}

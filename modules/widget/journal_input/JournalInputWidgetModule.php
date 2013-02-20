@@ -4,7 +4,7 @@
  */
 class JournalInputWidgetModule extends WidgetModule {
 	
-	public function getJournals($iJournalIdsConfigured = null) {
+	public function listJournals($iJournalIdsConfigured = null) {
 		$oQuery = JournalQuery::create()->distinct();
 		if($iJournalIdsConfigured !== null) {
 			$oQuery->filterById($iJournalIdsConfigured);
