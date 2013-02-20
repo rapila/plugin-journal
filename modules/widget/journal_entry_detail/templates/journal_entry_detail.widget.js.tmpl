@@ -174,7 +174,6 @@ Widget.types.journal_entry_detail = {
 	upload_success: function(document_id, options) {
 		var _this = this;
 		this.addJournalEntryImage(document_id, function() {
-			console.log('upload_success document_id', document_id);
 			_this.insert_thumbnail(_this.getSingleDocument(document_id, _this.settings.thumbnail_size));
 		});
 	},
