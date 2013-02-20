@@ -15,5 +15,9 @@ class Journal extends BaseJournal {
 	public function commentsEnabled() {
 		return $this->getEnableComments() || $this->getNotifyComments();
 	}
+	
+	public function getCountEntries() {
+		return $this->countJournalEntrys();
+	}
 }
 
