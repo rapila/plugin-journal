@@ -338,16 +338,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$iCountComments = count($aComments);
 
 		// don't display "no comments" in journal entry detail because it is obvious and only disturbing
-		$sCountMessage = null;
-		if($iCountComments === 0) {
-			if(!$bIsDetailView) {
-				$sCountMessage = StringPeer::getString('journal.comment_count.none');
-			}
-		} else {
-			$sCountMessage = $iCountComments;
-		}
-		if($sCountMessage !== null) {
-			$oEntryTemplate->replaceIdentifier('comment_count_info', StringPeer::getString('journal.comment_count', null, null, array('comment_count' => $sCountMessage)));
+		if(!$bIsDetailView || $iCountComments > 0) {
+			$oEntryTemplate->replaceIdentifier('comment_count_info', StringPeer::getString('journal.comment_count', null, null, array('comment_count' => $iCountComments)));
 		}
 		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
 		foreach($aComments as $iCounter => $oComment) {
