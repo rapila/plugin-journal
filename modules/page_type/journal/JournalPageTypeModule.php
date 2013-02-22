@@ -299,7 +299,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getPublishAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$iCountComments = $oEntry->countJournalComments($oCommentQuery);
-		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments > 0 ? $iCountComments : StringPeer::getString('journal.comment_count.none'));
+		$oEntryTemplate->replaceIdentifier('comment_count', $iCountComments);
 
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::absoluteLink($sDetailLink), null, LinkUtil::isSSL());
