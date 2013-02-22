@@ -149,20 +149,20 @@ class JournalFilterModule extends FilterModule {
 			$_POST['preview'] = $oComment;
 		} else if(Flash::noErrors()) {
 			$oEntry->addJournalComment($oComment);
-			
+
 			// Post is considered as spam
 			$bIsProblablySpam = isset($_POST['important_note']) && $_POST['important_note'] != null;
 			$sCommentNotificationTemplate = 'e_mail_comment_notified';
-			
+
 			// Prevent publication if comments are not enabled or post is spam
 			if(!$oEntry->getJournal()->getEnableComments() || $bIsProblablySpam) {
 				if(!Session::getSession()->isAuthenticated()) {
-					$oComment->setIsPublished($bIsPublished);
+					$oComment->setIsPublished(false);
 					$sCommentNotificationTemplate = 'e_mail_comment_moderated';
 				}
 			}
 			$oComment->save();
-			
+
 			// Notify new comment
 			if($oEntry->getJournal()->getNotifyComments()) {
 				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('journal:template_set', 'default'));
