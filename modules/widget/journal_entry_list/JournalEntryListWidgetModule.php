@@ -30,7 +30,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		return array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published', 'journal_name', 'has_tags', 'delete');
+		return array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published', 'has_tags', 'journal_name', 'delete');
 	}
 	
 	public function getMetadataForColumn($sColumnIdentifier) {
