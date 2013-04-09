@@ -25,7 +25,7 @@ Widget.types.journal_entry_detail = {
 			journal_input.settings.journal_ids_configured = _this.settings.journal_ids_configured;
 		}, jQuery.noop);
 
-		this._element.accordion({active: 0, autoHeight: false, clearStyle: true});
+		this._element.accordion({heightStyle: 'content'});
 		Widget.createWithElement('tag_area', function(widget) {
 			_this.tag_area = widget;
 			widget.settings.auto_load = false;

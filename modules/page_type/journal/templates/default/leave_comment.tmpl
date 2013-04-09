@@ -15,7 +15,7 @@
 	{{writeFlashValue=comment_required}}
 	{{endIf}}
 	{{identifierContext=start;name=captcha}}
-	<p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}}</label>{{captcha}}
+	<p><label for="recaptcha_response_field">{{writeString=journal.form.captcha}} *</label>{{captcha}}
 	{{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
 	{{writeFlashValue=captcha_required}}{{endIf}}
 	</p>{{identifierContext=end;name=captcha}}
