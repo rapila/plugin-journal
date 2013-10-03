@@ -235,13 +235,43 @@
 
 	jQuery.extend(Widget.types.page_type.types.journal.prototype, {
 		handle_preview: function(page_id, page_type) {
-			var container = jQuery('<div/>');
-			var _this = this;
-			var save = jQuery('<button/>').text(window.AdminInterface.translations.okButtonText).button();
-			jQuery('#journal_contents').append(container, save);
-			this.controller = init_journal_controls(page_id, container, page_type);
-			save.click(function() {
-				_this.controller.save();
+			jQuery('[data-widget-type]').each(function() {
+				// Get the container
+				var filled_entry = jQuery(this);
+				
+				// Append the preview bar, add container info
+				var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
+				preview_bar.data('filled_entry', filled_entry);
+				filled_entry.data('preview_bar', preview_bar);				
+				filled_entry.append(preview_bar);
+				
+				// check permission of entry, permission widget related methods need to be checked. I guess its a Peer > Query Problem....
+				// Widget.callStatic('permission', 'mayUpdateObjectOfModel', 'JournalEntry', filled_entry.attr('data-entry-id'), function(may) {
+				// 	jQuery('.preview_bar').css({opacity: may ? 1 : 0.5})[may ? 'addClass' : 'removeClass']('may_edit');
+				// });
+			});
+			
+			// add click handler and handle save reload of entry
+			jQuery('.preview_bar').delegate('.edit', 'click', function() {
+				var preview_bar = jQuery(this).closest('.preview_bar');
+				// if(!preview_bar.is('.may_edit')) {
+				// 	return;
+				// }
+				// preview_bar.show('fast');
+				var container = preview_bar.data('filled_entry');
+
+				Widget.create('journal_entry_detail', function(widget) {
+					var entry_id = container.attr('data-entry-id');
+					widget.setJournalEntryId(entry_id);
+					widget.open();
+					widget.fill_data();
+					widget.handle('saved', function() {
+						page_type.callPageTypeMethod('renderJournalEntry', entry_id, container.attr('data-template'), function(data) {
+							var target = jQuery('[data-entry-id='+entry_id+'] > div').first();
+							target.html(data);
+						});
+					});
+				});
 			});
 		},
 
