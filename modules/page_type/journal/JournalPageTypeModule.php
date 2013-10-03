@@ -44,6 +44,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	// Entries per overview page
 	private $iEntriesPerPage = null;
 	
+	private $bIsPreview;
+	
 	const ALLOWED_POINTER_PAGE = 'page';
 
 	// Names of filters and sessions
@@ -142,16 +144,17 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {
+		$this->bIsPreview = $bIsPreview;
 		$this->setFilters();
 		$this->fillAuxilliaryContainers($oTemplate);
 		if(!$oTemplate->hasIdentifier('container', $this->sContainer)) {
 			return;
 		}
-		if($bIsPreview) {
-			$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing page-type-journal'));
-			$oTemplate->replaceIdentifier('container', $oTag, $this->sContainer);
-			return;
-		}
+		// if($this->bIsPreview) {
+		// 	$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing page-type-journal'));
+		// 	$oTemplate->replaceIdentifier('container', $oTag, $this->sContainer);
+		// 	return;
+		// }
 		$sMethod = "overview_$this->sOverviewMode";
 		if($this->oNavigationItem instanceof VirtualNavigationItem) {
 			$sMethod = substr($this->oNavigationItem->getType(), strlen('journal-'));
@@ -288,8 +291,17 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function archiveIsActive() {
 		return !is_null($this->iYear) || !is_null($this->iMonth) || !is_null($this->iDay);
 	}
+	
+	public function renderJournalEntry($iEntryId, $sTemplateName) {
+		$oJournalEntry = JournalEntryQuery::create()->findPk($iEntryId);
+		if($oJournalEntry) {
+			$oResult = $this->renderEntry($oJournalEntry, $this->constructTemplate($sTemplateName), true)->render();
+			return $oResult;
+		}
+		return null;
+	}
 
-	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate) {
+	private function renderEntry(JournalEntry $oEntry, Template $oEntryTemplate, $bIsAjax = false) {
 		$oCommentQuery = JournalCommentQuery::create()->excludeUnverified();
 		$oEntryTemplate->replaceIdentifier('journal_title', $oEntry->getJournal()->getName());
 		$oEntryTemplate->replaceIdentifier('slug', $oEntry->getSlug());
@@ -327,6 +339,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		if($oEntryTemplate->hasIdentifier('journal_gallery') && $oEntry->countJournalEntryImages() > 0) {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
+		}
+		if($this->bIsPreview && !$bIsAjax) {
+			$oEntryTemplate = TagWriter::quickTag('div', array('data-widget-type' => 'journal_entry_detail', 'data-entry-id' => $oEntry->getId(), 'data-template' => $oEntryTemplate->getTemplateName()), TagWriter::quickTag('div', array(), $oEntryTemplate));
 		}
 		
 		return $oEntryTemplate;
