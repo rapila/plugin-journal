@@ -41,17 +41,29 @@ div.ui-widget-content.journal-widgets.ui-sortable .ui-sortable-handle {
 	margin-right: 1.0em;
 }
 
-.ui-icon {
+.preview_bar.journal-entry .ui-icon {
 	height: 20px; 
 	margin: -2px 2px 0 0;
 	width: 26px;
 }
-.ui-icon.ui-icon-trash {
+
+.preview_bar.journal-entry {
+	opacity: 0.5;
+}
+.preview_bar.journal-entry.may_edit {
+	opacity: 1;
+}
+
+.preview_bar.journal-entry.may_edit .ui-icon {
+	cursor: pointer;
+}
+
+.preview_bar.journal-entry .ui-icon.ui-icon-trash {
 	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_trash.png") no-repeat center bottom;
 }
-.ui-icon.ui-icon-wrench {
+.preview_bar.journal-entry .ui-icon.ui-icon-wrench {
 	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_edit_condition.png") no-repeat center bottom;
 }
-.ui-icon.ui-icon-pencil {
+.preview_bar.journal-entry .ui-icon.ui-icon-pencil {
 	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_edit.png") no-repeat center bottom;
 }

@@ -44,7 +44,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	// Entries per overview page
 	private $iEntriesPerPage = null;
 	
-	private $bIsPreview;
+	private $bIsPreview = false;
 	
 	const ALLOWED_POINTER_PAGE = 'page';
 
@@ -144,7 +144,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	public function display(Template $oTemplate, $bIsPreview = false) {
-		$this->bIsPreview = $bIsPreview;
+		if($bIsPreview) {
+			$this->bIsPreview = true;
+		}
 		$this->setFilters();
 		$this->fillAuxilliaryContainers($oTemplate);
 		if(!$oTemplate->hasIdentifier('container', $this->sContainer)) {
@@ -234,7 +236,7 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null, $sIdentifier = null) {
 		if($oQuery === null) {
-			$oQuery = FrontendJournalEntryQuery::create();
+			$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
 		}
 		if($sIdentifier === null) {
 			$sIdentifier = 'container';
@@ -258,7 +260,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oFullTemplate->replaceIdentifier('no_result_info', $this->renderNoResult());
 			return;
 		}
-		foreach($oQuery->orderByPublishAt(Criteria::DESC)->find() as $oEntry) {
+		foreach($aEntries as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple($sIdentifier, $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
 		}
 	}
@@ -341,7 +343,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oEntryTemplate->replaceIdentifier('journal_gallery', $this->renderGallery($oEntry));
 		}
 		if($this->bIsPreview && !$bIsAjax) {
-			$oEntryTemplate = TagWriter::quickTag('div', array('data-widget-type' => 'journal_entry_detail', 'data-entry-id' => $oEntry->getId(), 'data-template' => $oEntryTemplate->getTemplateName()), TagWriter::quickTag('div', array(), $oEntryTemplate));
+			$oEntryTemplate = TagWriter::quickTag('div', array('class' => 'journal_entry-container', 'data-entry-id' => $oEntry->getId(), 'data-template' => $oEntryTemplate->getTemplateName()), $oEntryTemplate);
 		}
 		
 		return $oEntryTemplate;
@@ -441,7 +443,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function displayFilteredOverview($oTemplate) {
-		$oQuery = FrontendJournalEntryQuery::create();
+		$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
 		$oQuery->filterByDate($this->iYear, $this->iMonth, $this->iDay);
 		$sMethodName = StringUtil::camelize("display_overview_$this->sOverviewMode");
 		$this->$sMethodName($oTemplate, $oQuery);
@@ -526,10 +528,11 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderTagCloudWidget() {
 		// get all tags related to
 		// • model JournalEntry
-		// • active journal_enties with current journal_id 
-		$aIncludeJournalEntryIds = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->select('Id')->find()->getData();
-		$oQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
-		$aTags = $oQuery->find()->toKeyValue('Name', 'TagInstanceCount');
+		// • active journal_enties with current journal_id
+		$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
+		$aIncludeJournalEntryIds = $oQuery->filterByJournalId($this->aJournalIds)->select('Id')->find()->getData();
+		$oTagQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
+		$aTags = $oTagQuery->find()->toKeyValue('Name', 'TagInstanceCount');
 		
 		if(empty($aTags)) {
 			return null;
@@ -595,7 +598,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/	
 	private function renderCalendarWidget() {
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
+		$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
+		$aResult = $oQuery->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		$oTemplate = $this->constructTemplate('widget_calendar');
 		$oItemPrototype = $this->constructTemplate('widget_calendar_item');
 		foreach($aResult as $aDate) {			
@@ -638,7 +642,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate = $this->constructTemplate('widget_recent_entries');
 		$oItemPrototype = $this->constructTemplate('widget_recent_entry_item');
 		$iLimit = Settings::getSetting('journal', 'recent_entries_widget_limit', 7);
-		$oQuery	= FrontendJournalEntryQuery::create()->mostRecentFirst()->limit($iLimit)->filterByJournalId($this->aJournalIds);
+		$oQuery	= $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
+		$oQuery->mostRecentFirst()->limit($iLimit)->filterByJournalId($this->aJournalIds);
 		foreach($oQuery->find() as $oEntry) {
 			$oTemplate->replaceIdentifierMultiple('entries', $this->renderEntry($oEntry, clone $oItemPrototype));
 		}
@@ -683,7 +688,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderCollapsibleDateTreeWidget() {
 		$iTreeWidgetLevels = Settings::getSetting('journal', 'display_journal_collapsible_tree_levels', 2);
 		
-		$aResult = FrontendJournalEntryQuery::create()->filterByJournalId($this->aJournalIds)->findDistinctDates();
+		$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
+		$aResult = $oQuery->filterByJournalId($this->aJournalIds)->findDistinctDates();
 		
 		$oTemplate = $this->constructTemplate('widget_collapsible_date_tree');
 		if($this->archiveIsActive()) {
