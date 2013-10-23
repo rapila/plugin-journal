@@ -72,6 +72,7 @@ class JournalEntryImageTableMap extends TableMap
             'denyable' => array('mode' => 'by_role', 'role_key' => '', 'owner_allowed' => '', ),
             'extended_timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_updated_at' => 'false', ),
             'attributable' => array('create_column' => 'created_by', 'update_column' => 'updated_by', ),
+            'extended_keyable' => array('key_separator' => '_', ),
         );
     } // getBehaviors()
 

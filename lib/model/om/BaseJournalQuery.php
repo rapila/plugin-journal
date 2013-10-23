@@ -891,4 +891,14 @@ abstract class BaseJournalQuery extends ModelCriteria
     {
         return $this->addAscendingOrderByColumn(JournalPeer::CREATED_AT);
     }
+    // extended_keyable behavior
+
+    public function filterByPKArray($pkArray) {
+            return $this->filterByPrimaryKey($pkArray[0]);
+    }
+
+    public function filterByPKString($pkString) {
+        return $this->filterByPrimaryKey($pkString);
+    }
+
 }

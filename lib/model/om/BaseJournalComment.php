@@ -1794,4 +1794,22 @@ abstract class BaseJournalComment extends BaseObject implements Persistent
         return $this;
     }
 
+    // extended_keyable behavior
+
+    /**
+     * @return the primary key as an array (even for non-composite keys)
+     */
+    public function getPKArray()
+    {
+        return array($this->getPrimaryKey());
+    }
+
+    /**
+     * @return the composite primary key as a string, separated by _
+     */
+    public function getPKString()
+    {
+        return implode("", $this->getPKArray());
+    }
+
 }
