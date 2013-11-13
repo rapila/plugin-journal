@@ -8,7 +8,10 @@ class FrontendJournalEntryQuery extends JournalEntryQuery {
 	
 	public static function create($sModelAlias = null, $oCriteria = null) {
 		$oQuery = JournalEntryQuery::create($sModelAlias, $oCriteria);
-		return $oQuery->excludeDraft();
+		if(Manager::getCurrentPrefix() !== 'preview') {
+			return $oQuery->excludeDraft();
+		}
+		return $oQuery;
 	}
 }
 

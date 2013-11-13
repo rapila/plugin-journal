@@ -158,6 +158,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		// 	return;
 		// }
 		$sMethod = "overview_$this->sOverviewMode";
+		
 		if($this->oNavigationItem instanceof VirtualNavigationItem) {
 			$sMethod = substr($this->oNavigationItem->getType(), strlen('journal-'));
 			if($this->oNavigationItem->getData() instanceof JournalEntry) {
@@ -236,7 +237,7 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null, $sIdentifier = null) {
 		if($oQuery === null) {
-			$oQuery = $this->bIsPreview ? JournalEntryQuery::create() : FrontendJournalEntryQuery::create();
+			$oQuery = FrontendJournalEntryQuery::create();
 		}
 		if($sIdentifier === null) {
 			$sIdentifier = 'container';
@@ -314,7 +315,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments($oCommentQuery));
 
-		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), 'FrontendManager');
+		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage));
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::absoluteLink($sDetailLink), null, LinkUtil::isSSL());
 		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
 
@@ -451,7 +452,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private function displayEntry($oTemplate) {
 		if($this->oEntry === null) {
-			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray(), 'FrontendManager'));
+			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray()));
 		}
 		$oEntryTemplate = $this->constructTemplate('full_entry');
 		if($aLink = Session::getSession()->getAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK)) {
