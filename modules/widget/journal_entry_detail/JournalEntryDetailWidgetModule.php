@@ -59,7 +59,6 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$aResult = $oJournalEntry->toArray();
 		$aResult['Text'] = RichtextUtil::parseStorageForBackendOutput($aResult['Text'])->render();
 		$aResult['PublishAt'] = $oJournalEntry->getPublishAt('d.m.Y');
-		$aResult['PublishAtDisabled'] = $oJournalEntry->getPublishAt('c') <= date('c');
 		$aResult['CreatedInfo'] = Util::formatCreatedInfo($oJournalEntry);
 		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournalEntry);
 		$aResult['comments'] = array();
