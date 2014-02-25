@@ -4,9 +4,13 @@ Widget.types.journal_entry_detail = {
 		this.init_content();
 		Widget.callStatic('detail', 'set_instance', this);
 		this.current_detail_id = null;
+		this.published_at_input = this._element.find('input[name="publish_at"]');
+		this._element.find('input[name="is_published"]').change(function() {
+			_this.published_at_input.prop('disabled', this.checked);
+		});
 		this.handle('opened', function() {
-			if(_this._element.find('input[name="publish_at"]').val() === '') {
-				_this._element.find('input[name="publish_at"]').val(_this.settings.date_today);
+			if(_this.published_at_input.val() === '') {
+				_this.published_at_input.val(_this.settings.date_today);
 			}
 		});
 	},
@@ -71,7 +75,7 @@ Widget.types.journal_entry_detail = {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
 			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
-			this._element.find('input[name="publish_at"]').val(data.PublishAt).prop('disabled', data.PublishAtDisabled);
+			_this.published_at_input.val(data.PublishAt).prop('disabled', data.PublishAt && data.IsPublished);
 			this.set_text(data.Text);
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);
