@@ -942,4 +942,14 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
     {
         return $this->addAscendingOrderByColumn(JournalEntryImagePeer::CREATED_AT);
     }
+    // extended_keyable behavior
+
+    public function filterByPKArray($pkArray) {
+        return $this->filterByPrimaryKey($pkArray);
+    }
+
+    public function filterByPKString($pkString) {
+        return $this->filterByPrimaryKey(explode("_", $pkString));
+    }
+
 }

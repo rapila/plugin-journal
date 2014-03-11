@@ -12,7 +12,7 @@
 			this.journal_checkbox_prototype = Widget.parseHTML('{{includeTemplate=edit_journal}}');
 			this.container.append(this.form);
 			this.journal_list = this.form.find('div.journal_list');
-			this.add_new_journal_button = this.form.find('a.add_new_journal').click(function(){
+			this.add_new_journal_button = this.form.find('a.add_new_journal').click(function() {
 				_this.edit_journal();
 			});
 
@@ -235,13 +235,43 @@
 
 	jQuery.extend(Widget.types.page_type.types.journal.prototype, {
 		handle_preview: function(page_id, page_type) {
-			var container = jQuery('<div/>');
 			var _this = this;
-			var save = jQuery('<button/>').text(window.AdminInterface.translations.okButtonText).button();
-			jQuery('#journal_contents').append(container, save);
-			this.controller = init_journal_controls(page_id, container, page_type);
-			save.click(function() {
-				_this.controller.save();
+
+			function insert_preview_bar(bar, container) {
+				container.find('h1, h2, h3, > :first-child').last().prepend(bar);
+			}
+			
+			jQuery('.journal_entry-container').each(function() {
+				// Get the container
+				var container = jQuery(this);
+				
+				// Append the preview bar, add container info
+				var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
+				insert_preview_bar(preview_bar, container);
+				
+				// check permission of entry, permission widget related methods need to be checked. I guess its a Peer > Query Problem....
+				// Widget.callStatic('permission', 'mayUpdateObjectOfModel', 'JournalEntry', container.data('entryId'), function(may) {
+				// 	preview_bar[may ? 'addClass' : 'removeClass']('may_edit');
+				// });
+			});
+			
+			// add click handler and handle save reload of entry
+			jQuery(document).delegate('.preview_bar.journal-entry.may_edit .edit', 'click', function() {
+				var preview_bar = jQuery(this).closest('.preview_bar');
+				var container = preview_bar.closest('.journal_entry-container');
+
+				Widget.createOnce('journal_entry_detail', function(widget) {
+					var entry_id = container.data('entryId');
+					widget.setJournalEntryId(entry_id);
+					widget.fill_data();
+					widget.open();
+					widget.handle('saved', function() {
+						page_type.callPageTypeMethod('renderJournalEntry', entry_id, container.data('template'), function(data) {
+							container.html(data);
+							insert_preview_bar(preview_bar, container);
+						});
+					});
+				}, null, null, _this);
 			});
 		},
 

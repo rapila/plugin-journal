@@ -70,12 +70,13 @@ Widget.types.journal_entry_detail = {
 	},
 
 	fill_data: function() {
+		var _this = this;
 		this.detail_widget.disable();
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
 			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
-			_this.published_at_input.val(data.PublishAt).prop('disabled', data.PublishAt && data.IsPublished);
+			_this.published_at_input.val(data.PublishAt).prop('disabled', data.IsPublished);
 			this.set_text(data.Text);
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);
