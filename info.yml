@@ -1,0 +1,7 @@
+name: rapila-journal-plugin
+repository:
+    - {type: git, url: 'git://github.com/rapila/plugin-journal.git'}
+author: Rapila Team
+license: MIT
+dependencies:
+    base: "~1.1"
