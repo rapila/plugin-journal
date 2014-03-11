@@ -79,6 +79,7 @@ Widget.types.journal_entry_detail = {
 	},
 
 	fill_data: function() {
+		var _this = this;
 		this.detail_widget.disable();
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
