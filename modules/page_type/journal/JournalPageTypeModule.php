@@ -113,7 +113,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$this->aFilteredTags = array();
 		}
 		// Initial or reset journals
-		if($this->aFilteredJournalIds === null || isset($_REQUEST[self::RESET_JOURNALS])) {
+		if($this->aFilteredJournalIds === null || isset($_REQUEST[self::RESET_JOURNALS]) || !in_array($this->aFilteredJournalIds, $this->aJournalIds)) {
 			$this->aFilteredJournalIds = $this->aJournalIds;
 		}
 		// Add and remove tag filters
