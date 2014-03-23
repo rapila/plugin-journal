@@ -1,6 +1,5 @@
 Widget.types.journal_entry_detail = {
 	initialize: function() {
-		var _this = this;
 		this.init_content();
 		Widget.callStatic('detail', 'set_instance', this);
 		this.current_detail_id = null;
@@ -61,21 +60,32 @@ Widget.types.journal_entry_detail = {
 	},
 
 	prepare: function() {
+		var _this = this;
 		this.text_widget = this._element.find('.text-widget').attr('data-widget-session', this.settings.richtext_session);
 		this.text_widget.prepareWidget(function(text_widget) {
 			this.handle('saving', function(event, data) {
 				data.text = text_widget.get_data();
 			});
 		}.bind(this));
+		this.published_at_input = this._element.find('input[name="publish_at"]');
+		this._element.find('input[name="is_published"]').change(function() {
+			_this.published_at_input.prop('disabled', this.checked);
+		});
+		this.handle('opened', function() {
+			if(_this.published_at_input.val() === '') {
+				_this.published_at_input.val(_this.settings.date_today);
+			}
+		});
 	},
 
 	fill_data: function() {
+		var _this = this;
 		this.detail_widget.disable();
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
-			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished);
-			_this.published_at_input.val(data.PublishAt).prop('disabled', data.PublishAt && data.IsPublished);
+			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished).change();
+			this.published_at_input.val(data.PublishAt);
 			this.set_text(data.Text);
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);

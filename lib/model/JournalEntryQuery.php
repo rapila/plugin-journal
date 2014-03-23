@@ -24,7 +24,7 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	}
 	
 	public function excludeDraft() {
-		return $this->filterByIsPublished(true);
+		return $this->filterByIsPublished(true)->filterByPublishAt(date('c'), Criteria::LESS_EQUAL);
 	}
 	
 	public function orderByYearMonthDay() {

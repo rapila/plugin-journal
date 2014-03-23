@@ -22,7 +22,6 @@ class JournalFilterModule extends FilterModule {
 
 	public function onNavigationItemChildrenRequested(NavigationItem $oNavigationItem) {
 		$mIdentifier = $oNavigationItem->getIdentifier();
-		
 		if($oNavigationItem instanceof PageNavigationItem && $oNavigationItem->getMe()->isOfType('journal')) {
 			$this->addChildrenToPageNavigationItem($oNavigationItem);
 		} 
