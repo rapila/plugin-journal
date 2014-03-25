@@ -1,6 +1,6 @@
 --- 
 aspects: 
-- dynamic
-- widget_based
+  - dynamic
+  - widget_based
 enabled: true
 #<File:0x1029a19a8>
