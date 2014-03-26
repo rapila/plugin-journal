@@ -189,6 +189,10 @@
 		},
 
 		reload_entries: function() {
+			// just remove html code for entry_area in order not to display the entries (tab)
+			if(this.entry_area.length == 0) {
+				// return;
+			}
 			var _this = this;
 			if(this.entry_list) {
 				this.entry_list.reload();
