@@ -200,14 +200,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!$oPager->requiresPagination() || !$oTemplate->hasIdentifier('pagination')) {
 			return;
 		}
-		
 		// Basic page link without page number
 		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::PAGINATION_PARAM)));
 		$oPager->setPageLinkBase($sBasePageLink);
 		$oQuery = $oPager->getQuery();
 
 		$oPagerTemplate = $this->constructTemplate('pagination');
-		
 		// All page links including current one
 		$iTotalPages = $oPager->getTotalPageCount();
 		foreach($oPager as $oPage) {
@@ -233,6 +231,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	private function renderJournalEntries(JournalEntryQuery $oQuery = null, Template $oEntryTemplatePrototype, Template $oFullTemplate, Template $oCommentTemplate = null, $sContainer = null, $sIdentifier = null) {
+		
 		if($oQuery === null) {
 			$oQuery = FrontendJournalEntryQuery::create();
 		}
