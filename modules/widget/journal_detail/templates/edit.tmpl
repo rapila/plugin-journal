@@ -1,26 +1,34 @@
-<form>
-	<div class="status_section">
-		<div class="hide_if_not_saved">
-			<label>{{writeString=wns.created_info}}:</label><span class="created_info status"></span><br />
-			<label>{{writeString=wns.updated.info}}:</label><span class="updated_info status"></span><br />
-			<label>{{writeString=wns.id}}:</label><span class="detail_id status"></span><br />
+<form enctype="multipart/form-data">
+	<div class="accordion">
+		<h3><a href="#">Infos</a></h3>
+		<div class="tab_part general_info">
+			<div class="status_section">
+				<div class="hide_if_not_saved">
+					<label>{{writeString=wns.created_info}}:</label><span class="created_info status"></span><br />
+					<label>{{writeString=wns.updated.info}}:</label><span class="updated_info status"></span><br />
+					<label>{{writeString=wns.id}}:</label><span class="detail_id status"></span><br />
+				</div>
+			</div>
+			<div class="group_fields">
+				<label for="name" class="validate-name_required">{{writeString=wns.journal.name}}*</label>
+				<input type="text" name="name" class="ui-widget-content" /><br />
+				<label for="description">{{writeString=wns.journal.description}}</label>
+				<textarea rows="2" cols="30" name="description" class="ui-widget-content"></textarea>
+			</div>
+			<div class="group_fields">
+				<label for="comment_mode">{{writeString=wns.journal.comments}}</label>
+				<select name="comment_mode" class="ui-widget-content">
+					<option value="on">{{writeString=wns.journal.comments.on}}</option>
+					<option value="moderated">{{writeString=wns.journal.comments.moderated}}</option>
+					<option value="notified">{{writeString=wns.journal.comments.notified}}</option>
+					<option value="off">{{writeString=wns.journal.comments.off}}</option>
+				</select><br />
+				<label for="use_captcha" class="with_comment_active_only">{{writeString=wns.journal.comments_captcha.on}}</label>
+				<input type="checkbox" name="use_captcha" class="ui-widget-content with_comment_active_only" />
+			</div>
 		</div>
-	</div>
-	<div class="group_fields">
-		<label for="name" class="validate-name_required">{{writeString=wns.journal.name}}*</label>
-		<input type="text" name="name" class="ui-widget-content" /><br />
-		<label for="description">{{writeString=wns.journal.description}}</label>
-		<textarea rows="2" cols="30" name="description" class="ui-widget-content"></textarea>
-	</div>
-	<div class="group_fields">
-		<label for="comment_mode">{{writeString=wns.journal.comments}}</label>
-		<select name="comment_mode" class="ui-widget-content">
-			<option value="on">{{writeString=wns.journal.comments.on}}</option>
-			<option value="moderated">{{writeString=wns.journal.comments.moderated}}</option>
-			<option value="notified">{{writeString=wns.journal.comments.notified}}</option>
-			<option value="off">{{writeString=wns.journal.comments.off}}</option>
-		</select><br />
-		<label for="use_captcha" class="with_comment_active_only">{{writeString=wns.journal.comments_captcha.on}}</label>
-		<input type="checkbox" name="use_captcha" class="ui-widget-content with_comment_active_only" />
+		<h3><a href="#">Einträge</a></h3>
+		<div class="tab_part journal_entries">
+		</div>
 	</div>
 </form>

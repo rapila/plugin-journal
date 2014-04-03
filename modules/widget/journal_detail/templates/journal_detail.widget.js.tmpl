@@ -3,13 +3,17 @@ Widget.types.journal_detail = {
 		var _this = this;
 		this._element = Widget.parseHTML("{{includeTemplate=edit}}");
 		this._element.find('div.hide_if_not_saved').hide();
+		this.entry_area = this._element.find('div.journal-entries');
 		
 		this.with_comment_active_only = this._element.find('.with_comment_active_only');
 		this.comment_mode_select = this._element.find("select[name='comment_mode']").change(function() {
 			_this.with_comment_active_only.css('visibility' , jQuery(this).val() ===  'off' ? 'hidden' : 'visible');
 		});
-		
+
 		Widget.callStatic('detail', 'create_for_instance', this);
+		this.handle('opened', function() {
+			_this._element.find('div.accordion').accordion({heightStyle: 'content'});
+		});
 	},
 
 	fill_data: function() {
@@ -33,8 +37,31 @@ Widget.types.journal_detail = {
 				this.comment_mode_select.val('off');
 			}
 			this.detail_widget.set_title(this.detail_widget.settings.title = journal_data.Name);
+			this.load_entries(journal_data.Id);
 			this.detail_widget.enable();
 		});
+	},
+	
+	load_entries: function(journal_id) {
+		// just remove html code for entry_area in order not to display the entries (tab)
+		var _this = this;
+		console.log('this.entry_list', this.entry_list);
+		if(this.entry_list) {
+			this.entry_list.reload();
+		} else {
+			// if(!this.journal_entry_detail) {
+			// 	return window.setTimeout(arguments.callee.bind(this), 500);
+			// }
+			this.listEntries(journal_id, function(list) {
+				console.log('list', list);
+				_this.entry_area.html(list);
+				_this.entry_area.widgetElements().prepareWidget(function(widget) {
+					widget.connected_detail = _this.journal_entry_detail;
+				}, function(widget) {
+					_this.entry_list = widget;
+				});
+			});
+		}
 	},
 	
 	settings: {

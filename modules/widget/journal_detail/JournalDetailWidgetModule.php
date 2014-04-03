@@ -27,6 +27,16 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		$oFlash->checkForValue('name', 'name_required');
 		$oFlash->finishReporting();
 	}
+	
+	public function listEntries($iJournalId) {
+		$oJournalEntryList = new JournalEntryListWidgetModule();
+		$oJournalEntryList->getDelegate()->setJournalId($iJournalId);
+		
+		$oIncluder = new ResourceIncluder();
+		JournalEntryListWidgetModule::includeResources($oIncluder);
+
+		return $oIncluder->getIncludes()->render().$oJournalEntryList->doWidget()->render();
+	}
 
 	public function saveData($aJournalData) {
 		if($this->iJournalId === null) {
