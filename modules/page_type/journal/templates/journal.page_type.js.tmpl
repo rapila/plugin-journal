@@ -245,7 +245,11 @@
 				container.find('h1, h2, h3, > :first-child').last().prepend(bar);
 			}
 			
-			jQuery('.journal_entry-container').each(function() {
+			// Add add button for new journal entry
+			var list = jQuery('.journal_list-container');
+			
+			// Add edit buttons to containers
+			list.find('.journal_entry-container').each(function() {
 				// Get the container
 				var container = jQuery(this);
 				

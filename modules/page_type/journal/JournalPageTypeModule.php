@@ -46,7 +46,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	private $bIsPreview = false;
 	
-	const ALLOWED_POINTER_PAGE = 'page';
+	const PAGINATION_PARAM = 'page';
 
 	// Names of filters and sessions
 	const ADD_TAG = 'add_tag';
@@ -103,7 +103,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	
 	public function setIsDynamicAndAllowedParameterPointers(&$bIsDynamic, &$aAllowedParams, $aModulesToCheck = null) {
 		$bIsDynamic = true;
-		$aAllowedParams = array(self::ALLOWED_POINTER_PAGE);
+		$aAllowedParams = array(self::PAGINATION_PARAM);
 	}
 	
 	private function setFilters() {
@@ -195,17 +195,14 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 	
 	private function addPagination(&$oQuery, $oTemplate) {
-		if($this->iEntriesPerPage === null) {
-			return;
-		}		
-		$iPage = (int) (isset($_REQUEST[self::ALLOWED_POINTER_PAGE]) ? $_REQUEST[self::ALLOWED_POINTER_PAGE] : 1);
+		$iPage = (int) (isset($_REQUEST[self::PAGINATION_PARAM]) ? $_REQUEST[self::PAGINATION_PARAM] : 1);
 		$oPager = new SimplePager($oQuery, $iPage, $this->iEntriesPerPage);
-		if($oPager->requiresPagination() === false) {
+		if(!$oPager->requiresPagination() || !$oTemplate->hasIdentifier('pagination')) {
 			return;
 		}
 		
 		// Basic page link without page number
-		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::ALLOWED_POINTER_PAGE)));
+		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::PAGINATION_PARAM)));
 		$oPager->setPageLinkBase($sBasePageLink);
 		$oQuery = $oPager->getQuery();
 
@@ -213,11 +210,11 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		// All page links including current one
 		$iTotalPages = $oPager->getTotalPageCount();
-		for($i = 1; $i <= $iTotalPages; $i++) {
-			if($i === $iPage) {
-				$oPageLink = TagWriter::quickTag('span', array(), $i);
+		foreach($oPager as $oPage) {
+			if($oPage->page === $iPage) {
+				$oPageLink = TagWriter::quickTag('span', array(), $oPage->page);
 			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPager->getPageLink($i)), $i);
+				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPage->link), $oPage->page);
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
@@ -260,6 +257,15 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(count($aEntries) === 0) {
 			$oFullTemplate->replaceIdentifier('no_result_info', $this->renderNoResult());
 			return;
+		}
+		if($this->bIsPreview) {
+			$oInnerTemplate = new Template(TemplateIdentifier::constructIdentifier($sIdentifier, $sContainer), null, true);
+			$oAddJournals = parent::constructTemplate('preview_add_entry_button');
+			foreach(JournalQuery::create()->filterById($this->aFilteredJournalIds)->find() as $oJournal) {
+				$oAddJournals->replaceIdentifierMultiple('journal', array('id' => $oJournal->getId(), 'name' => $oJournal->getName()));
+			}
+			$oInnerTemplate->replaceIdentifierMultiple($sIdentifier, $oAddJournals, $sContainer);
+			$oFullTemplate->replaceIdentifier($sIdentifier, TagWriter::quickTag('div', array('class' => 'journal_list-container'), $oInnerTemplate), $sContainer, Template::LEAVE_IDENTIFIERS);
 		}
 		foreach($aEntries as $oEntry) {
 			$oFullTemplate->replaceIdentifierMultiple($sIdentifier, $this->renderEntry($oEntry, clone $oEntryTemplatePrototype), $sContainer);
