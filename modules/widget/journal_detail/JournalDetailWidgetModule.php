@@ -5,12 +5,16 @@
 class JournalDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalId = null;
+	private $oEntryListWidget = null;
 	
 	public function setJournalId($iJournalId) {
 		if(is_array($iJournalId) && count($iJournalId) > 0) {
 			$iJournalId = $iJournalId[0];
 		}
 		$this->iJournalId = $iJournalId;
+		if($this->oEntryListWidget) {
+			$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
+		}
 	}
 	
 	public function journalData() {
@@ -28,14 +32,14 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		$oFlash->finishReporting();
 	}
 	
-	public function listEntries($iJournalId) {
-		$oJournalEntryList = new JournalEntryListWidgetModule();
-		$oJournalEntryList->getDelegate()->setJournalId($iJournalId);
+	public function entryList() {
+		$this->oEntryListWidget = new JournalEntryListWidgetModule();
+		$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
 		
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
 
-		return $oIncluder->getIncludes()->render().$oJournalEntryList->doWidget()->render();
+		return $oIncluder->getIncludes()->render().$this->oEntryListWidget->doWidget()->render();
 	}
 
 	public function saveData($aJournalData) {
