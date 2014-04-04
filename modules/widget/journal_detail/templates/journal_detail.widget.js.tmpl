@@ -5,10 +5,17 @@ Widget.types.journal_detail = {
 		this._element.find('div.hide_if_not_saved').hide();
 		this.entry_area = this._element.find('div.journal_entries');
 		
+		
 		this.with_comment_active_only = this._element.find('.with_comment_active_only');
 		this.comment_mode_select = this._element.find("select[name='comment_mode']").change(function() {
 			_this.with_comment_active_only.css('visibility' , jQuery(this).val() ===  'off' ? 'hidden' : 'visible');
 		});
+
+		this.settings.detail_widget.additionalButtons = [{
+			text: "{{writeString=journal_entries.do_admin}}",
+			icon: 'wrench',
+			click: jQuery.openLink.bind(window, "{{writeLink=journal_entries;manager=AdminManager}}")
+		}];
 
 		Widget.callStatic('detail', 'create_for_instance', this);
 		this.handle('opened', function() {
@@ -37,12 +44,12 @@ Widget.types.journal_detail = {
 				this.comment_mode_select.val('off');
 			}
 			this.detail_widget.set_title(this.detail_widget.settings.title = journal_data.Name);
-			this.load_entries();
+			this.load_entries(journal_data.Id);
 			this.detail_widget.enable();
 		});
 	},
 	
-	load_entries: function() {
+	load_entries: function(journal_id) {
 		if(this.entry_list) {
 			this.entry_list.reload();
 			return;
@@ -54,8 +61,9 @@ Widget.types.journal_detail = {
 				_this.entry_list = widget;
 			}, function(widget) {
 			});
-			var add_new_journal_entry = jQuery('<div/>').addClass('add-new-item new_journal_entry').click(function() {
-				Widget.create('journal_enty_detail', function(widget) {
+			var add_new_journal_entry = jQuery('<div/>').addClass('add-new-item new_journal_entry pointer').attr('title', "{{writeString=wns.create_new_entry}}").click(function() {
+				Widget.create('journal_entry_detail', function(widget) {
+					widget.settings.journal_ids_configured = [journal_id];
 					widget.open();
 					widget.handle('saved', function() {
 						_this.entry_list.reload();

@@ -241,30 +241,46 @@
 		handle_preview: function(page_id, page_type) {
 			var _this = this;
 
-			function insert_preview_bar(bar, container) {
-				container.find('h1, h2, h3, > :first-child').last().prepend(bar);
+			function insert_preview_bars(context) {
+				(jQuery('.journal_entry-container')||context).each(function() {
+					var container = jQuery(this);
+				
+					// Append the preview bar, add container info
+					var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
+					container.find('h1, h2, h3, > :first-child').last().prepend(preview_bar);
+				});
+				
 			}
 			
 			// Add add button for new journal entry
 			var list = jQuery('.journal_list-container');
-			
-			// Add edit buttons to containers
-			list.find('.journal_entry-container').each(function() {
-				// Get the container
-				var container = jQuery(this);
-				
-				// Append the preview bar, add container info
-				var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
-				insert_preview_bar(preview_bar, container);
-				
-				// check permission of entry, permission widget related methods need to be checked. I guess its a Peer > Query Problem....
-				// Widget.callStatic('permission', 'mayUpdateObjectOfModel', 'JournalEntry', container.data('entryId'), function(may) {
-				// 	preview_bar[may ? 'addClass' : 'removeClass']('may_edit');
-				// });
+			list.each(function() {
+				var addButton = list.find('button.add-entry').button({
+					icons: {primary: 'ui-icon-plusthick'},
+					text: false
+				});
+				var journalList = addButton.next('ul.menu').menu().hide();
+				addButton.click(function() {
+					journalList.show().position({
+						my: "left top",
+						at: "left bottom",
+						of: this
+					});
+					jQuery(document).one("click", function() {
+						journalList.hide();
+					});
+					return false;
+				});
+				journalList.on('menuselect', function(event, ui) {
+					console.log(ui.item.data('journalId'));
+				});
 			});
 			
-			// add click handler and handle save reload of entry
-			jQuery(document).delegate('.preview_bar.journal-entry.may_edit .edit', 'click', function() {
+			// Add preview edit buttons
+			insert_preview_bars();
+			
+			// add edit buttons click handlers
+			jQuery(document).on('click', '.preview_bar.journal-entry.may_edit .edit', function() {
 				var preview_bar = jQuery(this).closest('.preview_bar');
 				var container = preview_bar.closest('.journal_entry-container');
 
