@@ -108,6 +108,15 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		return $this->oDelegateProxy->getJournalId();
 	}
 	
+	public function getJournalHasEntries($iJournalId) {
+		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->count() > 0;
+	}
+	
+	public function getRemoveJournalIntriesByJournalId($iJournalId) {
+		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->delete();
+	}
+	
+	
 	public function getCriteria() {
 		$oQuery = JournalEntryQuery::create()->joinJournal();
 		if($this->oTagFilter && $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags') !== CriteriaListWidgetDelegate::SELECT_ALL) {

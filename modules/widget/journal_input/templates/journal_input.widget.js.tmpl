@@ -9,12 +9,12 @@ Widget.types.journal_input = {
 		var current = this._element.val();
 		this._element.empty();
 		this.listJournals(this.settings.journal_ids_configured, function(journals) {
-			if(this.settings.initial_selection !== null) {
-				_this._element.populate({'': "{{writeString=wns.choose}}"});
-			}
+			_this._element.populate({'': "{{writeString=wns.choose}}"});
 			_this._element.populate(journals);
 			if(current) {
 				this._element.val(current);
+			} else {
+				this._element.val(this.settings.initial_selection || '');
 			}
 		});
 	},
@@ -22,6 +22,7 @@ Widget.types.journal_input = {
 	val: function(value) {
 		if(arguments.length) {
 			this._element.val(value);
+			this.settings.initial_selection = value;
 			return;
 		}
 		return this._element.val();

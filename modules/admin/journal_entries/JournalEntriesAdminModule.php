@@ -6,6 +6,7 @@ class JournalEntriesAdminModule extends AdminModule {
 
 	private $oListWidget;
 	private $oSidebarWidget;
+	private $oInputWidget;
 
 	public function __construct() {
 		$this->oListWidget = new JournalEntryListWidgetModule();
@@ -16,7 +17,8 @@ class JournalEntriesAdminModule extends AdminModule {
 		$this->oSidebarWidget = new ListWidgetModule();
 		$this->oSidebarWidget->setListTag(new TagWriter('ul'));
 		$this->oSidebarWidget->setDelegate(new CriteriaListWidgetDelegate($this, 'Journal', 'name'));
-    $this->oSidebarWidget->setSetting('initial_selection', array('journal_id' => $this->oListWidget->getDelegate()->getJournalId()));
+		
+		$this->oInputWidget = new SidebarInputWidgetModule();
 	}
 	
 	public function mainContent() {
@@ -61,15 +63,7 @@ class JournalEntriesAdminModule extends AdminModule {
 		return array();
 	}
 
-	public function getCriteria() {
-		$oQuery = JournalEntryQuery::create();
-		if($this->oListWidget->getDelegate()->getJournalId() !== CriteriaListWidgetDelegate::SELECT_ALL) {
-			$oQuery->filterByJournalId($this->oListWidget->getDelegate()->getJournalId());
-		}
-		return $oQuery;
-	}
-
 	public function usedWidgets() {
-		return array($this->oListWidget, $this->oSidebarWidget);
+		return array($this->oListWidget, $this->oSidebarWidget, $this->oInputWidget);
 	}
 }

@@ -14,6 +14,7 @@ Widget.types.journal_detail = {
 		this.settings.detail_widget.additionalButtons = [{
 			text: "{{writeString=journal_entries.do_admin}}",
 			icon: 'wrench',
+			name: 'edit_journal_entries',
 			click: jQuery.openLink.bind(window, "{{writeLink=journal_entries;manager=AdminManager}}")
 		}];
 
@@ -21,6 +22,13 @@ Widget.types.journal_detail = {
 		this.handle('opened', function() {
 			_this._element.find('div.accordion').accordion({heightStyle: 'content'});
 		});
+	},
+	
+	prepare: function() {
+		if(!this.settings.display_accordion) {
+			this._element.find('h3').hide();
+			// this._element.parent().find('button[name="edit_journal_entries"]').hide();
+		}
 	},
 
 	fill_data: function() {
@@ -44,7 +52,9 @@ Widget.types.journal_detail = {
 				this.comment_mode_select.val('off');
 			}
 			this.detail_widget.set_title(this.detail_widget.settings.title = journal_data.Name);
-			this.load_entries(journal_data.Id);
+			if(this.settings.display_accordion) {
+				this.load_entries(journal_data.Id);
+			}
 			this.detail_widget.enable();
 		});
 	},
@@ -75,11 +85,16 @@ Widget.types.journal_detail = {
 		});
 	},
 	
+	save_callback: function(info) {
+		Widget.fire('rapila-journals_changed', info);
+	},
+	
 	settings: {
 		detail_widget: {
 			title: "{{writeString=wns.journal.create}}",
 			width: 800
 		},
-		select: 'name'
+		select: 'name',
+		display_accordion: true
 	}
 };

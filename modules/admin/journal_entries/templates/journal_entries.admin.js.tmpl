@@ -22,13 +22,17 @@ jQuery(document).ready(function() {
 		// Init info_bar
 		info_bar.add_button('add-new-item', function() {
 			Widget.create('journal_entry_detail', function(widget) {
-				widget.settings.journal_id = sidebar.active_row().data('journal_id');
+				widget.settings.initial_journal_id = sidebar.active_row().data('journal_id');
 				widget.open();
 				widget.save_callback = function() {
 					content_list.reload();
 				};
+			}, jQuery.noop);
+		}, 'n', true).add_button('add-new-item', function() {
+			Widget.create('sidebar_input', function(widget) {
+				widget.add_new_sidebar_input("{{writeString=wns.journal.default_name}}", 'Journal', null, 'rapila-journals_changed');
 			});
-		}, 'n', true).add_search_input("{{writeString=wns.search.enter_search}}", function(search) {
+		}).add_search_input("{{writeString=wns.search.enter_search}}", function(search) {
 			if(content_list.setSearch(search)) {
 				content_list.reload();
 			}
@@ -42,13 +46,64 @@ jQuery(document).ready(function() {
 			content_list.update_row(content_list.row_from_row_data({id: result.tagged_item_id}));
 		});
 
-		// Sidebar selection changed
-		sidebar.handle('list-selection_changed', function(event, selection) {
-			content_list.setOption('journal_id', selection[0] && selection[0].journal_id);
-			content_list.reload();
+		
+		
+		// sidebar items edit and delete buttons
+		var remove_item = info_bar.add_button('remove-item', function() {
+			var row = sidebar.active_row();
+			var rowData = sidebar.collect_row_data(row);
+			if(rowData.journal_id) {
+				function remove_active_journal() {
+					sidebar.delete_row(row);
+					content_list.getOption('removeJournalIntriesByJournalId', rowData.journal_id, function(result) {
+					});
+					Widget.fire('rapila-journals_changed', {removed: true, id: rowData.journal_id});
+				}
+				content_list.getOption('journalHasEntries', rowData.journal_id, function(has_entries) {
+					if(has_entries) {
+						Widget.confirm("{{writeString=wns.rapila_alert.information}}", "{{writeString=wns.journal.entries_delete_warning}}", function(confirmed) {
+							if(confirmed) {
+								remove_active_journal();
+							}
+						});
+					} else {
+						remove_active_journal();
+					}
+				});
+			}
+		}).disable();
+		
+		var edit_item = info_bar.add_button('edit-item', function() {
+			Widget.create('journal_detail', function(widget) {
+				widget.setJournalId(sidebar.active_row_datas()[0].journal_id);
+				widget.settings.display_accordion = false;
+				widget.open();
+				widget.fill_data();
+			});
+		}).disable();
+
+		Widget.handle('rapila-journals_changed', function(event, info) {
+			if(info.updated) {
+				sidebar.update_row(sidebar.row_from_row_data({journal_id: info.id}));
+			} else if (info.inserted) {
+				sidebar.reload();
+			} else if (info.removed) {
+				var row = sidebar.row_from_row_data({journal_id: info.id})
+				if(row) {
+					row.remove();
+				}
+			}
 		});
 		
-		// Init sidebar
+		// Sidebar selection change handler
 		sidebar.settings.row_click_active_mode = 'activate';
+		sidebar.handle('list-selection_changed', function(event, selection) {
+			var journal_id = selection[0] && selection[0].journal_id;
+			var has_detail = selection.length === 1 && journal_id.constructor === Number;
+			remove_item[has_detail ? 'enable' : 'disable']();
+			edit_item[has_detail ? 'enable' : 'disable']();
+			content_list.setOption('journal_id', journal_id);
+			content_list.reload();
+		});	
 	});
 });

@@ -8,6 +8,9 @@ Widget.types.journal_entry_detail = {
 		this._element.find('input[name="is_published"]').change(function() {
 			_this.published_at_input.prop('disabled', this.checked);
 		});
+		this._element.find("select[name='journal_id']").prepareWidget(function(journal_input_widget) {
+			journal_input_widget.settings.initial_selection = _this.settings.initial_journal_id;
+		}, jQuery.noop);
 		this.handle('opened', function() {
 			if(_this.published_at_input.val() === '') {
 				_this.published_at_input.val(_this.settings.date_today);
@@ -210,6 +213,7 @@ Widget.types.journal_entry_detail = {
 			title: "{{writeString=wns.journal.add_entry}}"
 		},
 		thumbnail_size: 180,
+		initial_journal_id: null,
 		journal_ids_configured: null
 	}
 };
