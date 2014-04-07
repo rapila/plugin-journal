@@ -14,7 +14,10 @@ Widget.types.journal_input = {
 			if(current) {
 				this._element.val(current);
 			} else {
-				this._element.val(this.settings.initial_selection || '');
+				if(_this.settings.initial_selection === '__all') {
+					_this.settings.initial_selection = null;
+				}
+				this._element.val(_this.settings.initial_selection || '');
 			}
 		});
 	},
