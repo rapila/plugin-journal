@@ -96,6 +96,10 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		}
 	}
 	
+	public function getJournalId() {
+		return $this->oDelegateProxy->getJournalId();
+	}
+
 	public function getJournalName() {
 		$iId = $this->oDelegateProxy->getJournalId();
 		if(is_array($iId)) {
