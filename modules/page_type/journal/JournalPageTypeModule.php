@@ -152,11 +152,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!$oTemplate->hasIdentifier('container', $this->sContainer)) {
 			return;
 		}
-		// if($this->bIsPreview) {
-		// 	$oTag = TagWriter::quickTag('div', array('id' => 'journal_contents', 'class' => 'filled-container editing page-type-journal'));
-		// 	$oTemplate->replaceIdentifier('container', $oTag, $this->sContainer);
-		// 	return;
-		// }
+
 		$sMethod = "overview_$this->sOverviewMode";
 		
 		if($this->oNavigationItem instanceof VirtualNavigationItem) {
@@ -257,11 +253,19 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oFullTemplate->replaceIdentifier('no_result_info', $this->renderNoResult());
 			return;
 		}
+		// create journal entry button in preview
 		if($this->bIsPreview) {
 			$oInnerTemplate = new Template(TemplateIdentifier::constructIdentifier($sIdentifier, $sContainer), null, true);
 			$oAddJournals = parent::constructTemplate('preview_add_entry_button');
-			foreach(JournalQuery::create()->filterById($this->aFilteredJournalIds)->find() as $oJournal) {
-				$oAddJournals->replaceIdentifierMultiple('journal', array('id' => $oJournal->getId(), 'name' => $oJournal->getName()));
+			$aJournalsAvailable = JournalQuery::create()->filterById($this->aFilteredJournalIds)->find();
+			$bSingleJournals = count($aJournalsAvailable) === 1;
+			foreach($aJournalsAvailable as $oJournal) {
+				if(!$bSingleJournals) {
+					$oAddJournals->replaceIdentifierMultiple('journal', array('id' => $oJournal->getId(), 'name' => $oJournal->getName()));
+				} else {
+					$oAddJournals->replaceIdentifier('journal_id_data', " data-journal_id={$oJournal->getId()}");
+					continue;
+				}
 			}
 			$oInnerTemplate->replaceIdentifierMultiple($sIdentifier, $oAddJournals, $sContainer);
 			$oFullTemplate->replaceIdentifier($sIdentifier, TagWriter::quickTag('div', array('class' => 'journal_list-container'), $oInnerTemplate), $sContainer, Template::LEAVE_IDENTIFIERS);

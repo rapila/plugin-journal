@@ -11,21 +11,26 @@ Widget.types.journal_detail = {
 			_this.with_comment_active_only.css('visibility' , jQuery(this).val() ===  'off' ? 'hidden' : 'visible');
 		});
 
-		this.settings.detail_widget.additionalButtons = [{
-			text: "{{writeString=journal_entries.do_admin}}",
-			icon: 'wrench',
-			name: 'edit_journal_entries',
-			click: jQuery.openLink.bind(window, "{{writeLink=journal_entries;manager=AdminManager}}")
-		}];
+		if(this.settings.is_standalone) {
+			this.settings.detail_widget.additionalButtons = [{
+				text: "{{writeString=journal_entries.do_admin}}",
+				icons: {primary: 'ui-icon-wrench'},
+				name: 'edit_journal_entries',
+				click: jQuery.openLink.bind(window, "{{writeLink=journal_entries;manager=AdminManager}}")
+			}];
+		}
 
 		Widget.callStatic('detail', 'create_for_instance', this);
-		this.handle('opened', function() {
-			_this._element.find('div.accordion').accordion({heightStyle: 'content'});
-		});
+		if(this.settings.is_standalone) {
+			this.handle('opened', function() {
+				_this._element.find('div.accordion').accordion({heightStyle: 'content'});
+				_this._element.addClass('has-accordion');
+			});
+		}
 	},
 	
 	prepare: function() {
-		if(!this.settings.display_accordion) {
+		if(!this.settings.is_standalone) {
 			this._element.find('h3').hide();
 			// this._element.parent().find('button[name="edit_journal_entries"]').hide();
 		}
@@ -52,7 +57,7 @@ Widget.types.journal_detail = {
 				this.comment_mode_select.val('off');
 			}
 			this.detail_widget.set_title(this.detail_widget.settings.title = journal_data.Name);
-			if(this.settings.display_accordion) {
+			if(this.settings.is_standalone) {
 				this.load_entries(journal_data.Id);
 			}
 			this.detail_widget.enable();
@@ -95,6 +100,7 @@ Widget.types.journal_detail = {
 			width: 800
 		},
 		select: 'name',
-		display_accordion: true
+		// a standalone version of this widget will display a list of entries to edit
+		is_standalone: true
 	}
 };

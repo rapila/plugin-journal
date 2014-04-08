@@ -9,7 +9,7 @@ Widget.types.journal_entry_detail = {
 			_this.published_at_input.prop('disabled', this.checked);
 		});
 		this._element.find("select[name='journal_id']").prepareWidget(function(journal_input_widget) {
-			journal_input_widget.settings.initial_selection = _this.settings.initial_journal_id;
+			journal_input_widget.val(_this.settings.initial_journal_id);
 		}, jQuery.noop);
 		this.handle('opened', function() {
 			if(_this.published_at_input.val() === '') {

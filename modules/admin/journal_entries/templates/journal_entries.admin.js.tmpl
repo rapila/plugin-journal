@@ -75,8 +75,9 @@ jQuery(document).ready(function() {
 		
 		var edit_item = info_bar.add_button('edit-item', function() {
 			Widget.create('journal_detail', function(widget) {
+				widget.settings.is_standalone = false;
+			}, function(widget) {
 				widget.setJournalId(sidebar.active_row_datas()[0].journal_id);
-				widget.settings.display_accordion = false;
 				widget.open();
 				widget.fill_data();
 			});
