@@ -9,11 +9,11 @@
 				<label>{{writeString=wns.id}}:</label><span class="detail_id status"></span><br />
 			</div>
 		</div>
-		<label for="title">{{writeString=wns.journal_entry.title}}</label>
+		<label for="title" class="validate-journal_entry.title_required">{{writeString=wns.journal_entry.title}}</label>
 		<input type="text" name="title" class="ui-widget-content autowidth" size="90" /><br />
 		<div class="group_fields">
-			<label for="journal_id">{{writeString=wns.journal}}</label>
-			<select name="journal_id" class="ui-widget-content validate-journal_id_required" data-widget-type="journal_input"></select><br /><br />
+			<label for="journal_id" class="validate-journal_entry.journal_id_required">{{writeString=wns.journal}}</label>
+			<select name="journal_id" class="ui-widget-content" data-widget-type="journal_input"></select><br /><br />
 		</div>
 		<div class="group_fields">
 			<label for="publish_at" class="validate-publish_at_required">{{writeString=wns.journal_entry.publish_at}}</label>
@@ -23,7 +23,7 @@
 			<label for="is_published">{{writeString=wns.journal_entry.is_published}}</label>
 			<input type="checkbox" name="is_published" />
 		</div><br />
-		<label for="text">{{writeString=wns.journal_entry.text}}</label>
+		<label for="text" class="validate-journal_entry.text_required">{{writeString=wns.journal_entry.text}}</label>
 		<div data-widget-type="rich_text" class="text-widget"><textarea name="text" class="ui-widget-content"></textarea></div>
 	</div>
 	<h3><a>{{writeString=wns.journal_entry.comments}}</a></h3>

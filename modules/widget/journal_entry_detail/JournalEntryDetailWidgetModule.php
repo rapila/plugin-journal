@@ -127,31 +127,41 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 	}
 	
-	private function validate($aJournalData, $oJournal) {
-		// $oFlash = Flash::getFlash();
-		// $oFlash->setArrayToCheck($aJournalData);
-		// $oFlash->checkForValue('journal_id', 'name_required');
-		// $oFlash->finishReporting();
+	private function validate($oData, $oJournalEntry) {
+		$oFlash = Flash::getFlash();
+		$oFlash->setArrayToCheck($oData);
+		$oFlash->checkForValue('title', 'journal_entry.title_required');
+		$oFlash->checkForValue('journal_id', 'journal_entry.journal_id_required');
+		if($oJournalEntry->getIsPublished()) {
+			$oFlash->checkForValue('text', 'journal_entry.text_required');
+			$oJournalEntry->setIsPublished('false');
+		}
+		ErrorHandler::log("journal entry validate", $oData);
+		$oFlash->finishReporting();
 	}
 	
 	public function saveData($aData) {
-		$oEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
-		if($oEntry === null) {
-			$oEntry = new JournalEntry();
-			$oEntry->setJournalId($this->iJournalId);
+		$oJournalEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
+		if($oJournalEntry === null) {
+			$oJournalEntry = new JournalEntry();
+			$oJournalEntry->setJournalId($this->iJournalId);
 		}
 		if($aData['publish_at'] == null) {
 			$aData['publish_at'] = date('c');
 		} 		
-		$oEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
+		$oJournalEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
 		
 		if(isset($aData['journal_id'])) {
-			$oEntry->setJournalId($aData['journal_id']);
+			$oJournalEntry->setJournalId($aData['journal_id']);
+		}
+		$this->validate($aData, $oJournalEntry);
+		if(!Flash::noErrors()) {
+			throw new ValidationException();
 		}
 		$oRichtextUtil = new RichtextUtil();
-		$oRichtextUtil->setTrackReferences($oEntry);
-		$oEntry->setText($oRichtextUtil->getTagParser($aData['text']));
+		$oRichtextUtil->setTrackReferences($oJournalEntry);
+		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
 
-		return $oEntry->save();
+		return $oJournalEntry->save();
 	}
 }
