@@ -149,6 +149,10 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		$this->setFilters();
 		$this->fillAuxilliaryContainers($oTemplate);
+		if(Settings::getSetting("frontend", "protect_email_addresses", false)) {
+			ResourceIncluder::defaultIncluder()->addResource('e-mail-defuscate.js');
+		}
+		
 		if(!$oTemplate->hasIdentifier('container', $this->sContainer)) {
 			return;
 		}
@@ -904,7 +908,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
-
 		return $oIncluder->getIncludes()->render().$this->oJournalEntryList->doWidget()->render();
 	}
 
