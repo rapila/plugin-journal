@@ -49,17 +49,15 @@ div.ui-widget-content.journal-widgets.ui-sortable .ui-sortable-handle {
 .preview_bar.journal-entry.may_edit {
 	opacity: 1;
 }
-
 .preview_bar.journal-entry.may_edit .ui-icon {
 	cursor: pointer;
 }
-
 .preview_bar.journal-entry .ui-icon.ui-icon-trash {
-	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_trash.png") no-repeat center bottom;
+	background: transparent url("{{writeDirectInclude=admin/icon_trash.png;template=location_only}}") no-repeat center bottom;
 }
 .preview_bar.journal-entry .ui-icon.ui-icon-wrench {
-	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_edit_condition.png") no-repeat center bottom;
+	background: transparent url("{{writeDirectInclude=admin/icon_edit_condition.png;template=location_only}}") no-repeat center bottom;
 }
 .preview_bar.journal-entry .ui-icon.ui-icon-pencil {
-	background: transparent url("{{writeConstantValue=INT_IMAGES_DIR_FE}}/admin/icon_edit.png") no-repeat center bottom;
+	background: transparent url("{{writeDirectInclude=admin/icon_edit.png;template=location_only}}") no-repeat center bottom;
 }
