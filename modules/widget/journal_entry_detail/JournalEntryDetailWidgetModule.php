@@ -136,7 +136,6 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$oFlash->checkForValue('text', 'journal_entry.text_required');
 			$oJournalEntry->setIsPublished('false');
 		}
-		ErrorHandler::log("journal entry validate", $oData);
 		$oFlash->finishReporting();
 	}
 	

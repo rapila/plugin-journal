@@ -115,7 +115,7 @@ Widget.types.journal_entry_detail = {
 		var _this = this;
 		this.comment_list.empty();
 		if(comments.length === 0) {
-			var comment = jQuery('<tr/>');
+			var comment = jQuery('<tr/>').addClass('ui-list-row');
 			this.comment_list.append(comment.append(jQuery('<td/>').attr('colspan', 4).text("{{writeString=wns.journal_entry.no_comments}}")));
 		}
 		jQuery.each(comments, function(i, comment) {
