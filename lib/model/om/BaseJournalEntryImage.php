@@ -24,7 +24,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     protected static $peer;
 
     /**
-     * The flag var to prevent infinit loop in deep copy
+     * The flag var to prevent infinite loop in deep copy
      * @var       boolean
      */
     protected $startCopy = false;
@@ -112,12 +112,19 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     protected $alreadyInValidation = false;
 
     /**
+     * Flag to prevent endless clearAllReferences($deep=true) loop, if this object is referenced
+     * @var        boolean
+     */
+    protected $alreadyInClearAllReferencesDeep = false;
+
+    /**
      * Get the [journal_entry_id] column value.
      *
      * @return int
      */
     public function getJournalEntryId()
     {
+
         return $this->journal_entry_id;
     }
 
@@ -128,6 +135,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      */
     public function getDocumentId()
     {
+
         return $this->document_id;
     }
 
@@ -138,6 +146,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      */
     public function getSort()
     {
+
         return $this->sort;
     }
 
@@ -148,6 +157,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      */
     public function getLegend()
     {
+
         return $this->legend;
     }
 
@@ -170,22 +180,25 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             // while technically this is not a default value of null,
             // this seems to be closest in meaning.
             return null;
-        } else {
-            try {
-                $dt = new DateTime($this->created_at);
-            } catch (Exception $x) {
-                throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->created_at, true), $x);
-            }
+        }
+
+        try {
+            $dt = new DateTime($this->created_at);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->created_at, true), $x);
         }
 
         if ($format === null) {
             // Because propel.useDateTimeClass is true, we return a DateTime object.
             return $dt;
-        } elseif (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
-        } else {
-            return $dt->format($format);
         }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
     }
 
     /**
@@ -207,22 +220,25 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             // while technically this is not a default value of null,
             // this seems to be closest in meaning.
             return null;
-        } else {
-            try {
-                $dt = new DateTime($this->updated_at);
-            } catch (Exception $x) {
-                throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->updated_at, true), $x);
-            }
+        }
+
+        try {
+            $dt = new DateTime($this->updated_at);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->updated_at, true), $x);
         }
 
         if ($format === null) {
             // Because propel.useDateTimeClass is true, we return a DateTime object.
             return $dt;
-        } elseif (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
-        } else {
-            return $dt->format($format);
         }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
     }
 
     /**
@@ -232,6 +248,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      */
     public function getCreatedBy()
     {
+
         return $this->created_by;
     }
 
@@ -242,18 +259,19 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      */
     public function getUpdatedBy()
     {
+
         return $this->updated_by;
     }
 
     /**
      * Set the value of [journal_entry_id] column.
      *
-     * @param int $v new value
+     * @param  int $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setJournalEntryId($v)
     {
-        if ($v !== null) {
+        if ($v !== null && is_numeric($v)) {
             $v = (int) $v;
         }
 
@@ -273,12 +291,12 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Set the value of [document_id] column.
      *
-     * @param int $v new value
+     * @param  int $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setDocumentId($v)
     {
-        if ($v !== null) {
+        if ($v !== null && is_numeric($v)) {
             $v = (int) $v;
         }
 
@@ -298,12 +316,12 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Set the value of [sort] column.
      *
-     * @param int $v new value
+     * @param  int $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setSort($v)
     {
-        if ($v !== null) {
+        if ($v !== null && is_numeric($v)) {
             $v = (int) $v;
         }
 
@@ -319,7 +337,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Set the value of [legend] column.
      *
-     * @param string $v new value
+     * @param  string $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setLegend($v)
@@ -386,12 +404,12 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Set the value of [created_by] column.
      *
-     * @param int $v new value
+     * @param  int $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setCreatedBy($v)
     {
-        if ($v !== null) {
+        if ($v !== null && is_numeric($v)) {
             $v = (int) $v;
         }
 
@@ -411,12 +429,12 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Set the value of [updated_by] column.
      *
-     * @param int $v new value
+     * @param  int $v new value
      * @return JournalEntryImage The current object (for fluent API support)
      */
     public function setUpdatedBy($v)
     {
-        if ($v !== null) {
+        if ($v !== null && is_numeric($v)) {
             $v = (int) $v;
         }
 
@@ -456,7 +474,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      * more tables.
      *
      * @param array $row The row returned by PDOStatement->fetch(PDO::FETCH_NUM)
-     * @param int $startcol 0-based offset column which indicates which restultset column to start with.
+     * @param int $startcol 0-based offset column which indicates which resultset column to start with.
      * @param boolean $rehydrate Whether this object is being re-hydrated from the database.
      * @return int             next starting column
      * @throws PropelException - Any caught Exception will be rewrapped as a PropelException.
@@ -480,6 +498,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             if ($rehydrate) {
                 $this->ensureConsistency();
             }
+            $this->postHydrate($row, $startcol, $rehydrate);
 
             return $startcol + 8; // 8 = JournalEntryImagePeer::NUM_HYDRATE_COLUMNS.
 
@@ -717,7 +736,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             $this->alreadyInSave = true;
 
             // We call the save method on the following object(s) if they
-            // were passed to this object by their coresponding set
+            // were passed to this object by their corresponding set
             // method.  This object relates to these object(s) by a
             // foreign key reference.
 
@@ -783,28 +802,28 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
 
          // check the columns in natural order for more readable SQL queries
         if ($this->isColumnModified(JournalEntryImagePeer::JOURNAL_ENTRY_ID)) {
-            $modifiedColumns[':p' . $index++]  = '`JOURNAL_ENTRY_ID`';
+            $modifiedColumns[':p' . $index++]  = '`journal_entry_id`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::DOCUMENT_ID)) {
-            $modifiedColumns[':p' . $index++]  = '`DOCUMENT_ID`';
+            $modifiedColumns[':p' . $index++]  = '`document_id`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::SORT)) {
-            $modifiedColumns[':p' . $index++]  = '`SORT`';
+            $modifiedColumns[':p' . $index++]  = '`sort`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::LEGEND)) {
-            $modifiedColumns[':p' . $index++]  = '`LEGEND`';
+            $modifiedColumns[':p' . $index++]  = '`legend`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::CREATED_AT)) {
-            $modifiedColumns[':p' . $index++]  = '`CREATED_AT`';
+            $modifiedColumns[':p' . $index++]  = '`created_at`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::UPDATED_AT)) {
-            $modifiedColumns[':p' . $index++]  = '`UPDATED_AT`';
+            $modifiedColumns[':p' . $index++]  = '`updated_at`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::CREATED_BY)) {
-            $modifiedColumns[':p' . $index++]  = '`CREATED_BY`';
+            $modifiedColumns[':p' . $index++]  = '`created_by`';
         }
         if ($this->isColumnModified(JournalEntryImagePeer::UPDATED_BY)) {
-            $modifiedColumns[':p' . $index++]  = '`UPDATED_BY`';
+            $modifiedColumns[':p' . $index++]  = '`updated_by`';
         }
 
         $sql = sprintf(
@@ -817,28 +836,28 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             $stmt = $con->prepare($sql);
             foreach ($modifiedColumns as $identifier => $columnName) {
                 switch ($columnName) {
-                    case '`JOURNAL_ENTRY_ID`':
+                    case '`journal_entry_id`':
                         $stmt->bindValue($identifier, $this->journal_entry_id, PDO::PARAM_INT);
                         break;
-                    case '`DOCUMENT_ID`':
+                    case '`document_id`':
                         $stmt->bindValue($identifier, $this->document_id, PDO::PARAM_INT);
                         break;
-                    case '`SORT`':
+                    case '`sort`':
                         $stmt->bindValue($identifier, $this->sort, PDO::PARAM_INT);
                         break;
-                    case '`LEGEND`':
+                    case '`legend`':
                         $stmt->bindValue($identifier, $this->legend, PDO::PARAM_STR);
                         break;
-                    case '`CREATED_AT`':
+                    case '`created_at`':
                         $stmt->bindValue($identifier, $this->created_at, PDO::PARAM_STR);
                         break;
-                    case '`UPDATED_AT`':
+                    case '`updated_at`':
                         $stmt->bindValue($identifier, $this->updated_at, PDO::PARAM_STR);
                         break;
-                    case '`CREATED_BY`':
+                    case '`created_by`':
                         $stmt->bindValue($identifier, $this->created_by, PDO::PARAM_INT);
                         break;
-                    case '`UPDATED_BY`':
+                    case '`updated_by`':
                         $stmt->bindValue($identifier, $this->updated_by, PDO::PARAM_INT);
                         break;
                 }
@@ -902,11 +921,11 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             $this->validationFailures = array();
 
             return true;
-        } else {
-            $this->validationFailures = $res;
-
-            return false;
         }
+
+        $this->validationFailures = $res;
+
+        return false;
     }
 
     /**
@@ -914,10 +933,10 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      *
      * In addition to checking the current object, all related objects will
      * also be validated.  If all pass then <code>true</code> is returned; otherwise
-     * an aggreagated array of ValidationFailed objects will be returned.
+     * an aggregated array of ValidationFailed objects will be returned.
      *
      * @param array $columns Array of column names to validate.
-     * @return mixed <code>true</code> if all validations pass; array of <code>ValidationFailed</code> objets otherwise.
+     * @return mixed <code>true</code> if all validations pass; array of <code>ValidationFailed</code> objects otherwise.
      */
     protected function doValidate($columns = null)
     {
@@ -929,7 +948,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
 
 
             // We call the validate method on the following object(s) if they
-            // were passed to this object by their coresponding set
+            // were passed to this object by their corresponding set
             // method.  This object relates to these object(s) by a
             // foreign key reference.
 
@@ -1060,6 +1079,11 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             $keys[6] => $this->getCreatedBy(),
             $keys[7] => $this->getUpdatedBy(),
         );
+        $virtualColumns = $this->virtualColumns;
+        foreach ($virtualColumns as $key => $virtualColumn) {
+            $result[$key] = $virtualColumn;
+        }
+
         if ($includeForeignObjects) {
             if (null !== $this->aJournalEntry) {
                 $result['JournalEntry'] = $this->aJournalEntry->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
@@ -1320,7 +1344,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Declares an association between this object and a JournalEntry object.
      *
-     * @param             JournalEntry $v
+     * @param                  JournalEntry $v
      * @return JournalEntryImage The current object (for fluent API support)
      * @throws PropelException
      */
@@ -1349,12 +1373,13 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      * Get the associated JournalEntry object
      *
      * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
      * @return JournalEntry The associated JournalEntry object.
      * @throws PropelException
      */
-    public function getJournalEntry(PropelPDO $con = null)
+    public function getJournalEntry(PropelPDO $con = null, $doQuery = true)
     {
-        if ($this->aJournalEntry === null && ($this->journal_entry_id !== null)) {
+        if ($this->aJournalEntry === null && ($this->journal_entry_id !== null) && $doQuery) {
             $this->aJournalEntry = JournalEntryQuery::create()->findPk($this->journal_entry_id, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
@@ -1371,7 +1396,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Declares an association between this object and a Document object.
      *
-     * @param             Document $v
+     * @param                  Document $v
      * @return JournalEntryImage The current object (for fluent API support)
      * @throws PropelException
      */
@@ -1400,12 +1425,13 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      * Get the associated Document object
      *
      * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
      * @return Document The associated Document object.
      * @throws PropelException
      */
-    public function getDocument(PropelPDO $con = null)
+    public function getDocument(PropelPDO $con = null, $doQuery = true)
     {
-        if ($this->aDocument === null && ($this->document_id !== null)) {
+        if ($this->aDocument === null && ($this->document_id !== null) && $doQuery) {
             $this->aDocument = DocumentQuery::create()->findPk($this->document_id, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
@@ -1422,7 +1448,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Declares an association between this object and a User object.
      *
-     * @param             User $v
+     * @param                  User $v
      * @return JournalEntryImage The current object (for fluent API support)
      * @throws PropelException
      */
@@ -1451,12 +1477,13 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      * Get the associated User object
      *
      * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
      * @return User The associated User object.
      * @throws PropelException
      */
-    public function getUserRelatedByCreatedBy(PropelPDO $con = null)
+    public function getUserRelatedByCreatedBy(PropelPDO $con = null, $doQuery = true)
     {
-        if ($this->aUserRelatedByCreatedBy === null && ($this->created_by !== null)) {
+        if ($this->aUserRelatedByCreatedBy === null && ($this->created_by !== null) && $doQuery) {
             $this->aUserRelatedByCreatedBy = UserQuery::create()->findPk($this->created_by, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
@@ -1473,7 +1500,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     /**
      * Declares an association between this object and a User object.
      *
-     * @param             User $v
+     * @param                  User $v
      * @return JournalEntryImage The current object (for fluent API support)
      * @throws PropelException
      */
@@ -1502,12 +1529,13 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      * Get the associated User object
      *
      * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
      * @return User The associated User object.
      * @throws PropelException
      */
-    public function getUserRelatedByUpdatedBy(PropelPDO $con = null)
+    public function getUserRelatedByUpdatedBy(PropelPDO $con = null, $doQuery = true)
     {
-        if ($this->aUserRelatedByUpdatedBy === null && ($this->updated_by !== null)) {
+        if ($this->aUserRelatedByUpdatedBy === null && ($this->updated_by !== null) && $doQuery) {
             $this->aUserRelatedByUpdatedBy = UserQuery::create()->findPk($this->updated_by, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
@@ -1536,6 +1564,7 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
         $this->updated_by = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
+        $this->alreadyInClearAllReferencesDeep = false;
         $this->clearAllReferences();
         $this->resetModified();
         $this->setNew(true);
@@ -1547,13 +1576,28 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
      *
      * This method is a user-space workaround for PHP's inability to garbage collect
      * objects with circular references (even in PHP 5.3). This is currently necessary
-     * when using Propel in certain daemon or large-volumne/high-memory operations.
+     * when using Propel in certain daemon or large-volume/high-memory operations.
      *
      * @param boolean $deep Whether to also clear the references on all referrer objects.
      */
     public function clearAllReferences($deep = false)
     {
-        if ($deep) {
+        if ($deep && !$this->alreadyInClearAllReferencesDeep) {
+            $this->alreadyInClearAllReferencesDeep = true;
+            if ($this->aJournalEntry instanceof Persistent) {
+              $this->aJournalEntry->clearAllReferences($deep);
+            }
+            if ($this->aDocument instanceof Persistent) {
+              $this->aDocument->clearAllReferences($deep);
+            }
+            if ($this->aUserRelatedByCreatedBy instanceof Persistent) {
+              $this->aUserRelatedByCreatedBy->clearAllReferences($deep);
+            }
+            if ($this->aUserRelatedByUpdatedBy instanceof Persistent) {
+              $this->aUserRelatedByUpdatedBy->clearAllReferences($deep);
+            }
+
+            $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
 
         $this->aJournalEntry = null;

@@ -32,35 +32,35 @@ abstract class BaseJournalEntryImagePeer
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
     const NUM_HYDRATE_COLUMNS = 8;
 
-    /** the column name for the JOURNAL_ENTRY_ID field */
-    const JOURNAL_ENTRY_ID = 'journal_entry_images.JOURNAL_ENTRY_ID';
+    /** the column name for the journal_entry_id field */
+    const JOURNAL_ENTRY_ID = 'journal_entry_images.journal_entry_id';
 
-    /** the column name for the DOCUMENT_ID field */
-    const DOCUMENT_ID = 'journal_entry_images.DOCUMENT_ID';
+    /** the column name for the document_id field */
+    const DOCUMENT_ID = 'journal_entry_images.document_id';
 
-    /** the column name for the SORT field */
-    const SORT = 'journal_entry_images.SORT';
+    /** the column name for the sort field */
+    const SORT = 'journal_entry_images.sort';
 
-    /** the column name for the LEGEND field */
-    const LEGEND = 'journal_entry_images.LEGEND';
+    /** the column name for the legend field */
+    const LEGEND = 'journal_entry_images.legend';
 
-    /** the column name for the CREATED_AT field */
-    const CREATED_AT = 'journal_entry_images.CREATED_AT';
+    /** the column name for the created_at field */
+    const CREATED_AT = 'journal_entry_images.created_at';
 
-    /** the column name for the UPDATED_AT field */
-    const UPDATED_AT = 'journal_entry_images.UPDATED_AT';
+    /** the column name for the updated_at field */
+    const UPDATED_AT = 'journal_entry_images.updated_at';
 
-    /** the column name for the CREATED_BY field */
-    const CREATED_BY = 'journal_entry_images.CREATED_BY';
+    /** the column name for the created_by field */
+    const CREATED_BY = 'journal_entry_images.created_by';
 
-    /** the column name for the UPDATED_BY field */
-    const UPDATED_BY = 'journal_entry_images.UPDATED_BY';
+    /** the column name for the updated_by field */
+    const UPDATED_BY = 'journal_entry_images.updated_by';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
 
     /**
-     * An identiy map to hold any loaded instances of JournalEntryImage objects.
+     * An identity map to hold any loaded instances of JournalEntryImage objects.
      * This must be public so that other peer classes can access this when hydrating from JOIN
      * queries.
      * @var        array JournalEntryImage[]
@@ -180,14 +180,14 @@ abstract class BaseJournalEntryImagePeer
             $criteria->addSelectColumn(JournalEntryImagePeer::CREATED_BY);
             $criteria->addSelectColumn(JournalEntryImagePeer::UPDATED_BY);
         } else {
-            $criteria->addSelectColumn($alias . '.JOURNAL_ENTRY_ID');
-            $criteria->addSelectColumn($alias . '.DOCUMENT_ID');
-            $criteria->addSelectColumn($alias . '.SORT');
-            $criteria->addSelectColumn($alias . '.LEGEND');
-            $criteria->addSelectColumn($alias . '.CREATED_AT');
-            $criteria->addSelectColumn($alias . '.UPDATED_AT');
-            $criteria->addSelectColumn($alias . '.CREATED_BY');
-            $criteria->addSelectColumn($alias . '.UPDATED_BY');
+            $criteria->addSelectColumn($alias . '.journal_entry_id');
+            $criteria->addSelectColumn($alias . '.document_id');
+            $criteria->addSelectColumn($alias . '.sort');
+            $criteria->addSelectColumn($alias . '.legend');
+            $criteria->addSelectColumn($alias . '.created_at');
+            $criteria->addSelectColumn($alias . '.updated_at');
+            $criteria->addSelectColumn($alias . '.created_by');
+            $criteria->addSelectColumn($alias . '.updated_by');
         }
     }
 
@@ -240,7 +240,7 @@ abstract class BaseJournalEntryImagePeer
      *
      * @param      Criteria $criteria object used to create the SELECT statement.
      * @param      PropelPDO $con
-     * @return                 JournalEntryImage
+     * @return JournalEntryImage
      * @throws PropelException Any exceptions caught during processing will be
      *		 rethrown wrapped into a PropelException.
      */
@@ -271,7 +271,7 @@ abstract class BaseJournalEntryImagePeer
     /**
      * Prepares the Criteria object and uses the parent doSelect() method to execute a PDOStatement.
      *
-     * Use this method directly if you want to work with an executed statement durirectly (for example
+     * Use this method directly if you want to work with an executed statement directly (for example
      * to perform your own object hydration).
      *
      * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
@@ -307,7 +307,7 @@ abstract class BaseJournalEntryImagePeer
      * to the cache in order to ensure that the same objects are always returned by doSelect*()
      * and retrieveByPK*() calls.
      *
-     * @param      JournalEntryImage $obj A JournalEntryImage object.
+     * @param JournalEntryImage $obj A JournalEntryImage object.
      * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
      */
     public static function addInstanceToPool($obj, $key = null)
@@ -357,7 +357,7 @@ abstract class BaseJournalEntryImagePeer
      * a multi-column primary key, a serialize()d version of the primary key will be returned.
      *
      * @param      string $key The key (@see getPrimaryKeyHash()) for this instance.
-     * @return   JournalEntryImage Found object or null if 1) no instance exists for specified key or 2) instance pooling has been disabled.
+     * @return JournalEntryImage Found object or null if 1) no instance exists for specified key or 2) instance pooling has been disabled.
      * @see        getPrimaryKeyHash()
      */
     public static function getInstanceFromPool($key)
@@ -376,8 +376,13 @@ abstract class BaseJournalEntryImagePeer
      *
      * @return void
      */
-    public static function clearInstancePool()
+    public static function clearInstancePool($and_clear_all_references = false)
     {
+      if ($and_clear_all_references) {
+        foreach (JournalEntryImagePeer::$instances as $instance) {
+          $instance->clearAllReferences(true);
+        }
+      }
         JournalEntryImagePeer::$instances = array();
     }
 
@@ -1825,7 +1830,7 @@ abstract class BaseJournalEntryImagePeer
     {
       $dbMap = Propel::getDatabaseMap(BaseJournalEntryImagePeer::DATABASE_NAME);
       if (!$dbMap->hasTable(BaseJournalEntryImagePeer::TABLE_NAME)) {
-        $dbMap->addTableObject(new JournalEntryImageTableMap());
+        $dbMap->addTableObject(new \JournalEntryImageTableMap());
       }
     }
 
@@ -1835,7 +1840,7 @@ abstract class BaseJournalEntryImagePeer
      *
      * @return string ClassName
      */
-    public static function getOMClass()
+    public static function getOMClass($row = 0, $colnum = 0)
     {
         return JournalEntryImagePeer::OM_CLASS;
     }
@@ -1871,7 +1876,7 @@ abstract class BaseJournalEntryImagePeer
             $con->beginTransaction();
             $pk = BasePeer::doInsert($criteria, $con);
             $con->commit();
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -1952,7 +1957,7 @@ abstract class BaseJournalEntryImagePeer
             $con->commit();
 
             return $affectedRows;
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -2019,7 +2024,7 @@ abstract class BaseJournalEntryImagePeer
             $con->commit();
 
             return $affectedRows;
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -2032,7 +2037,7 @@ abstract class BaseJournalEntryImagePeer
      *
      * NOTICE: This does not apply to primary or foreign keys for now.
      *
-     * @param      JournalEntryImage $obj The object to validate.
+     * @param JournalEntryImage $obj The object to validate.
      * @param      mixed $cols Column name or array of column names.
      *
      * @return mixed TRUE if all columns are valid or the error message of the first invalid column.
@@ -2067,7 +2072,7 @@ abstract class BaseJournalEntryImagePeer
      * @param   int $journal_entry_id
      * @param   int $document_id
      * @param      PropelPDO $con
-     * @return   JournalEntryImage
+     * @return JournalEntryImage
      */
     public static function retrieveByPK($journal_entry_id, $document_id, PropelPDO $con = null) {
         $_instancePoolKey = serialize(array((string) $journal_entry_id, (string) $document_id));

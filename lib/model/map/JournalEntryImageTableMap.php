@@ -38,14 +38,14 @@ class JournalEntryImageTableMap extends TableMap
         $this->setPackage('model');
         $this->setUseIdGenerator(false);
         // columns
-        $this->addForeignPrimaryKey('JOURNAL_ENTRY_ID', 'JournalEntryId', 'INTEGER' , 'journal_entries', 'ID', true, null, null);
-        $this->addForeignPrimaryKey('DOCUMENT_ID', 'DocumentId', 'INTEGER' , 'documents', 'ID', true, null, null);
-        $this->addColumn('SORT', 'Sort', 'INTEGER', false, null, null);
-        $this->addColumn('LEGEND', 'Legend', 'VARCHAR', true, 180, null);
-        $this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
-        $this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);
-        $this->addForeignKey('CREATED_BY', 'CreatedBy', 'INTEGER', 'users', 'ID', false, null, null);
-        $this->addForeignKey('UPDATED_BY', 'UpdatedBy', 'INTEGER', 'users', 'ID', false, null, null);
+        $this->addForeignPrimaryKey('journal_entry_id', 'JournalEntryId', 'INTEGER' , 'journal_entries', 'id', true, null, null);
+        $this->addForeignPrimaryKey('document_id', 'DocumentId', 'INTEGER' , 'documents', 'id', true, null, null);
+        $this->addColumn('sort', 'Sort', 'INTEGER', false, null, null);
+        $this->addColumn('legend', 'Legend', 'VARCHAR', true, 180, null);
+        $this->addColumn('created_at', 'CreatedAt', 'TIMESTAMP', false, null, null);
+        $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
+        $this->addForeignKey('created_by', 'CreatedBy', 'INTEGER', 'users', 'id', false, null, null);
+        $this->addForeignKey('updated_by', 'UpdatedBy', 'INTEGER', 'users', 'id', false, null, null);
         // validators
     } // initialize()
 
@@ -69,10 +69,23 @@ class JournalEntryImageTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
-            'denyable' => array('mode' => 'by_role', 'role_key' => '', 'owner_allowed' => '', ),
-            'extended_timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_updated_at' => 'false', ),
-            'attributable' => array('create_column' => 'created_by', 'update_column' => 'updated_by', ),
-            'extended_keyable' => array('key_separator' => '_', ),
+            'denyable' =>  array (
+  'mode' => 'by_role',
+  'role_key' => '',
+  'owner_allowed' => '',
+),
+            'extended_timestampable' =>  array (
+  'create_column' => 'created_at',
+  'update_column' => 'updated_at',
+  'disable_updated_at' => 'false',
+),
+            'attributable' =>  array (
+  'create_column' => 'created_by',
+  'update_column' => 'updated_by',
+),
+            'extended_keyable' =>  array (
+  'key_separator' => '_',
+),
         );
     } // getBehaviors()
 

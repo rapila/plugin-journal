@@ -47,7 +47,6 @@
  * @method Journal findOne(PropelPDO $con = null) Return the first Journal matching the query
  * @method Journal findOneOrCreate(PropelPDO $con = null) Return the first Journal matching the query, or a new Journal object populated from the query conditions when no match is found
  *
- * @method Journal findOneById(int $id) Return the first Journal filtered by the id column
  * @method Journal findOneByName(string $name) Return the first Journal filtered by the name column
  * @method Journal findOneByDescription(string $description) Return the first Journal filtered by the description column
  * @method Journal findOneByEnableComments(boolean $enable_comments) Return the first Journal filtered by the enable_comments column
@@ -80,8 +79,14 @@ abstract class BaseJournalQuery extends ModelCriteria
      * @param     string $modelName The phpName of a model, e.g. 'Book'
      * @param     string $modelAlias The alias for the model in this query, e.g. 'b'
      */
-    public function __construct($dbName = 'rapila', $modelName = 'Journal', $modelAlias = null)
+    public function __construct($dbName = null, $modelName = null, $modelAlias = null)
     {
+        if (null === $dbName) {
+            $dbName = 'rapila';
+        }
+        if (null === $modelName) {
+            $modelName = 'Journal';
+        }
         parent::__construct($dbName, $modelName, $modelAlias);
     }
 
@@ -89,7 +94,7 @@ abstract class BaseJournalQuery extends ModelCriteria
      * Returns a new JournalQuery object.
      *
      * @param     string $modelAlias The alias of a model in the query
-     * @param     JournalQuery|Criteria $criteria Optional Criteria to build the query from
+     * @param   JournalQuery|Criteria $criteria Optional Criteria to build the query from
      *
      * @return JournalQuery
      */
@@ -98,10 +103,8 @@ abstract class BaseJournalQuery extends ModelCriteria
         if ($criteria instanceof JournalQuery) {
             return $criteria;
         }
-        $query = new JournalQuery();
-        if (null !== $modelAlias) {
-            $query->setModelAlias($modelAlias);
-        }
+        $query = new JournalQuery(null, null, $modelAlias);
+
         if ($criteria instanceof Criteria) {
             $query->mergeWith($criteria);
         }
@@ -129,7 +132,7 @@ abstract class BaseJournalQuery extends ModelCriteria
             return null;
         }
         if ((null !== ($obj = JournalPeer::getInstanceFromPool((string) $key))) && !$this->formatter) {
-            // the object is alredy in the instance pool
+            // the object is already in the instance pool
             return $obj;
         }
         if ($con === null) {
@@ -146,18 +149,32 @@ abstract class BaseJournalQuery extends ModelCriteria
     }
 
     /**
+     * Alias of findPk to use instance pooling
+     *
+     * @param     mixed $key Primary key to use for the query
+     * @param     PropelPDO $con A connection object
+     *
+     * @return                 Journal A model object, or null if the key is not found
+     * @throws PropelException
+     */
+     public function findOneById($key, $con = null)
+     {
+        return $this->findPk($key, $con);
+     }
+
+    /**
      * Find object by primary key using raw SQL to go fast.
      * Bypass doSelect() and the object formatter by using generated code.
      *
      * @param     mixed $key Primary key to use for the query
      * @param     PropelPDO $con A connection object
      *
-     * @return   Journal A model object, or null if the key is not found
-     * @throws   PropelException
+     * @return                 Journal A model object, or null if the key is not found
+     * @throws PropelException
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `ID`, `NAME`, `DESCRIPTION`, `ENABLE_COMMENTS`, `NOTIFY_COMMENTS`, `USE_CAPTCHA`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journals` WHERE `ID` = :p0';
+        $sql = 'SELECT `id`, `name`, `description`, `enable_comments`, `notify_comments`, `use_captcha`, `created_at`, `updated_at`, `created_by`, `updated_by` FROM `journals` WHERE `id` = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -253,7 +270,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * <code>
      * $query->filterById(1234); // WHERE id = 1234
      * $query->filterById(array(12, 34)); // WHERE id IN (12, 34)
-     * $query->filterById(array('min' => 12)); // WHERE id > 12
+     * $query->filterById(array('min' => 12)); // WHERE id >= 12
+     * $query->filterById(array('max' => 12)); // WHERE id <= 12
      * </code>
      *
      * @param     mixed $id The value to use as filter.
@@ -266,8 +284,22 @@ abstract class BaseJournalQuery extends ModelCriteria
      */
     public function filterById($id = null, $comparison = null)
     {
-        if (is_array($id) && null === $comparison) {
-            $comparison = Criteria::IN;
+        if (is_array($id)) {
+            $useMinMax = false;
+            if (isset($id['min'])) {
+                $this->addUsingAlias(JournalPeer::ID, $id['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($id['max'])) {
+                $this->addUsingAlias(JournalPeer::ID, $id['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
         }
 
         return $this->addUsingAlias(JournalPeer::ID, $id, $comparison);
@@ -352,7 +384,7 @@ abstract class BaseJournalQuery extends ModelCriteria
     public function filterByEnableComments($enableComments = null, $comparison = null)
     {
         if (is_string($enableComments)) {
-            $enable_comments = in_array(strtolower($enableComments), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            $enableComments = in_array(strtolower($enableComments), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
         }
 
         return $this->addUsingAlias(JournalPeer::ENABLE_COMMENTS, $enableComments, $comparison);
@@ -379,7 +411,7 @@ abstract class BaseJournalQuery extends ModelCriteria
     public function filterByNotifyComments($notifyComments = null, $comparison = null)
     {
         if (is_string($notifyComments)) {
-            $notify_comments = in_array(strtolower($notifyComments), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            $notifyComments = in_array(strtolower($notifyComments), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
         }
 
         return $this->addUsingAlias(JournalPeer::NOTIFY_COMMENTS, $notifyComments, $comparison);
@@ -406,7 +438,7 @@ abstract class BaseJournalQuery extends ModelCriteria
     public function filterByUseCaptcha($useCaptcha = null, $comparison = null)
     {
         if (is_string($useCaptcha)) {
-            $use_captcha = in_array(strtolower($useCaptcha), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            $useCaptcha = in_array(strtolower($useCaptcha), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
         }
 
         return $this->addUsingAlias(JournalPeer::USE_CAPTCHA, $useCaptcha, $comparison);
@@ -419,7 +451,7 @@ abstract class BaseJournalQuery extends ModelCriteria
      * <code>
      * $query->filterByCreatedAt('2011-03-14'); // WHERE created_at = '2011-03-14'
      * $query->filterByCreatedAt('now'); // WHERE created_at = '2011-03-14'
-     * $query->filterByCreatedAt(array('max' => 'yesterday')); // WHERE created_at > '2011-03-13'
+     * $query->filterByCreatedAt(array('max' => 'yesterday')); // WHERE created_at < '2011-03-13'
      * </code>
      *
      * @param     mixed $createdAt The value to use as filter.
@@ -462,7 +494,7 @@ abstract class BaseJournalQuery extends ModelCriteria
      * <code>
      * $query->filterByUpdatedAt('2011-03-14'); // WHERE updated_at = '2011-03-14'
      * $query->filterByUpdatedAt('now'); // WHERE updated_at = '2011-03-14'
-     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at > '2011-03-13'
+     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at < '2011-03-13'
      * </code>
      *
      * @param     mixed $updatedAt The value to use as filter.
@@ -505,7 +537,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * <code>
      * $query->filterByCreatedBy(1234); // WHERE created_by = 1234
      * $query->filterByCreatedBy(array(12, 34)); // WHERE created_by IN (12, 34)
-     * $query->filterByCreatedBy(array('min' => 12)); // WHERE created_by > 12
+     * $query->filterByCreatedBy(array('min' => 12)); // WHERE created_by >= 12
+     * $query->filterByCreatedBy(array('max' => 12)); // WHERE created_by <= 12
      * </code>
      *
      * @see       filterByUserRelatedByCreatedBy()
@@ -548,7 +581,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * <code>
      * $query->filterByUpdatedBy(1234); // WHERE updated_by = 1234
      * $query->filterByUpdatedBy(array(12, 34)); // WHERE updated_by IN (12, 34)
-     * $query->filterByUpdatedBy(array('min' => 12)); // WHERE updated_by > 12
+     * $query->filterByUpdatedBy(array('min' => 12)); // WHERE updated_by >= 12
+     * $query->filterByUpdatedBy(array('max' => 12)); // WHERE updated_by <= 12
      * </code>
      *
      * @see       filterByUserRelatedByUpdatedBy()
@@ -590,8 +624,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * @param   User|PropelObjectCollection $user The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByUserRelatedByCreatedBy($user, $comparison = null)
     {
@@ -666,8 +700,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * @param   User|PropelObjectCollection $user The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByUserRelatedByUpdatedBy($user, $comparison = null)
     {
@@ -742,8 +776,8 @@ abstract class BaseJournalQuery extends ModelCriteria
      * @param   JournalEntry|PropelObjectCollection $journalEntry  the related object to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByJournalEntry($journalEntry, $comparison = null)
     {

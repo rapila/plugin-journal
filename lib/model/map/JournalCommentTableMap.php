@@ -38,17 +38,17 @@ class JournalCommentTableMap extends TableMap
         $this->setPackage('model');
         $this->setUseIdGenerator(true);
         // columns
-        $this->addPrimaryKey('ID', 'Id', 'INTEGER', true, null, null);
-        $this->addColumn('USER', 'Username', 'VARCHAR', true, 200, null);
-        $this->addColumn('EMAIL', 'Email', 'VARCHAR', true, 200, null);
-        $this->addColumn('TEXT', 'Text', 'LONGVARCHAR', true, null, null);
-        $this->addForeignKey('JOURNAL_ENTRY_ID', 'JournalEntryId', 'INTEGER', 'journal_entries', 'ID', true, null, null);
-        $this->addColumn('IS_PUBLISHED', 'IsPublished', 'BOOLEAN', false, 1, true);
-        $this->addColumn('ACTIVATION_HASH', 'ActivationHash', 'VARCHAR', false, 50, null);
-        $this->addColumn('CREATED_AT', 'CreatedAt', 'TIMESTAMP', false, null, null);
-        $this->addColumn('UPDATED_AT', 'UpdatedAt', 'TIMESTAMP', false, null, null);
-        $this->addForeignKey('CREATED_BY', 'CreatedBy', 'INTEGER', 'users', 'ID', false, null, null);
-        $this->addForeignKey('UPDATED_BY', 'UpdatedBy', 'INTEGER', 'users', 'ID', false, null, null);
+        $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
+        $this->addColumn('user', 'Username', 'VARCHAR', true, 200, null);
+        $this->addColumn('email', 'Email', 'VARCHAR', true, 200, null);
+        $this->addColumn('text', 'Text', 'LONGVARCHAR', true, null, null);
+        $this->addForeignKey('journal_entry_id', 'JournalEntryId', 'INTEGER', 'journal_entries', 'id', true, null, null);
+        $this->addColumn('is_published', 'IsPublished', 'BOOLEAN', false, 1, true);
+        $this->addColumn('activation_hash', 'ActivationHash', 'VARCHAR', false, 50, null);
+        $this->addColumn('created_at', 'CreatedAt', 'TIMESTAMP', false, null, null);
+        $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
+        $this->addForeignKey('created_by', 'CreatedBy', 'INTEGER', 'users', 'id', false, null, null);
+        $this->addForeignKey('updated_by', 'UpdatedBy', 'INTEGER', 'users', 'id', false, null, null);
         // validators
     } // initialize()
 
@@ -71,10 +71,23 @@ class JournalCommentTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
-            'denyable' => array('mode' => '', 'role_key' => 'journal_entries', 'owner_allowed' => 'true', ),
-            'extended_timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_updated_at' => 'false', ),
-            'attributable' => array('create_column' => 'created_by', 'update_column' => 'updated_by', ),
-            'extended_keyable' => array('key_separator' => '_', ),
+            'denyable' =>  array (
+  'mode' => '',
+  'role_key' => 'journal_entries',
+  'owner_allowed' => 'true',
+),
+            'extended_timestampable' =>  array (
+  'create_column' => 'created_at',
+  'update_column' => 'updated_at',
+  'disable_updated_at' => 'false',
+),
+            'attributable' =>  array (
+  'create_column' => 'created_by',
+  'update_column' => 'updated_by',
+),
+            'extended_keyable' =>  array (
+  'key_separator' => '_',
+),
         );
     } // getBehaviors()
 

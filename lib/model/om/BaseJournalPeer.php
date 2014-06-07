@@ -32,41 +32,41 @@ abstract class BaseJournalPeer
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
     const NUM_HYDRATE_COLUMNS = 10;
 
-    /** the column name for the ID field */
-    const ID = 'journals.ID';
+    /** the column name for the id field */
+    const ID = 'journals.id';
 
-    /** the column name for the NAME field */
-    const NAME = 'journals.NAME';
+    /** the column name for the name field */
+    const NAME = 'journals.name';
 
-    /** the column name for the DESCRIPTION field */
-    const DESCRIPTION = 'journals.DESCRIPTION';
+    /** the column name for the description field */
+    const DESCRIPTION = 'journals.description';
 
-    /** the column name for the ENABLE_COMMENTS field */
-    const ENABLE_COMMENTS = 'journals.ENABLE_COMMENTS';
+    /** the column name for the enable_comments field */
+    const ENABLE_COMMENTS = 'journals.enable_comments';
 
-    /** the column name for the NOTIFY_COMMENTS field */
-    const NOTIFY_COMMENTS = 'journals.NOTIFY_COMMENTS';
+    /** the column name for the notify_comments field */
+    const NOTIFY_COMMENTS = 'journals.notify_comments';
 
-    /** the column name for the USE_CAPTCHA field */
-    const USE_CAPTCHA = 'journals.USE_CAPTCHA';
+    /** the column name for the use_captcha field */
+    const USE_CAPTCHA = 'journals.use_captcha';
 
-    /** the column name for the CREATED_AT field */
-    const CREATED_AT = 'journals.CREATED_AT';
+    /** the column name for the created_at field */
+    const CREATED_AT = 'journals.created_at';
 
-    /** the column name for the UPDATED_AT field */
-    const UPDATED_AT = 'journals.UPDATED_AT';
+    /** the column name for the updated_at field */
+    const UPDATED_AT = 'journals.updated_at';
 
-    /** the column name for the CREATED_BY field */
-    const CREATED_BY = 'journals.CREATED_BY';
+    /** the column name for the created_by field */
+    const CREATED_BY = 'journals.created_by';
 
-    /** the column name for the UPDATED_BY field */
-    const UPDATED_BY = 'journals.UPDATED_BY';
+    /** the column name for the updated_by field */
+    const UPDATED_BY = 'journals.updated_by';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
 
     /**
-     * An identiy map to hold any loaded instances of Journal objects.
+     * An identity map to hold any loaded instances of Journal objects.
      * This must be public so that other peer classes can access this when hydrating from JOIN
      * queries.
      * @var        array Journal[]
@@ -188,16 +188,16 @@ abstract class BaseJournalPeer
             $criteria->addSelectColumn(JournalPeer::CREATED_BY);
             $criteria->addSelectColumn(JournalPeer::UPDATED_BY);
         } else {
-            $criteria->addSelectColumn($alias . '.ID');
-            $criteria->addSelectColumn($alias . '.NAME');
-            $criteria->addSelectColumn($alias . '.DESCRIPTION');
-            $criteria->addSelectColumn($alias . '.ENABLE_COMMENTS');
-            $criteria->addSelectColumn($alias . '.NOTIFY_COMMENTS');
-            $criteria->addSelectColumn($alias . '.USE_CAPTCHA');
-            $criteria->addSelectColumn($alias . '.CREATED_AT');
-            $criteria->addSelectColumn($alias . '.UPDATED_AT');
-            $criteria->addSelectColumn($alias . '.CREATED_BY');
-            $criteria->addSelectColumn($alias . '.UPDATED_BY');
+            $criteria->addSelectColumn($alias . '.id');
+            $criteria->addSelectColumn($alias . '.name');
+            $criteria->addSelectColumn($alias . '.description');
+            $criteria->addSelectColumn($alias . '.enable_comments');
+            $criteria->addSelectColumn($alias . '.notify_comments');
+            $criteria->addSelectColumn($alias . '.use_captcha');
+            $criteria->addSelectColumn($alias . '.created_at');
+            $criteria->addSelectColumn($alias . '.updated_at');
+            $criteria->addSelectColumn($alias . '.created_by');
+            $criteria->addSelectColumn($alias . '.updated_by');
         }
     }
 
@@ -250,7 +250,7 @@ abstract class BaseJournalPeer
      *
      * @param      Criteria $criteria object used to create the SELECT statement.
      * @param      PropelPDO $con
-     * @return                 Journal
+     * @return Journal
      * @throws PropelException Any exceptions caught during processing will be
      *		 rethrown wrapped into a PropelException.
      */
@@ -281,7 +281,7 @@ abstract class BaseJournalPeer
     /**
      * Prepares the Criteria object and uses the parent doSelect() method to execute a PDOStatement.
      *
-     * Use this method directly if you want to work with an executed statement durirectly (for example
+     * Use this method directly if you want to work with an executed statement directly (for example
      * to perform your own object hydration).
      *
      * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
@@ -317,7 +317,7 @@ abstract class BaseJournalPeer
      * to the cache in order to ensure that the same objects are always returned by doSelect*()
      * and retrieveByPK*() calls.
      *
-     * @param      Journal $obj A Journal object.
+     * @param Journal $obj A Journal object.
      * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
      */
     public static function addInstanceToPool($obj, $key = null)
@@ -367,7 +367,7 @@ abstract class BaseJournalPeer
      * a multi-column primary key, a serialize()d version of the primary key will be returned.
      *
      * @param      string $key The key (@see getPrimaryKeyHash()) for this instance.
-     * @return   Journal Found object or null if 1) no instance exists for specified key or 2) instance pooling has been disabled.
+     * @return Journal Found object or null if 1) no instance exists for specified key or 2) instance pooling has been disabled.
      * @see        getPrimaryKeyHash()
      */
     public static function getInstanceFromPool($key)
@@ -386,8 +386,13 @@ abstract class BaseJournalPeer
      *
      * @return void
      */
-    public static function clearInstancePool()
+    public static function clearInstancePool($and_clear_all_references = false)
     {
+      if ($and_clear_all_references) {
+        foreach (JournalPeer::$instances as $instance) {
+          $instance->clearAllReferences(true);
+        }
+      }
         JournalPeer::$instances = array();
     }
 
@@ -1091,7 +1096,7 @@ abstract class BaseJournalPeer
     {
       $dbMap = Propel::getDatabaseMap(BaseJournalPeer::DATABASE_NAME);
       if (!$dbMap->hasTable(BaseJournalPeer::TABLE_NAME)) {
-        $dbMap->addTableObject(new JournalTableMap());
+        $dbMap->addTableObject(new \JournalTableMap());
       }
     }
 
@@ -1101,7 +1106,7 @@ abstract class BaseJournalPeer
      *
      * @return string ClassName
      */
-    public static function getOMClass()
+    public static function getOMClass($row = 0, $colnum = 0)
     {
         return JournalPeer::OM_CLASS;
     }
@@ -1141,7 +1146,7 @@ abstract class BaseJournalPeer
             $con->beginTransaction();
             $pk = BasePeer::doInsert($criteria, $con);
             $con->commit();
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -1214,7 +1219,7 @@ abstract class BaseJournalPeer
             $con->commit();
 
             return $affectedRows;
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -1273,7 +1278,7 @@ abstract class BaseJournalPeer
             $con->commit();
 
             return $affectedRows;
-        } catch (PropelException $e) {
+        } catch (Exception $e) {
             $con->rollBack();
             throw $e;
         }
@@ -1286,7 +1291,7 @@ abstract class BaseJournalPeer
      *
      * NOTICE: This does not apply to primary or foreign keys for now.
      *
-     * @param      Journal $obj The object to validate.
+     * @param Journal $obj The object to validate.
      * @param      mixed $cols Column name or array of column names.
      *
      * @return mixed TRUE if all columns are valid or the error message of the first invalid column.
@@ -1319,7 +1324,7 @@ abstract class BaseJournalPeer
     /**
      * Retrieve a single object by pkey.
      *
-     * @param      int $pk the primary key.
+     * @param int $pk the primary key.
      * @param      PropelPDO $con the connection to use
      * @return Journal
      */

@@ -76,8 +76,14 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param     string $modelName The phpName of a model, e.g. 'Book'
      * @param     string $modelAlias The alias for the model in this query, e.g. 'b'
      */
-    public function __construct($dbName = 'rapila', $modelName = 'JournalEntryImage', $modelAlias = null)
+    public function __construct($dbName = null, $modelName = null, $modelAlias = null)
     {
+        if (null === $dbName) {
+            $dbName = 'rapila';
+        }
+        if (null === $modelName) {
+            $modelName = 'JournalEntryImage';
+        }
         parent::__construct($dbName, $modelName, $modelAlias);
     }
 
@@ -85,7 +91,7 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * Returns a new JournalEntryImageQuery object.
      *
      * @param     string $modelAlias The alias of a model in the query
-     * @param     JournalEntryImageQuery|Criteria $criteria Optional Criteria to build the query from
+     * @param   JournalEntryImageQuery|Criteria $criteria Optional Criteria to build the query from
      *
      * @return JournalEntryImageQuery
      */
@@ -94,10 +100,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
         if ($criteria instanceof JournalEntryImageQuery) {
             return $criteria;
         }
-        $query = new JournalEntryImageQuery();
-        if (null !== $modelAlias) {
-            $query->setModelAlias($modelAlias);
-        }
+        $query = new JournalEntryImageQuery(null, null, $modelAlias);
+
         if ($criteria instanceof Criteria) {
             $query->mergeWith($criteria);
         }
@@ -126,7 +130,7 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
             return null;
         }
         if ((null !== ($obj = JournalEntryImagePeer::getInstanceFromPool(serialize(array((string) $key[0], (string) $key[1]))))) && !$this->formatter) {
-            // the object is alredy in the instance pool
+            // the object is already in the instance pool
             return $obj;
         }
         if ($con === null) {
@@ -149,12 +153,12 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param     mixed $key Primary key to use for the query
      * @param     PropelPDO $con A connection object
      *
-     * @return   JournalEntryImage A model object, or null if the key is not found
-     * @throws   PropelException
+     * @return                 JournalEntryImage A model object, or null if the key is not found
+     * @throws PropelException
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT `JOURNAL_ENTRY_ID`, `DOCUMENT_ID`, `SORT`, `LEGEND`, `CREATED_AT`, `UPDATED_AT`, `CREATED_BY`, `UPDATED_BY` FROM `journal_entry_images` WHERE `JOURNAL_ENTRY_ID` = :p0 AND `DOCUMENT_ID` = :p1';
+        $sql = 'SELECT `journal_entry_id`, `document_id`, `sort`, `legend`, `created_at`, `updated_at`, `created_by`, `updated_by` FROM `journal_entry_images` WHERE `journal_entry_id` = :p0 AND `document_id` = :p1';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key[0], PDO::PARAM_INT);
@@ -262,7 +266,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByJournalEntryId(1234); // WHERE journal_entry_id = 1234
      * $query->filterByJournalEntryId(array(12, 34)); // WHERE journal_entry_id IN (12, 34)
-     * $query->filterByJournalEntryId(array('min' => 12)); // WHERE journal_entry_id > 12
+     * $query->filterByJournalEntryId(array('min' => 12)); // WHERE journal_entry_id >= 12
+     * $query->filterByJournalEntryId(array('max' => 12)); // WHERE journal_entry_id <= 12
      * </code>
      *
      * @see       filterByJournalEntry()
@@ -277,8 +282,22 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      */
     public function filterByJournalEntryId($journalEntryId = null, $comparison = null)
     {
-        if (is_array($journalEntryId) && null === $comparison) {
-            $comparison = Criteria::IN;
+        if (is_array($journalEntryId)) {
+            $useMinMax = false;
+            if (isset($journalEntryId['min'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $journalEntryId['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($journalEntryId['max'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $journalEntryId['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
         }
 
         return $this->addUsingAlias(JournalEntryImagePeer::JOURNAL_ENTRY_ID, $journalEntryId, $comparison);
@@ -291,7 +310,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByDocumentId(1234); // WHERE document_id = 1234
      * $query->filterByDocumentId(array(12, 34)); // WHERE document_id IN (12, 34)
-     * $query->filterByDocumentId(array('min' => 12)); // WHERE document_id > 12
+     * $query->filterByDocumentId(array('min' => 12)); // WHERE document_id >= 12
+     * $query->filterByDocumentId(array('max' => 12)); // WHERE document_id <= 12
      * </code>
      *
      * @see       filterByDocument()
@@ -306,8 +326,22 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      */
     public function filterByDocumentId($documentId = null, $comparison = null)
     {
-        if (is_array($documentId) && null === $comparison) {
-            $comparison = Criteria::IN;
+        if (is_array($documentId)) {
+            $useMinMax = false;
+            if (isset($documentId['min'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($documentId['max'])) {
+                $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
         }
 
         return $this->addUsingAlias(JournalEntryImagePeer::DOCUMENT_ID, $documentId, $comparison);
@@ -320,7 +354,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterBySort(1234); // WHERE sort = 1234
      * $query->filterBySort(array(12, 34)); // WHERE sort IN (12, 34)
-     * $query->filterBySort(array('min' => 12)); // WHERE sort > 12
+     * $query->filterBySort(array('min' => 12)); // WHERE sort >= 12
+     * $query->filterBySort(array('max' => 12)); // WHERE sort <= 12
      * </code>
      *
      * @param     mixed $sort The value to use as filter.
@@ -390,7 +425,7 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByCreatedAt('2011-03-14'); // WHERE created_at = '2011-03-14'
      * $query->filterByCreatedAt('now'); // WHERE created_at = '2011-03-14'
-     * $query->filterByCreatedAt(array('max' => 'yesterday')); // WHERE created_at > '2011-03-13'
+     * $query->filterByCreatedAt(array('max' => 'yesterday')); // WHERE created_at < '2011-03-13'
      * </code>
      *
      * @param     mixed $createdAt The value to use as filter.
@@ -433,7 +468,7 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByUpdatedAt('2011-03-14'); // WHERE updated_at = '2011-03-14'
      * $query->filterByUpdatedAt('now'); // WHERE updated_at = '2011-03-14'
-     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at > '2011-03-13'
+     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at < '2011-03-13'
      * </code>
      *
      * @param     mixed $updatedAt The value to use as filter.
@@ -476,7 +511,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByCreatedBy(1234); // WHERE created_by = 1234
      * $query->filterByCreatedBy(array(12, 34)); // WHERE created_by IN (12, 34)
-     * $query->filterByCreatedBy(array('min' => 12)); // WHERE created_by > 12
+     * $query->filterByCreatedBy(array('min' => 12)); // WHERE created_by >= 12
+     * $query->filterByCreatedBy(array('max' => 12)); // WHERE created_by <= 12
      * </code>
      *
      * @see       filterByUserRelatedByCreatedBy()
@@ -519,7 +555,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * <code>
      * $query->filterByUpdatedBy(1234); // WHERE updated_by = 1234
      * $query->filterByUpdatedBy(array(12, 34)); // WHERE updated_by IN (12, 34)
-     * $query->filterByUpdatedBy(array('min' => 12)); // WHERE updated_by > 12
+     * $query->filterByUpdatedBy(array('min' => 12)); // WHERE updated_by >= 12
+     * $query->filterByUpdatedBy(array('max' => 12)); // WHERE updated_by <= 12
      * </code>
      *
      * @see       filterByUserRelatedByUpdatedBy()
@@ -561,8 +598,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param   JournalEntry|PropelObjectCollection $journalEntry The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalEntryImageQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalEntryImageQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByJournalEntry($journalEntry, $comparison = null)
     {
@@ -637,8 +674,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param   Document|PropelObjectCollection $document The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalEntryImageQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalEntryImageQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByDocument($document, $comparison = null)
     {
@@ -713,8 +750,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param   User|PropelObjectCollection $user The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalEntryImageQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalEntryImageQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByUserRelatedByCreatedBy($user, $comparison = null)
     {
@@ -789,8 +826,8 @@ abstract class BaseJournalEntryImageQuery extends ModelCriteria
      * @param   User|PropelObjectCollection $user The related object(s) to use as filter
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
-     * @return   JournalEntryImageQuery The current query, for fluid interface
-     * @throws   PropelException - if the provided filter is invalid.
+     * @return                 JournalEntryImageQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
      */
     public function filterByUserRelatedByUpdatedBy($user, $comparison = null)
     {
