@@ -22,7 +22,6 @@ Widget.types.journal_detail = {
 		Widget.callStatic('detail', 'create_for_instance', this);
 		if(this.settings.is_standalone) {
 			this.handle('opened', function() {
-				_this._element.find('div.accordion').accordion({heightStyle: 'content'});
 				_this._element.addClass('has-accordion');
 			});
 		}
