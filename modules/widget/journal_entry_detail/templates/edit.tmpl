@@ -1,4 +1,4 @@
-<form>
+<form class="accordion">
 	<h3><a>{{writeString=wns.journal_entry.entry}}</a></h3>
 	<div class="general_info">
 		<div class="tags_in_detail"></div>
@@ -27,8 +27,8 @@
 		<div data-widget-type="rich_text" class="text-widget"><textarea name="text" class="ui-widget-content"></textarea></div>
 	</div>
 	<h3><a>{{writeString=wns.journal_entry.comments}}</a></h3>
-	<div>
-		<table>
+	<div class="journal_comments">
+		<table class="ui-list">
 			<thead>
 				<tr>
 					<th>{{writeString=wns.date}}</th>

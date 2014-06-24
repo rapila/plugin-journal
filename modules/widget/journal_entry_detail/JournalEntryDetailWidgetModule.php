@@ -67,7 +67,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$aComment['CreatedAtFormatted'] = $oComment->getCreatedAtFormatted();
 			$aComment['Id'] = $oComment->getId();
 			$aComment['Email'] = $oComment->getEmail();
-			$aComment['Text'] = $oComment->getText();
+			$aComment['Text'] = strip_tags($oComment->getText());
 			$aComment['IsPublished'] = $oComment->getIsPublished();
 			$aResult['comments'][] = $aComment;
 		}
