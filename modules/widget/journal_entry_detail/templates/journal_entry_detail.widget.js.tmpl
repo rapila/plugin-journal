@@ -99,6 +99,7 @@ Widget.types.journal_entry_detail = {
 			});
 
 			this.update_comments(data.comments);
+			this._element.find("span.comment_count").text(data.comments.length);
 			this.update_documents();
 
 			if(data.Id) {
