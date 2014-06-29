@@ -99,7 +99,6 @@ Widget.types.journal_entry_detail = {
 			});
 
 			this.update_comments(data.comments);
-			this._element.find("span.comment_count").text(data.comments.length);
 			this.update_documents();
 
 			if(data.Id) {
@@ -115,6 +114,8 @@ Widget.types.journal_entry_detail = {
 	update_comments: function(comments) {
 		var _this = this;
 		this.comment_list.empty();
+		this._element.find("span.comment_count").text(comments.length);
+		
 		if(comments.length === 0) {
 			var comment = jQuery('<tr/>').addClass('ui-list-row');
 			this.comment_list.append(comment.append(jQuery('<td/>').attr('colspan', 4).text("{{writeString=wns.journal_entry.no_comments}}")));
@@ -150,7 +151,14 @@ Widget.types.journal_entry_detail = {
 			jQuery.each(documents, function(i, document_data) {
 				_this.insert_thumbnail(document_data);
 			});
+			this.update_document_count(documents.count);
 		});
+	},
+	
+	update_document_count: function(count) {
+		var count = count || this.droppable_area.find('div.ui-image-picker-image').length;
+		this._element.find("span.document_count").text(count);
+		return count;
 	},
 
 	insert_thumbnail: function(document_data) {
@@ -168,7 +176,7 @@ Widget.types.journal_entry_detail = {
 				if(confirmed) {
 					_this.deleteDocument( document_id, function(result) {
 						jQuery(doc).remove();
-						if(_this.droppable_area.find('div.ui-image-picker-image').length === 0) {
+						if(_this.update_document_count() === 0) {
 							_this.droppable_area.empty().append(_this.no_images_upload_info);
 						}
 					});
@@ -194,6 +202,7 @@ Widget.types.journal_entry_detail = {
 		var _this = this;
 		this.addJournalEntryImage(document_id, function() {
 			_this.insert_thumbnail(_this.getSingleDocument(document_id, _this.settings.thumbnail_size));
+			_this.update_document_count();
 		});
 	},
 
