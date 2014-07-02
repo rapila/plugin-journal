@@ -36,7 +36,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$oTemplate = $this->constructTemplate('journal_entry_teaser');
 		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
 		$oTemplate->replaceIdentifier('title', $oJournalEntry->getTitle());
-		$oTemplate->replaceIdentifier('more_link', $sHref);
+		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
 		$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt('U'));
 		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
 		$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
@@ -54,7 +54,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$oTemplate = $this->constructTemplate('journal_comment_teaser');
 		$sHref = LinkUtil::link($oJournalComment->getJournalEntry()->getLink($this->oJournalPage)).'#comments';
 		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('rel' => 'internal', 'href' => $sHref), $oJournalComment->getJournalEntry()->getTitle()));
-		$oTemplate->replaceIdentifier('more_link', $sHref);
+		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
 		$oTemplate->replaceIdentifier('created_at', $oJournalComment->getCreatedAt('U'));
 		$oTemplate->replaceIdentifier('name', $oJournalComment->getUsername());
 		$oTemplate->replaceIdentifier('text', $oJournalComment->getText(), null, Template::NO_HTML_ESCAPE);

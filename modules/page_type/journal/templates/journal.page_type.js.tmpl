@@ -190,7 +190,8 @@
 				
 					// Append the preview bar, add container info
 					var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
-					container.find('h1, h2, h3, > :first-child').last().prepend(preview_bar);
+					// container.find('h1, h2, h3, > :first-child').last().prepend(preview_bar);
+					container.append(preview_bar);
 				});
 			}
 			
@@ -244,7 +245,8 @@
 			jQuery(document).on('click', '.preview_bar.journal-entry.may_edit .edit', function() {
 				var preview_bar = jQuery(this).closest('.preview_bar');
 				var container = preview_bar.closest('.journal_entry-container');
-
+				var button = jQuery(this);
+				button.addClass('ui-loading-add');
 				Widget.createOnce('journal_entry_detail', function(widget) {
 					var entry_id = container.data('entryId');
 					widget.setJournalEntryId(entry_id);
@@ -257,6 +259,7 @@
 						});
 					});
 				}, null, null, _this);
+				button.removeClass('ui-loading-add');
 			});
 		},
 
