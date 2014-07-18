@@ -32,7 +32,6 @@ Widget.types.journal_entry_detail = {
 			journal_input.settings.journal_ids_configured = _this.settings.journal_ids_configured;
 		}, jQuery.noop);
 
-		this._element.accordion({heightStyle: 'content'});
 		Widget.createWithElement('tag_area', function(widget) {
 			_this.tag_area = widget;
 			widget.settings.auto_load = false;
@@ -115,7 +114,7 @@ Widget.types.journal_entry_detail = {
 		var _this = this;
 		this.comment_list.empty();
 		this._element.find("span.comment_count").text(comments.length);
-		
+
 		if(comments.length === 0) {
 			var comment = jQuery('<tr/>').addClass('ui-list-row');
 			this.comment_list.append(comment.append(jQuery('<td/>').attr('colspan', 4).text("{{writeString=wns.journal_entry.no_comments}}")));
@@ -154,7 +153,7 @@ Widget.types.journal_entry_detail = {
 			this.update_document_count(documents.count);
 		});
 	},
-	
+
 	update_document_count: function(count) {
 		var count = count || this.droppable_area.find('div.ui-image-picker-image').length;
 		this._element.find("span.document_count").text(count);
