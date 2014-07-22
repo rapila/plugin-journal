@@ -3,11 +3,11 @@
 		this.container = container;
 		this.page_type = page_type;
 	}
-	
+
 	jQuery.extend(JournalController.prototype, {
 		init: function() {
 			var _this = this;
-			
+
 			this.form = jQuery('<form/>').append(Widget.parseHTML('{{includeTemplate=edit}}'));
 			this.journal_checkbox_prototype = Widget.parseHTML('{{includeTemplate=edit_journal}}');
 			this.container.append(this.form);
@@ -20,7 +20,7 @@
 			this.container.find('span.edit_journal_button').click(function() {
 				_this.edit_journal();
 			});
-			
+
 			this.template_list = this.container.find('select[name="template_set"]');
 			this.widget_list = this.container.find('div.journal-widgets');
 			this.widget_list.sortable({
@@ -29,39 +29,39 @@
 			});
 			this.container_list = this.container.find('select[name="container"]');
 			this.auxiliary_container_list = this.container.find('select[name="auxiliary_container"]');
-			
+
 			// Elements used later on
 			this.name_input = this.container.find('input[name="journal_name"]');
 			this.description_input = this.container.find('textarea[name="journal_description"]');
 			this.date_navigation_items_visible = this.container.find('select[name="date_navigation_items_visible"]');
-			
+
 			//Static value lists
 			this.mode_list = this.container.find('select[name="mode"]');
 			this.entries_per_page_list = this.container.find('select[name="entries_per_page"]');
 
 			this.reload();
 		},
-		
+
 		journal_ids: function() {
 			this.journal_list.find('input[name="journal_ids[]"]').each(function() {
 				result.push(jQuery(this).val());
 			});
 			return result;
 		},
-		
+
 		set_journal_ids: function(values) {
 			this.journal_list.find('input[name="journal_ids[]"]').each(function() {
 				var journal_input = jQuery(this);
 				journal_input.prop('checked', jQuery.inArray(journal_input.val(), values) != -1);
 			});
 		},
-		
+
 		reload: function() {
 			var _this = this;
 			var waiters = [];
-			
+
 			this.container.find('.journal_detail').tabs();
-			
+
 			// List journals
 			this.update_journals(waiters);
 
@@ -69,7 +69,7 @@
 			this.page_type.methods.listTemplateSets(function(result) {
 				_this.template_list.empty().populate(result.options, result.current);
 			}.deferred(waiters));
-			
+
 			// List widgets
 			this.page_type.methods.listWidgets(function(result) {
 				_this.widget_list.empty();
@@ -88,17 +88,17 @@
 				_this.container_list.empty().populate(result.options, result.current);
 				_this.auxiliary_container_list.empty().populate(result.options, result.current_auxiliary);
 			}.deferred(waiters));
-			
+
 			// List overview modes
 			this.page_type.methods.currentOverviewMode(function(result) {
 				_this.mode_list.val(result);
 			}.deferred(waiters));
-			
+
 			// Further settings
 			this.page_type.methods.dateNavigationItemsVisible(function(hidden) {
 				_this.date_navigation_items_visible.val(hidden === false ? '0' : '1');
 			}.deferred(waiters));
-			
+
 			this.page_type.methods.currentEntriesPerPage(function(result) {
 				_this.entries_per_page_list.val(result);
 			}.deferred(waiters));
@@ -107,7 +107,7 @@
 				_this.reload_entries();
 			});
 		},
-		
+
 		update_journals:function(waiters) {
 			var _this = this;
 			this.journal_ids = null;
@@ -126,7 +126,7 @@
 				}
 			}.deferred(waiters));
 		},
-		
+
 		add_journal_input: function(id, name) {
 			var _this = this;
 			var journal_input = this.journal_checkbox_prototype.clone();
@@ -137,7 +137,7 @@
 			});
 			this.journal_list.append(journal_input);
 		},
-		
+
 		edit_journal: function(journal_id) {
 			var _this = this;
 			Widget.createOnce('journal_detail', function(widget) {
@@ -169,13 +169,13 @@
 			});
 		}
 	});
-	
+
 	var init_journal_controls = function(page_id, container, page_type) {
 		var controller = new JournalController(page_id, container, page_type);
 		controller.init();
 		return controller;
 	};
-	
+
 	Widget.types.page_type.types.journal = function(page_type, page_id, container) {
 		this.controller = null;
 	};
@@ -187,20 +187,20 @@
 			function insert_preview_bars(context) {
 				(jQuery('.journal_entry-container')||context).each(function() {
 					var container = jQuery(this);
-				
+
 					// Append the preview bar, add container info
 					var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
 					container.append(preview_bar);
 				});
 			}
-			
+
 			function create_entry(journal_id) {
 				Widget.create('journal_entry_detail', function(widget) {
 					widget.settings.initial_journal_id = journal_id;
 				}, function(widget) {
 					widget.open();
-					widget.handle('saved', function() {
-						// page_type.callPageTypeMethod('renderJournalEntry', entry_id, container.data('template'), function(data) {
+					widget.handle('saved', function(result) {
+						// page_type.callPageTypeMethod('renderJournalEntry', result.id, container.data('template'), function(data) {
 						// 	container.html(data);
 						// 	insert_preview_bar(preview_bar, container);
 						// });
@@ -236,10 +236,10 @@
 					return create_entry(ui.item.data('journalId'));
 				});
 			});
-			
+
 			// Add preview edit buttons
 			insert_preview_bars();
-			
+
 			// add edit buttons click handlers
 			jQuery(document).on('click', '.preview_bar.journal-entry.may_edit .edit', function() {
 				var preview_bar = jQuery(this).closest('.preview_bar');
