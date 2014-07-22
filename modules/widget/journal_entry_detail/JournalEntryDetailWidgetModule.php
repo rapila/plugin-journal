@@ -133,8 +133,9 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oFlash->checkForValue('title', 'journal_entry.title_required');
 		$oFlash->checkForValue('journal_id', 'journal_entry.journal_id_required');
 		if($oJournalEntry->getIsPublished()) {
-			$oFlash->checkForValue('text', 'journal_entry.text_required');
-			$oJournalEntry->setIsPublished('false');
+			if(!$oFlash->checkForValue('text', 'journal_entry.text_required')) {
+				$oJournalEntry->setIsPublished('false');
+			}
 		}
 		$oFlash->finishReporting();
 	}
@@ -149,7 +150,6 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$aData['publish_at'] = date('c');
 		}
 		$oJournalEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
-
 		if(isset($aData['journal_id'])) {
 			$oJournalEntry->setJournalId($aData['journal_id']);
 		}
