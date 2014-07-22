@@ -1,12 +1,12 @@
 <?php
 class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
-	
+
 	private $oRichTextWidget;
-	
+
 	private $iJournalId;
-	
+
 	private $iJournalEntryId;
-	
+
 	public function __construct($sSessionKey = null, $oPage = null) {
 		parent::__construct($sSessionKey);
 		$this->oRichTextWidget = WidgetModule::getWidget('rich_text', null, null, 'journal');
@@ -14,12 +14,12 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		if($oPage === null) {
 			// get any blog page in site
 			$oPage = PageQuery::create()->filterByPageType('journal')->joinPageProperty()->useQuery('PageProperty')->filterByName('journal:journal_id')->endUse()->findOne();
-		} 
+		}
 		if($oPage) {
 			$this->oRichTextWidget->setTemplate($oPage->getTemplateNameUsed());
 		}
 		$this->setSetting('richtext_session', $this->oRichTextWidget->getSessionKey());
-		
+
 		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
 		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
 		$this->setSetting('date_today', date('d.m.Y'));
@@ -36,11 +36,11 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	public function setJournalEntryId($iJournalEntryId) {
 		$this->iJournalEntryId = $iJournalEntryId;
 	}
-	
+
 	public function getElementType() {
 		return "form";
 	}
-	
+
 	public function toggleCommentIsPublished($iCommentId) {
 		$oComment = JournalCommentQuery::create()->findPk($iCommentId);
 		if($oComment) {
@@ -49,7 +49,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			return $oComment->getIsPublished();
 		}
 	}
-	
+
 	public function loadData() {
 		$oJournalEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if(!$oJournalEntry) {
@@ -73,7 +73,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		return $aResult;
 	}
-	
+
 	public function addJournalEntryImage($iDocumentId) {
 		if($this->iJournalEntryId === null) {
 			$this->aUnsavedDocuments[] = $iDocumentId;
@@ -87,7 +87,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oJournalEntryImage->setDocumentId($iDocumentId);
 		return $oJournalEntryImage->save();
 	}
-	
+
 	public function allDocuments($iThumbnailSize = 180) {
 		$aDocuments = JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->joinDocument()->orderBySort()->find();
 		$aResult = array();
@@ -96,14 +96,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		return $aResult;
 	}
-	
+
 	public function rowData($oDocument, $iThumbnailSize = 180) {
-		return array( 'Name' => $oDocument->getName(), 
-									'Id' => $oDocument->getId(), 
+		return array( 'Name' => $oDocument->getName(),
+									'Id' => $oDocument->getId(),
 									'Preview' => $oDocument->getPreview($iThumbnailSize)
 								);
 	}
-	
+
 	public function getSingleDocument($iDocumentId, $iThumbnailSize) {
 		$oDokument = DocumentPeer::retrieveByPK($iDocumentId);
 		if($oDokument) {
@@ -111,14 +111,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		return null;
 	}
-	
+
 	public function deleteDocument($iDocumentId) {
 		$oDocument = DocumentPeer::retrieveByPK($iDocumentId);
 		if($oDocument && JournalEntryImageQuery::create()->filterByDocument($oDocument)->filterByJournalEntryId($this->iJournalEntryId)->findOne()) {
 			return $oDocument->delete();
 		}
 	}
-	
+
 	public function reorderDocuments($aDocumentIds) {
 		foreach($aDocumentIds as $iCount => $iDocumentId) {
 			$oDocument = JournalEntryImagePeer::retrieveByPK($this->iJournalEntryId, $iDocumentId);
@@ -126,7 +126,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$oDocument->save();
 		}
 	}
-	
+
 	private function validate($oData, $oJournalEntry) {
 		$oFlash = Flash::getFlash();
 		$oFlash->setArrayToCheck($oData);
@@ -138,7 +138,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		$oFlash->finishReporting();
 	}
-	
+
 	public function saveData($aData) {
 		$oJournalEntry = JournalEntryPeer::retrieveByPK($this->iJournalEntryId);
 		if($oJournalEntry === null) {
@@ -147,9 +147,9 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 		if($aData['publish_at'] == null) {
 			$aData['publish_at'] = date('c');
-		} 		
+		}
 		$oJournalEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
-		
+
 		if(isset($aData['journal_id'])) {
 			$oJournalEntry->setJournalId($aData['journal_id']);
 		}
@@ -161,6 +161,14 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oRichtextUtil->setTrackReferences($oJournalEntry);
 		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
 
-		return $oJournalEntry->save();
+		$oJournalEntry->save();
+		$oResult = new StdClass();
+		if($this->iJournalEntryId === null) {
+			$oResult->inserted = true;
+		} else {
+			$oResult->updated = true;
+		}
+		$oResult->id = $oJournalEntry->getId();
+		return $oResult;
 	}
 }
