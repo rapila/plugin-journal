@@ -5,7 +5,7 @@ require_once 'model/om/BaseJournalEntry.php';
 /**
  * @package model
  * @subpackage rapila-plugin-journal
- */ 
+ */
 class JournalEntry extends BaseJournalEntry {
 
 	public function getPublishAtLocalized($sFormat = ' %e. %B %Y') {
@@ -14,7 +14,7 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		return LocaleUtil::localizeDate($this->publish_at, null, $sFormat);
 	}
-	
+
 	public function getPublishAtTimestamp() {
 		return (int)$this->getPublishAt('U');
 	}
@@ -25,11 +25,11 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		return LocaleUtil::localizeDate($this->publish_at, $sLanguageId, $sFormatString);
 	}
-	
+
 	public function commentsEnabled() {
 		return $this->getJournal()->commentsEnabled();
 	}
-	
+
 	public function getJournalComments($oCriteria = null, PropelPDO $oConnection = null) {
 		if($oCriteria === null) {
 			$oCriteria = new Criteria();
@@ -38,11 +38,11 @@ class JournalEntry extends BaseJournalEntry {
 		$oCriteria->addAscendingOrderByColumn(JournalCommentPeer::ID);
 		return parent::getJournalComments($oCriteria, $oConnection);
 	}
-	
+
 	public function getImages() {
 		return $this->getJournalEntryImages(JournalEntryImageQuery::create()->orderBySort(Criteria::ASC));
 	}
-	
+
 	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
 		$aResult = array();
 		$aResult['title'] = $this->getTitle();
@@ -80,7 +80,7 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		return $aResult;
 	}
-	
+
 	/**
 	* Sets the journal entry text. When given a TagParser or an HtmlTag instance, this method will use the first paragraph tag found to construct the synopsis (short text).
 	* @param string|TagParser|HtmlTag $mText
@@ -106,7 +106,7 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		parent::setText($mText);
 	}
-	
+
 	public function getCountComments() {
 		$iCount = $this->countJournalComments();
 		if($iCount > 0) {
@@ -114,14 +114,14 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		return '-';
 	}
-	
+
 	public function getJournalName() {
 		if($oJournal = $this->getJournal()) {
 			return $oJournal->getName();
 		}
 		return null;
 	}
-	
+
 	public function getTitleTruncated($iTruncate = 50) {
 		return StringUtil::truncate($this->getTitle(), $iTruncate);
 	}
@@ -145,7 +145,7 @@ class JournalEntry extends BaseJournalEntry {
 		}
 		return parent::setTitle($sTitle);
 	}
-	
+
 	public function fillFromRssAttributes($aAttributes) {
 		if(isset($aAttributes['categories'])) {
 			$aTags = $aAttributes['categories'];
@@ -167,11 +167,11 @@ class JournalEntry extends BaseJournalEntry {
 		$this->setText($aAttributes['description']);
 		$this->setTitle($aAttributes['title']);
 	}
-	
+
 	public function hasTags() {
 		return $this->getHasTags();
 	}
-	
+
 	public function getHasTags() {
 		return TagQuery::create()->filterByTagged($this)->count() > 0;
 	}

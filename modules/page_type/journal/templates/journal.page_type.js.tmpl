@@ -184,7 +184,7 @@
 		handle_preview: function(page_id, page_type) {
 			var _this = this;
 
-			function insert_preview_bars(context) {
+			function insert_preview_bar(context) {
 				(jQuery('.journal_entry-container')||context).each(function() {
 					var container = jQuery(this);
 
@@ -194,32 +194,36 @@
 				});
 			}
 
-			function create_entry(journal_id) {
+			function create_entry(journal_id, add_entry_wrapper) {
 				Widget.create('journal_entry_detail', function(widget) {
 					widget.settings.initial_journal_id = journal_id;
 				}, function(widget) {
 					widget.open();
-					widget.handle('saved', function(result) {
-						// page_type.callPageTypeMethod('renderJournalEntry', result.id, container.data('template'), function(data) {
-						// 	container.html(data);
-						// 	insert_preview_bar(preview_bar, container);
-						// });
+					widget.handle('saved', function(event, result) {
+						var template_name = add_entry_wrapper.data('itemTemplateName');
+						page_type.callPageTypeMethod('renderJournalEntry', result.id, template_name, function(data) {
+							var container = jQuery('<div>', {'class': 'journal_entry-container filled-container'}).data({template: template_name, entryId: result.id});
+							container.html(data);
+							add_entry_wrapper.after(container);
+							insert_preview_bar(container);
+						});
 					});
 				});
 			}
 			// Add add button for new journal entry
 			var list = jQuery('.journal_list-container');
 			list.each(function() {
-				var addButton = list.find('button.add-entry').button({
+				var add_button = list.find('button.add-entry').button({
 					icons: {primary: 'ui-icon-plusthick'},
 					text: true
 				});
-				var journalList = addButton.next('ul.menu').menu().hide();
-				addButton.click(function() {
-					var single_journal_id = jQuery(this).attr('data-journal_id');
+				var add_entry_wrapper = add_button.closest('.add_entry_wrapper')
+				var journalList = add_button.next('ul.ui-menu').menu().hide();
+				add_button.click(function() {
+					var single_journal_id = jQuery(this).data('dataJournalId');
 					if(single_journal_id) {
 						journalList.hide();
-						return create_entry(single_journal_id);
+						return create_entry(single_journal_id, add_entry_wrapper);
 					}
 					// if only one journal is active, create directly, otherwise show menu
 					journalList.show().position({
@@ -233,12 +237,12 @@
 					return false;
 				});
 				journalList.on('menuselect', function(event, ui) {
-					return create_entry(ui.item.data('journalId'));
+					return create_entry(ui.item.data('journalId'), add_entry_wrapper);
 				});
 			});
 
 			// Add preview edit buttons
-			insert_preview_bars();
+			insert_preview_bar();
 
 			// add edit buttons click handlers
 			jQuery(document).on('click', '.preview_bar.journal-entry.may_edit .edit', function() {
@@ -254,7 +258,7 @@
 					widget.handle('saved', function() {
 						page_type.callPageTypeMethod('renderJournalEntry', entry_id, container.data('template'), function(data) {
 							container.html(data);
-							insert_preview_bar(preview_bar, container);
+							insert_preview_bar(container);
 						});
 					});
 				}, null, null, _this);

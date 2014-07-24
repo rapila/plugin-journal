@@ -655,11 +655,6 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
             $ret = $this->preSave($con);
             if ($isInsert) {
                 $ret = $ret && $this->preInsert($con);
-                // denyable behavior
-                if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("insert"))) {
-                    throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journal_entry_images")));
-                }
-
                 // extended_timestampable behavior
                 if (!$this->isColumnModified(JournalEntryImagePeer::CREATED_AT)) {
                     $this->setCreatedAt(time());
@@ -678,13 +673,13 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
                     }
                 }
 
-            } else {
-                $ret = $ret && $this->preUpdate($con);
                 // denyable behavior
-                if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("update"))) {
-                    throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journal_entry_images")));
+                if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("insert"))) {
+                    throw new PropelException(new NotPermittedException("insert.by_role", array("role_key" => "journal_entry_images")));
                 }
 
+            } else {
+                $ret = $ret && $this->preUpdate($con);
                 // extended_timestampable behavior
                 if ($this->isModified() && !$this->isColumnModified(JournalEntryImagePeer::UPDATED_AT)) {
                     $this->setUpdatedAt(time());
@@ -696,6 +691,11 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
                         $this->setUpdatedBy(Session::getSession()->getUser()->getId());
                     }
                 }
+                // denyable behavior
+                if(!(JournalEntryImagePeer::isIgnoringRights() || $this->mayOperate("update"))) {
+                    throw new PropelException(new NotPermittedException("update.by_role", array("role_key" => "journal_entry_images")));
+                }
+
             }
             if ($ret) {
                 $affectedRows = $this->doSave($con);
@@ -1626,30 +1626,6 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
         return $this->alreadyInSave;
     }
 
-    // denyable behavior
-    public function mayOperate($sOperation, $oUser = false) {
-        if($oUser === false) {
-            $oUser = Session::getSession()->getUser();
-        }
-        $bIsAllowed = false;
-        if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryImagePeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
-            $bIsAllowed = true;
-        } else if(JournalEntryImagePeer::mayOperateOn($oUser, $this, $sOperation)) {
-            $bIsAllowed = true;
-        }
-        FilterModule::getFilters()->handleJournalEntryImageOperationCheck($sOperation, $this, $oUser, array(&$bIsAllowed));
-        return $bIsAllowed;
-    }
-    public function mayBeInserted($oUser = false) {
-        return $this->mayOperate("insert", $oUser);
-    }
-    public function mayBeUpdated($oUser = false) {
-        return $this->mayOperate("update", $oUser);
-    }
-    public function mayBeDeleted($oUser = false) {
-        return $this->mayOperate("delete", $oUser);
-    }
-
     // extended_timestampable behavior
 
     /**
@@ -1713,6 +1689,30 @@ abstract class BaseJournalEntryImage extends BaseObject implements Persistent
     {
         $this->modifiedColumns[] = JournalEntryImagePeer::UPDATED_BY;
         return $this;
+    }
+
+    // denyable behavior
+    public function mayOperate($sOperation, $oUser = false) {
+        if($oUser === false) {
+            $oUser = Session::getSession()->getUser();
+        }
+        $bIsAllowed = false;
+        if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryImagePeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
+            $bIsAllowed = true;
+        } else if(JournalEntryImagePeer::mayOperateOn($oUser, $this, $sOperation)) {
+            $bIsAllowed = true;
+        }
+        FilterModule::getFilters()->handleJournalEntryImageOperationCheck($sOperation, $this, $oUser, array(&$bIsAllowed));
+        return $bIsAllowed;
+    }
+    public function mayBeInserted($oUser = false) {
+        return $this->mayOperate("insert", $oUser);
+    }
+    public function mayBeUpdated($oUser = false) {
+        return $this->mayOperate("update", $oUser);
+    }
+    public function mayBeDeleted($oUser = false) {
+        return $this->mayOperate("delete", $oUser);
     }
 
     // extended_keyable behavior

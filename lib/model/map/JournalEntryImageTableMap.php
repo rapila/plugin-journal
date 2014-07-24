@@ -69,11 +69,6 @@ class JournalEntryImageTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
-            'denyable' =>  array (
-  'mode' => 'by_role',
-  'role_key' => '',
-  'owner_allowed' => '',
-),
             'extended_timestampable' =>  array (
   'create_column' => 'created_at',
   'update_column' => 'updated_at',
@@ -82,6 +77,11 @@ class JournalEntryImageTableMap extends TableMap
             'attributable' =>  array (
   'create_column' => 'created_by',
   'update_column' => 'updated_by',
+),
+            'denyable' =>  array (
+  'mode' => 'by_role',
+  'role_key' => '',
+  'owner_allowed' => '',
 ),
             'extended_keyable' =>  array (
   'key_separator' => '_',

@@ -261,6 +261,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->bIsPreview) {
 			$oInnerTemplate = new Template(TemplateIdentifier::constructIdentifier($sIdentifier, $sContainer), null, true);
 			$oAddJournals = parent::constructTemplate('preview_add_entry_button');
+			$oAddJournals->replaceIdentifier('item_template_name', $oEntryTemplatePrototype->getTemplateName());
 			$aJournalsAvailable = JournalQuery::create()->filterById($this->aFilteredJournalIds)->find();
 			$bSingleJournals = count($aJournalsAvailable) === 1;
 			foreach($aJournalsAvailable as $oJournal) {
