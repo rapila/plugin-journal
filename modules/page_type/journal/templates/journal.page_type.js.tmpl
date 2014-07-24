@@ -220,7 +220,7 @@
 				var add_entry_wrapper = add_button.closest('.add_entry_wrapper')
 				var journalList = add_button.next('ul.ui-menu').menu().hide();
 				add_button.click(function() {
-					var single_journal_id = jQuery(this).data('dataJournalId');
+					var single_journal_id = jQuery(this).data('journal_id');
 					if(single_journal_id) {
 						journalList.hide();
 						return create_entry(single_journal_id, add_entry_wrapper);
