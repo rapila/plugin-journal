@@ -6,7 +6,7 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalId = null;
 	private $oEntryListWidget = null;
-	
+
 	public function setJournalId($iJournalId) {
 		if(is_array($iJournalId) && count($iJournalId) > 0) {
 			$iJournalId = $iJournalId[0];
@@ -16,7 +16,7 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 			$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
 		}
 	}
-	
+
 	public function journalData() {
 		$oJournal = JournalQuery::create()->findPk($this->iJournalId);
 		$aResult = $oJournal->toArray();
@@ -24,21 +24,19 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournal);
 		return $aResult;
 	}
-		
-	private function validate($aJournalData, $oJournal) {
+
+	private function validate($aJournalData) {
 		$oFlash = Flash::getFlash();
 		$oFlash->setArrayToCheck($aJournalData);
 		$oFlash->checkForValue('name', 'name_required');
 		$oFlash->finishReporting();
 	}
-	
+
 	public function entryList() {
 		$this->oEntryListWidget = new JournalEntryListWidgetModule();
 		$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
-		
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
-
 		return $oIncluder->getIncludes()->render().$this->oEntryListWidget->doWidget()->render();
 	}
 
@@ -48,15 +46,17 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		} else {
 			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
 		}
+		$oJournal->setName($aJournalData['name']);
+		$oJournal->setDescription($aJournalData['description']);
+		$oJournal->setUseCaptcha($aJournalData['use_captcha']);
 		$sCommentMode = $aJournalData['comment_mode'];
-		$oJournal->fromArray($aJournalData, BasePeer::TYPE_FIELDNAME);
 		$oJournal->setEnableComments($sCommentMode === 'on' || $sCommentMode === 'notified');
 		$oJournal->setNotifyComments($sCommentMode === 'moderated' || $sCommentMode === 'notified');
-		$this->validate($aJournalData, $oJournal);
+
+		$this->validate($aJournalData);
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
 		}
-		
 		$oJournal->save();
 		return $oJournal->getId();
 	}
