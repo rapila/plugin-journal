@@ -127,15 +127,15 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		}
 	}
 
-	private function validate($oData, $oJournalEntry) {
+	private function validate($aData) {
+		ErrorHandler::log('validate Data: '. $aData);
 		$oFlash = Flash::getFlash();
-		$oFlash->setArrayToCheck($oData);
+		$oFlash->setArrayToCheck($aData);
 		$oFlash->checkForValue('title', 'journal_entry.title_required');
 		$oFlash->checkForValue('journal_id', 'journal_entry.journal_id_required');
-		if($oJournalEntry->getIsPublished()) {
-			if(!$oFlash->checkForValue('text', 'journal_entry.text_required')) {
-				$oJournalEntry->setIsPublished('false');
-			}
+		if($aData['is_published']) {
+			$bResult = $oFlash->checkForValue('text', 'journal_entry.text_required');
+			ErrorHandler::log($bResult, $aData['text']);
 		}
 		$oFlash->finishReporting();
 	}
@@ -146,29 +146,27 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 			$oJournalEntry = new JournalEntry();
 			$oJournalEntry->setJournalId($this->iJournalId);
 		}
-		if($aData['publish_at'] == null) {
-			$aData['publish_at'] = date('c');
-		}
-		$oJournalEntry->fromArray($aData, BasePeer::TYPE_FIELDNAME);
-		if(isset($aData['journal_id'])) {
-			$oJournalEntry->setJournalId($aData['journal_id']);
-		}
-		$this->validate($aData, $oJournalEntry);
+		$this->validate($aData);
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
 		}
+
+		$oJournalEntry->setJournalId($aData['journal_id']);
+		$oJournalEntry->setTitle($aData['title']);
+		$oJournalEntry->setIsPublished($aData['is_published']);
+		$oJournalEntry->setPublishAt($aData['publish_at'] == null ? date('c') : $aData['publish_at']);
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oJournalEntry);
 		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
-
 		$oJournalEntry->save();
+
 		$oResult = new StdClass();
+		$oResult->id = $oJournalEntry->getId();
 		if($this->iJournalEntryId === null) {
 			$oResult->inserted = true;
 		} else {
 			$oResult->updated = true;
 		}
-		$oResult->id = $oJournalEntry->getId();
 		return $oResult;
 	}
 }
