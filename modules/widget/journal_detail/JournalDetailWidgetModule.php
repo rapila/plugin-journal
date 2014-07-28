@@ -25,13 +25,6 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		return $aResult;
 	}
 
-	private function validate($aJournalData) {
-		$oFlash = Flash::getFlash();
-		$oFlash->setArrayToCheck($aJournalData);
-		$oFlash->checkForValue('name', 'name_required');
-		$oFlash->finishReporting();
-	}
-
 	public function entryList() {
 		$this->oEntryListWidget = new JournalEntryListWidgetModule();
 		$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
@@ -40,12 +33,20 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		return $oIncluder->getIncludes()->render().$this->oEntryListWidget->doWidget()->render();
 	}
 
+	private function validate($aJournalData) {
+		$oFlash = Flash::getFlash();
+		$oFlash->setArrayToCheck($aJournalData);
+		$oFlash->checkForValue('name', 'name_required');
+		$oFlash->finishReporting();
+	}
+
 	public function saveData($aJournalData) {
 		if($this->iJournalId === null) {
 			$oJournal = new Journal();
 		} else {
 			$oJournal = JournalQuery::create()->findPk($this->iJournalId);
 		}
+		$this->validate($aJournalData);
 		$oJournal->setName($aJournalData['name']);
 		$oJournal->setDescription($aJournalData['description']);
 		$oJournal->setUseCaptcha($aJournalData['use_captcha']);
@@ -53,7 +54,6 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		$oJournal->setEnableComments($sCommentMode === 'on' || $sCommentMode === 'notified');
 		$oJournal->setNotifyComments($sCommentMode === 'moderated' || $sCommentMode === 'notified');
 
-		$this->validate($aJournalData);
 		if(!Flash::noErrors()) {
 			throw new ValidationException();
 		}
