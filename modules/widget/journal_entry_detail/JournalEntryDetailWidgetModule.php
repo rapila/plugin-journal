@@ -128,14 +128,12 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 
 	private function validate($aData) {
-		ErrorHandler::log('validate Data: '. $aData);
 		$oFlash = Flash::getFlash();
 		$oFlash->setArrayToCheck($aData);
 		$oFlash->checkForValue('title', 'journal_entry.title_required');
 		$oFlash->checkForValue('journal_id', 'journal_entry.journal_id_required');
 		if($aData['is_published']) {
-			$bResult = $oFlash->checkForValue('text', 'journal_entry.text_required');
-			ErrorHandler::log($bResult, $aData['text']);
+			$oFlash->checkForValue('text', 'journal_entry.text_required');
 		}
 		$oFlash->finishReporting();
 	}
@@ -161,12 +159,12 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oJournalEntry->save();
 
 		$oResult = new StdClass();
-		$oResult->id = $oJournalEntry->getId();
 		if($this->iJournalEntryId === null) {
 			$oResult->inserted = true;
 		} else {
 			$oResult->updated = true;
 		}
+		$oResult->id = $this->iCategoryId = $oJournalEntry->getId();
 		return $oResult;
 	}
 }
