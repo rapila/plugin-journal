@@ -19,6 +19,10 @@ class JournalEntry extends BaseJournalEntry {
 		return (int)$this->getPublishAt('U');
 	}
 
+	public function isNotShown() {
+		return !$this->getIsPublished() || $this->getPublishAt() < date('c');
+	}
+
 	public function getPublishAtFormatted($sLanguageId = null, $sFormatString = 'x') {
 		if($this->publish_at === null) {
 			return null;

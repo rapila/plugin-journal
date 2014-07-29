@@ -187,9 +187,11 @@
 			function insert_preview_bar(context) {
 				(jQuery('.journal_entry-container')||context).each(function() {
 					var container = jQuery(this);
-
 					// Append the preview bar, add container info
 					var preview_bar = Widget.parseHTML('{{includeTemplate=preview_bar}}');
+					if(container.data('isNotShown')) {
+						jQuery('<div class="is_not_shown ui-icon ui-icon-is-hidden"> </div>').insertBefore(preview_bar.find('.ui-loading'));
+					}
 					container.append(preview_bar);
 				});
 			}
