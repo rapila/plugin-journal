@@ -102,10 +102,6 @@
 			this.page_type.methods.currentEntriesPerPage(function(result) {
 				_this.entries_per_page_list.val(result);
 			}.deferred(waiters));
-
-			jQuery.when.apply(jQuery, waiters).then(function() {
-				_this.reload_entries();
-			});
 		},
 
 		update_journals:function(waiters) {
