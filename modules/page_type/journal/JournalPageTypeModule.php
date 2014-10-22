@@ -585,7 +585,6 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 
 		$oItemPrototype = $this->constructTemplate('widget_tag_item');
-		$sLabelEntry = StringPeer::getString('wns.');
 		foreach($aTags as $sName => $iCount) {
 			$oItemTemplate = clone $oItemPrototype;
 			if($bUseSizes) {

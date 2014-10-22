@@ -39,8 +39,8 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	}
 
 	public function filterByTagId($aTagId) {
-		$aTaggedLinkIds = TagInstanceQuery::create()->filterByTagId($aTagId)->filterByModelName('JournalEntry')->select(array('TaggedItemId'))->find();
-		return $this->filterById($aTaggedLinkIds, Criteria::IN);
+		$aTaggedItemsIds = TagInstanceQuery::create()->filterByTagId($aTagId)->filterByModelName('JournalEntry')->select(array('TaggedItemId'))->find();
+		return $this->filterById($aTaggedItemsIds, Criteria::IN);
 	}
 
 	public function findDistinctDates() {
