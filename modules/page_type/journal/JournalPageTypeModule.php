@@ -600,6 +600,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
 			}
 			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
+			$oItemTemplate->replaceIdentifier('count_instances', $iCount);
 			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
 		}
 		return $oTemplate;
