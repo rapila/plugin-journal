@@ -328,8 +328,8 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getPublishAtTimestamp()));
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments($oCommentQuery));
-
-		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage));
+		// fix missing manager (in preview) the current
+		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), $this->bIsPreview ? 'PreviewManager' : 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::absoluteLink($sDetailLink), null, LinkUtil::isSSL());
 		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
 

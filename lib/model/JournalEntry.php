@@ -20,7 +20,7 @@ class JournalEntry extends BaseJournalEntry {
 	}
 
 	public function isNotShown() {
-		return !$this->getIsPublished() || $this->getPublishAt() < date('c');
+		return !$this->getIsPublished() || $this->getPublishAt() > date('c');
 	}
 
 	public function getPublishAtFormatted($sLanguageId = null, $sFormatString = 'x') {
