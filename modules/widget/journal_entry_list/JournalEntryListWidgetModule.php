@@ -2,37 +2,35 @@
 /**
  * @package modules.widget
  */
-class JournalEntryListWidgetModule extends WidgetModule {
+class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 
-	private $oListWidget;
 	private $oDelegateProxy;
 	private $oTagFilter;
-	
-	public function __construct() {
-		$this->oListWidget = new ListWidgetModule();
+
+	protected function createListWidget() {
+		$oListWidget = new ListWidgetModule();
 		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "JournalEntry", "publish_at", "desc");
-		$this->oListWidget->setDelegate($this->oDelegateProxy);
-		$this->oListWidget->setSetting('row_model_drag_and_drop_identifier', "id");
+		$oListWidget->setDelegate($this->oDelegateProxy);
+		$oListWidget->setSetting('row_model_drag_and_drop_identifier', 'id');
 		$this->oTagFilter = WidgetModule::getWidget('tag_input', null, true);
 		$this->oTagFilter->setSetting('model_name', 'JournalEntry');
+		return $oListWidget;
 	}
-	
-	public function getDelegate() {
-		return $this->oDelegateProxy;
-	}
-	
-	public function getList() {
-		return $this->oListWidget;
-	}
-	
-	public function doWidget() {
-		return $this->oListWidget->doWidget('journal_entry_list');
+
+	protected static function hasTags() {
+		return TagInstanceQuery::create()->filterByModelName('JournalEntry')->count() > 0;
 	}
 
 	public function getColumnIdentifiers() {
-		return array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published', 'has_tags', 'journal_name', 'delete');
+		$aResult = array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published');
+		if(self::hasTags()) {
+			$aResult[] = 'has_tags';
+		} else {
+			$this->oDelegateProxy->getListSettings()->setFilterColumnValue('has_tags', CriteriaListWidgetDelegate::SELECT_ALL);
+		}
+		return array_merge($aResult, array('delete'));
 	}
-	
+
 	public function getMetadataForColumn($sColumnIdentifier) {
 		$aResult = array('is_sortable' => true);
 		switch($sColumnIdentifier) {
@@ -87,7 +85,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		}
 		return null;
 	}
-	
+
 	public function toggleIsPublished($aRowData) {
 		$oJournalEntry = JournalEntryQuery::create()->findPk($aRowData['id']);
 		if($oJournalEntry) {
@@ -95,7 +93,7 @@ class JournalEntryListWidgetModule extends WidgetModule {
 			$oJournalEntry->save();
 		}
 	}
-	
+
 	public function getJournalId() {
 		return $this->oDelegateProxy->getJournalId();
 	}
@@ -111,16 +109,15 @@ class JournalEntryListWidgetModule extends WidgetModule {
 		}
 		return $this->oDelegateProxy->getJournalId();
 	}
-	
+
 	public function getJournalHasEntries($iJournalId) {
 		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->count() > 0;
 	}
-	
+
 	public function getRemoveJournalIntriesByJournalId($iJournalId) {
 		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->delete();
 	}
-	
-	
+
 	public function getCriteria() {
 		$oQuery = JournalEntryQuery::create()->joinJournal();
 		if($this->oTagFilter && $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags') !== CriteriaListWidgetDelegate::SELECT_ALL) {

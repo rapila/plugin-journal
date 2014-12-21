@@ -2,25 +2,21 @@
 /**
  * @package modules.widget
  */
-class JournalListWidgetModule extends WidgetModule {
+class JournalListWidgetModule extends SpecializedListWidgetModule {
 
-	private $oListWidget;
 	private $oDelegateProxy;
-	
-	public function __construct() {
-		$this->oListWidget = new ListWidgetModule();
+
+	protected function createListWidget() {
+		$oListWidget = new ListWidgetModule();
 		$this->oDelegateProxy = new CriteriaListWidgetDelegate($this, "Journal", "name", "asc");
-		$this->oListWidget->setDelegate($this->oDelegateProxy);
-	}
-	
-	public function doWidget() {
-		return $this->oListWidget->doWidget('journal_list');
+		$oListWidget->setDelegate($this->oDelegateProxy);
+		return $oListWidget;
 	}
 
 	public function getColumnIdentifiers() {
 		return array('id', 'name', 'enable_comments', 'notify_comments', 'use_captcha', 'count_entries', 'delete');
 	}
-	
+
 	public function getMetadataForColumn($sColumnIdentifier) {
 		$aResult = array('is_sortable' => true);
 		switch($sColumnIdentifier) {

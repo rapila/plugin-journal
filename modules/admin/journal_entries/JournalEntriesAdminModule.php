@@ -10,30 +10,31 @@ class JournalEntriesAdminModule extends AdminModule {
 
 	public function __construct() {
 		$this->oListWidget = new JournalEntryListWidgetModule();
+		$this->oListWidget->addPaging();
 		if(isset($_REQUEST['journal_id'])) {
 			$this->oListWidget->getDelegate()->setJournalId($_REQUEST['journal_id']);
 		}
-		
+
 		$this->oSidebarWidget = new ListWidgetModule();
 		$this->oSidebarWidget->setListTag(new TagWriter('ul'));
 		$this->oSidebarWidget->setDelegate(new CriteriaListWidgetDelegate($this, 'Journal', 'name'));
     $this->oSidebarWidget->setSetting('initial_selection', array('journal_id' => $this->oListWidget->getJournalId()));
-		
+
 		$this->oInputWidget = new SidebarInputWidgetModule();
 	}
-	
+
 	public function mainContent() {
 		return $this->oListWidget->doWidget();
 	}
-	
+
 	public function sidebarContent() {
 		return $this->oSidebarWidget->doWidget();
 	}
-	
+
 	public function getColumnIdentifiers() {
 		return array('journal_id', 'name', 'magic_column');
 	}
-	
+
 	public function getMetadataForColumn($sColumnIdentifier) {
 		$aResult = array();
 		switch($sColumnIdentifier) {
@@ -51,7 +52,7 @@ class JournalEntriesAdminModule extends AdminModule {
 		}
 		return $aResult;
 	}
-	
+
 	public function getCustomListElements() {
 		if(JournalQuery::create()->count() > 0) {
 			return array(

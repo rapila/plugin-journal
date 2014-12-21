@@ -9,11 +9,11 @@ class JournalsAdminModule extends AdminModule {
 	public function __construct() {
 		$this->oListWidget = new JournalListWidgetModule();
 	}
-	
+
 	public function mainContent() {
 		return $this->oListWidget->doWidget();
 	}
-	
+
 	public function sidebarContent() {
 		return null;
 	}
