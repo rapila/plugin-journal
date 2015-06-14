@@ -164,7 +164,7 @@ class JournalFilterModule extends FilterModule {
 
 			// Notify new comment
 			if($oEntry->getJournal()->getNotifyComments()) {
-				$oEmailContent = JournalPageTypeModule::template($sCommentNotificationTemplate, $oPage->getPagePropertyValue('journal:template_set', 'default'));
+				$oEmailContent = JournalPageTypeModule::templateConstruct($sCommentNotificationTemplate, $oPage->getPagePropertyValue('journal:template_set', 'default'));
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
 				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
 				if($bIsProblablySpam) {

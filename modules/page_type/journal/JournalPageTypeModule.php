@@ -482,10 +482,10 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	// Override from parent
 	protected function constructTemplate($sTemplateName = null, $bForceGlobalTemplatesDir = false) {
-		return self::template($sTemplateName, $this->sTemplateSet);
+		return self::templateConstruct($sTemplateName, $this->sTemplateSet);
 	}
 
-	public static function template($sTemplateName, $sTemplateSet = null) {
+	public static function templateConstruct($sTemplateName, $sTemplateSet = null) {
 		if($sTemplateSet) {
 			try {
 				return new Template($sTemplateName, array(DIRNAME_MODULES, self::getType(), self::moduleName(), 'templates', $sTemplateSet));
