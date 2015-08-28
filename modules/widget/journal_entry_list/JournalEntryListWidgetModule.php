@@ -22,7 +22,7 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 	}
 
 	public function getColumnIdentifiers() {
-		$aResult = array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'is_published');
+		$aResult = array('id', 'title_truncated', 'publish_at_formatted', 'count_comments', 'count_images', 'is_published');
 		if(self::hasTags()) {
 			$aResult[] = 'has_tags';
 		} else {
@@ -47,6 +47,12 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 			case 'count_comments':
 				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_comments');
 				$aResult['is_sortable'] = false;
+				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_NUMERIC;
+				break;
+			case 'count_images':
+				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_images');
+				$aResult['is_sortable'] = false;
+				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_NUMERIC;
 				break;
 			case 'has_tags':
 				$aResult['heading'] = '';

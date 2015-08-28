@@ -119,6 +119,14 @@ class JournalEntry extends BaseJournalEntry {
 		return '-';
 	}
 
+	public function getCountImages() {
+		$iCount = $this->countJournalEntryImages();
+		if($iCount > 0) {
+			return $iCount;
+		}
+		return '-';
+	}
+
 	public function getJournalName() {
 		if($oJournal = $this->getJournal()) {
 			return $oJournal->getName();
@@ -145,7 +153,7 @@ class JournalEntry extends BaseJournalEntry {
 
 	public function setTitle($sTitle) {
 		if($this->isNew() || $this->getSlug() == null) {
-			$this->setSlug(StringUtil::truncate(StringUtil::normalizePath($sTitle, '-', '-'), 50, '', 0));
+			$this->setSlug(StringUtil::truncate(StringUtil::normalizePath($sTitle), 50, '', 0));
 		}
 		return parent::setTitle($sTitle);
 	}
