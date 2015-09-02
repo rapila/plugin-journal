@@ -186,7 +186,7 @@ Widget.types.journal_entry_detail = {
 		var document_object = Widget.parseHTML(document_data.Preview);
 		doc.addClass('pointer').attr('title', '{{writeString=wns.edit_file.dblclick}}').dblclick(function() {
 			Widget.create('document_detail', function(widget) {
-				widget.settings.hide_inputs_if_called_externally = true;
+				widget.settings.is_called_externally = true;
 				widget.auto_open = true;
 			}, function(widget) {
 				widget.setDocumentId(document_id);
