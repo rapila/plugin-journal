@@ -13,7 +13,7 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 		}
 		$this->iJournalId = $iJournalId;
 		if($this->oEntryListWidget) {
-			$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
+			$this->oEntryListWidget->getListWidget()->getDelegate()->setJournalId($this->iJournalId);
 		}
 	}
 
@@ -27,7 +27,7 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 
 	public function entryList() {
 		$this->oEntryListWidget = new JournalEntryListWidgetModule();
-		$this->oEntryListWidget->getDelegate()->setJournalId($this->iJournalId);
+		$this->oEntryListWidget->getListWidget()->getDelegate()->setJournalId($this->iJournalId);
 		$oIncluder = new ResourceIncluder();
 		JournalEntryListWidgetModule::includeResources($oIncluder);
 		return $oIncluder->getIncludes()->render().$this->oEntryListWidget->doWidget()->render();
