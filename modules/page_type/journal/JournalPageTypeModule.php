@@ -212,7 +212,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			if($oPage->page === $iPage) {
 				$oPageLink = TagWriter::quickTag('span', array(), $oPage->page);
 			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => StringPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPage->link), $oPage->page);
+				$oPageLink = TagWriter::quickTag('a', array('title' => TranslationPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPage->link), $oPage->page);
 			}
 			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
@@ -283,16 +283,16 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderNoResult() {
 		$oTemplate = $this->constructTemplate('no_result');
 		if($this->tagFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.tags')), null);
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), TranslationPeer::getString('journal_entries.no_result.tags')), null);
 		}
 		if($this->journalFilterIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.journals')));
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), TranslationPeer::getString('journal_entries.no_result.journals')));
 		}
 		if($this->archiveIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), StringPeer::getString('journal_entries.no_result.archive')));
+			$oTemplate->replaceIdentifierMultiple('search_information', TagWriter::quickTag('li', array(), TranslationPeer::getString('journal_entries.no_result.archive')));
 		}
 		if($this->tagFilterIsActive() || $this->journalFilterIsActive() || $this->archiveIsActive()) {
-			$oTemplate->replaceIdentifierMultiple('search_information_note', TagWriter::quickTag('p', array(), StringPeer::getString('journal_entries.no_result.reset_filter_note')));
+			$oTemplate->replaceIdentifierMultiple('search_information_note', TagWriter::quickTag('p', array(), TranslationPeer::getString('journal_entries.no_result.reset_filter_note')));
 		}
 		return $oTemplate;
 	}
@@ -331,7 +331,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		// Manager in link has to be set manually for the case when it's called asynchroneously in preview
 		$sDetailLink = LinkUtil::link($oEntry->getLink($this->oPage), $this->bIsPreview ? 'PreviewManager' : 'FrontendManager');
 		$oEntryTemplate->replaceIdentifier('link', LinkUtil::absoluteLink($sDetailLink), null, LinkUtil::isSSL());
-		$oEntryTemplate->replaceIdentifier('detail_link_title', StringPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
+		$oEntryTemplate->replaceIdentifier('detail_link_title', TranslationPeer::getString('journal_entry.add_comment_title', null, null, array('title' => $oEntry->getTitle())));
 
 		if($oEntryTemplate->hasIdentifier('text')) {
 			$oEntryTemplate->replaceIdentifier('text', RichtextUtil::parseStorageForFrontendOutput($oEntry->getText()));
@@ -370,7 +370,7 @@ class JournalPageTypeModule extends PageTypeModule {
 
 		// don't display "no comments" in journal entry detail because it is obvious and only disturbing
 		if(!$bIsDetailView || $iCountComments > 0) {
-			$oEntryTemplate->replaceIdentifier('comment_count_info', StringPeer::getString('journal.comment_count', null, null, array('comment_count' => $iCountComments)));
+			$oEntryTemplate->replaceIdentifier('comment_count_info', TranslationPeer::getString('journal.comment_count', null, null, array('comment_count' => $iCountComments)));
 		}
 		$oCommentTemplatePrototype = $this->constructTemplate('full_comment');
 		foreach($aComments as $iCounter => $oComment) {
@@ -476,7 +476,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		} else {
 			$sOverviewHref = LinkUtil::link($this->oPage->getLink());
 		}
-		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => StringPeer::getString('journal.back_to_list_view')), StringPeer::getString('journal.back_to_list_view')));
+		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => TranslationPeer::getString('journal.back_to_list_view')), TranslationPeer::getString('journal.back_to_list_view')));
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
 	}
 
@@ -503,7 +503,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	private function renderRssFeedWidget() {
 		$oTemplate = $this->constructTemplate('widget_rss_feed');
 		$oTemplate->replaceIdentifier('journal_feed_link', LinkUtil::link($this->oPage->getFullPathArray()));
-		if($sTitle = StringPeer::getString('journal.feed_title}}')) {
+		if($sTitle = TranslationPeer::getString('journal.feed_title}}')) {
 			$oTemplate->replaceIdentifier('journal_feed_link_title', ' title="'.$sTitle.'"', null, Template::NO_HTML_ESCAPE);
 		}
 		return $oTemplate;
@@ -526,9 +526,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		foreach(JournalQuery::create()->findPks($this->aJournalIds) as $oJournal) {
 			if(is_array($this->aFilteredJournalIds) && in_array($oJournal->getId(), $this->aFilteredJournalIds)) {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => StringPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item active', 'title' => TranslationPeer::getString('journal_id_link_title.remove'), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			} else {
-				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => StringPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
+				$oLink = TagWriter::quickTag('a', array('class' => 'journal_item', 'title' => TranslationPeer::getString('journal_id_link_title.add', null, null, array('journal_name' => $oJournal->getName()), true), 'href' => LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_JOURNAL => $oJournal->getId()))), $oJournal->getName());
 			}
 			$oTemplate->replaceIdentifierMultiple('journal_link', $oLink);
 		}
@@ -593,13 +593,13 @@ class JournalPageTypeModule extends PageTypeModule {
 			}
 			if(is_array($this->aFilteredTags) && in_array($sName, $this->aFilteredTags)) {
 				$oItemTemplate->replaceIdentifier('class_active', ' active');
-				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.remove'));
+				$oItemTemplate->replaceIdentifier('tag_link_title', TranslationPeer::getString('tag_link_title.remove'));
 				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::REMOVE_TAG => $sName)));
 			} else {
 				$oItemTemplate->replaceIdentifier('tag_link', LinkUtil::link($this->oNavigationItem->getLink(), null, array(self::ADD_TAG => $sName)));
-				$oItemTemplate->replaceIdentifier('tag_link_title', StringPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
+				$oItemTemplate->replaceIdentifier('tag_link_title', TranslationPeer::getString('tag_link_title.add', null, null, array('tagname' => StringUtil::makeReadableName($sName)), true));
 			}
-			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(StringPeer::getString('tag.'.$sName, null, $sName)));
+			$oItemTemplate->replaceIdentifier('tag_name', ucfirst(TranslationPeer::getString('tag.'.$sName, null, $sName)));
 			$oItemTemplate->replaceIdentifier('count_instances', $iCount);
 			$oTemplate->replaceIdentifierMultiple('tag_item', $oItemTemplate);
 		}
@@ -680,7 +680,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oCommentTemplate = clone $oItemPrototype;
 			if($oEntry = $oComment->getJournalEntry()) {
 				$oCommentTemplate->replaceIdentifier('title', $oEntry->getTitle());
-				$oDetailLink = TagWriter::quickTag('a', array('rel' => 'internal', 'class' => 'read_more', 'href' => LinkUtil::link($oEntry->getLink($this->oPage)).'#comments'), StringPeer::getString('journal_entry_teaser.read_more'));
+				$oDetailLink = TagWriter::quickTag('a', array('rel' => 'internal', 'class' => 'read_more', 'href' => LinkUtil::link($oEntry->getLink($this->oPage)).'#comments'), TranslationPeer::getString('journal_entry_teaser.read_more'));
 				$oCommentTemplate->replaceIdentifier('link_to_detail', $oDetailLink);
 			}
 			$oCommentTemplate->replaceIdentifier('name', $oComment->getUsername());
@@ -852,7 +852,7 @@ class JournalPageTypeModule extends PageTypeModule {
 	public function listTemplateSets() {
 		$aResult = array();
 		foreach(ResourceFinder::create(array(DIRNAME_MODULES, self::getType(), $this->getModuleName(), DIRNAME_TEMPLATES))->addDirPath()->returnObjects()->find() as $oSet) {
-			$aResult[$oSet->getFileName()] = StringPeer::getString('journal.template_set_'.$oSet->getFileName(), null, StringUtil::makeReadableName($oSet->getFileName()));
+			$aResult[$oSet->getFileName()] = TranslationPeer::getString('journal.template_set_'.$oSet->getFileName(), null, StringUtil::makeReadableName($oSet->getFileName()));
 		}
 		return array('options' => $aResult, 'current' => $this->sTemplateSet);
 	}
@@ -879,7 +879,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$oWidget->name = StringUtil::deCamelize(substr($sMethodName, strlen('render'), -strlen('Widget')));
 				$oWidget->current = in_array($oWidget->name, $this->aWidgets, true);
 				$sStringKey = 'journal_config.'.$oWidget->name;
-				$oWidget->title = StringPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
+				$oWidget->title = TranslationPeer::getString('journal_config.'.$oWidget->name, null, StringUtil::makeReadableName($oWidget->name));
 				if($oWidget->current) {
 					$iKey = array_search($oWidget->name, $this->aWidgets);
 					if($iKey !== false) {

@@ -43,7 +43,7 @@ class JournalEntriesAdminModule extends AdminModule {
 				$aResult['field_name'] = 'id';
 				break;
 			case 'name':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entries.sidebar_heading');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entries.sidebar_heading');
 				break;
 			case 'magic_column':
 				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_CLASSNAME;
@@ -57,7 +57,7 @@ class JournalEntriesAdminModule extends AdminModule {
 		if(JournalQuery::create()->count() > 0) {
 			return array(
 			         array('journal_id' => CriteriaListWidgetDelegate::SELECT_ALL,
-			               'name' => StringPeer::getString('wns.sidebar.select_all'),
+			               'name' => TranslationPeer::getString('wns.sidebar.select_all'),
 			               'magic_column' => 'all'
 			         )
 			);

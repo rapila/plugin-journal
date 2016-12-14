@@ -35,22 +35,22 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 		$aResult = array('is_sortable' => true);
 		switch($sColumnIdentifier) {
 			case 'title_truncated':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.title');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entry.title');
 				$aResult['field_name'] = 'title';
 				break;
 			case 'publish_at_formatted':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.publish_at');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entry.publish_at');
 				break;
 			case 'is_published':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.is_published');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entry.is_published');
 				break;
 			case 'count_comments':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_comments');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entry.count_comments');
 				$aResult['is_sortable'] = false;
 				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_NUMERIC;
 				break;
 			case 'count_images':
-				$aResult['heading'] = StringPeer::getString('wns.journal_entry.count_images');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal_entry.count_images');
 				$aResult['is_sortable'] = false;
 				$aResult['display_type'] = ListWidgetModule::DISPLAY_TYPE_NUMERIC;
 				break;
@@ -60,7 +60,7 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 				$aResult['is_sortable'] = false;
 				break;
 			case 'journal_name':
-				$aResult['heading'] = StringPeer::getString('wns.journal.name');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.name');
 				break;
 			case 'delete':
 				$aResult['heading'] = ' ';

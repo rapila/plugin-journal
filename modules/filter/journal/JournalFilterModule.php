@@ -38,21 +38,21 @@ class JournalFilterModule extends FilterModule {
 		$sDateNavigationItemClass = $bDateNavigationItemsVisible ? 'VirtualNavigationItem' : 'HiddenVirtualNavigationItem';
 
 		// Feed item
-		$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', StringPeer::getString('wns.journal.feed', null, 'feed'), null, $aJournalIds);
+		$oFeedItem = new HiddenVirtualNavigationItem('journal-feed', 'feed', TranslationPeer::getString('wns.journal.feed', null, 'feed'), null, $aJournalIds);
 		$oFeedItem->bIsIndexed = false; //Don’t index the feed item or else you’ll be exit()-ed before finishing the index
 		$oNavigationItem->addChild($oFeedItem);
 
 		// Overview list
 		$bOverviewIsList = $oNavigationItem->getMe()->getPagePropertyValue('journal:overview_action', 'list') === 'list';
 		if(!$bOverviewIsList) {
-			$oOverviewItem = new VirtualNavigationItem('journal-overview_list', 'list', StringPeer::getString('wns.journal.list'), null, $aJournalIds);
+			$oOverviewItem = new VirtualNavigationItem('journal-overview_list', 'list', TranslationPeer::getString('wns.journal.list'), null, $aJournalIds);
 			$oOverviewItem->bIsIndexed = false;
 			$oNavigationItem->addChild($oOverviewItem);
 		}
 
 		// Year items
 		foreach(FrontendJournalEntryQuery::create()->findAvailableYearsByJournalId($aJournalIds) as $iYear) {
-			$oItem = new $sDateNavigationItemClass('journal-year', $iYear, StringPeer::getString('wns.journal.year', null, $iYear, array('year' => $iYear)), null, array($aJournalIds, $iYear));
+			$oItem = new $sDateNavigationItemClass('journal-year', $iYear, TranslationPeer::getString('wns.journal.year', null, $iYear, array('year' => $iYear)), null, array($aJournalIds, $iYear));
 			$oItem->bIsIndexed = false;
 			$oNavigationItem->addChild($oItem);
 		}
@@ -67,7 +67,7 @@ class JournalFilterModule extends FilterModule {
 		if($oNavigationItem->getType() === 'journal-year') {
 			list($aJournalIds, $iYear) = $aData;
 			foreach(FrontendJournalEntryQuery::create()->findAvailableMonthsByJournalId($aJournalIds, $iYear) as $iMonth) {
-				$oItem = new $sDateNavigationItemClass('journal-month', $iMonth, StringPeer::getString('wns.journal.month', null, $iMonth, array('year' => $iYear, 'month' => $iMonth)), null, array($aJournalIds, $iYear, $iMonth));
+				$oItem = new $sDateNavigationItemClass('journal-month', $iMonth, TranslationPeer::getString('wns.journal.month', null, $iMonth, array('year' => $iYear, 'month' => $iMonth)), null, array($aJournalIds, $iYear, $iMonth));
 				$oItem->bIsIndexed = false;
 				$oNavigationItem->addChild($oItem);
 			}
@@ -76,7 +76,7 @@ class JournalFilterModule extends FilterModule {
 			// Days
 			list($aJournalIds, $iYear, $iMonth) = $aData;
 			foreach(FrontendJournalEntryQuery::create()->findAvailableDaysByJournalId($aJournalIds, $iYear, $iMonth) as $iDay) {
-				$oItem = new $sDateNavigationItemClass('journal-day', $iDay, StringPeer::getString('wns.journal.day', null, $iDay, array('year' => $iYear, 'month' => $iMonth, 'day' => $iDay)), null, array($aJournalIds, $iYear, $iMonth, $iDay));
+				$oItem = new $sDateNavigationItemClass('journal-day', $iDay, TranslationPeer::getString('wns.journal.day', null, $iDay, array('year' => $iYear, 'month' => $iMonth, 'day' => $iDay)), null, array($aJournalIds, $iYear, $iMonth, $iDay));
 				$oItem->bIsIndexed = false;
 				$oNavigationItem->addChild($oItem);
 			}
@@ -91,7 +91,7 @@ class JournalFilterModule extends FilterModule {
 		} else if($oNavigationItem->getType() === 'journal-entry') {
 
 			// Comments
-			$oAddCommentItem = new HiddenVirtualNavigationItem('journal-add_comment', 'add_comment', StringPeer::getString('journal.comment.add'), null, $oNavigationItem->getData());
+			$oAddCommentItem = new HiddenVirtualNavigationItem('journal-add_comment', 'add_comment', TranslationPeer::getString('journal.comment.add'), null, $oNavigationItem->getData());
 			$oAddCommentItem->bIsIndexed = false;
 			$oNavigationItem->addChild($oAddCommentItem);
 		}
@@ -168,7 +168,7 @@ class JournalFilterModule extends FilterModule {
 				$oEmailContent->replaceIdentifier('email', $oComment->getEmail());
 				$oEmailContent->replaceIdentifier('user', $oComment->getUsername());
 				if($bIsProblablySpam) {
-					$oEmailContent->replaceIdentifier('this_comment_is_spam_note', StringPeer::getString('journal.this_comment_is_spam_note', null, null, array('important_note_content' => $_POST['important_note'])));
+					$oEmailContent->replaceIdentifier('this_comment_is_spam_note', TranslationPeer::getString('journal.this_comment_is_spam_note', null, null, array('important_note_content' => $_POST['important_note'])));
 				}
 				$oEmailContent->replaceIdentifier('comment', $oComment->getText());
 				$oEmailContent->replaceIdentifier('entry', $oEntry->getTitle());
@@ -177,7 +177,7 @@ class JournalFilterModule extends FilterModule {
 				$oEmailContent->replaceIdentifier('deactivation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'deactivate'), 'FileManager'), null, LinkUtil::isSSL()));
 				$oEmailContent->replaceIdentifier('activation_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'activate'), 'FileManager'), null, LinkUtil::isSSL()));
 				$oEmailContent->replaceIdentifier('deletion_link', LinkUtil::absoluteLink(LinkUtil::link(array('journal_comment_moderation', $oComment->getActivationHash(), 'delete'), 'FileManager'), null, LinkUtil::isSSL()));
-				$sSubject = StringPeer::getString('journal.notification_subject', null, null, array('entry' => $oEntry->getTitle()));
+				$sSubject = TranslationPeer::getString('journal.notification_subject', null, null, array('entry' => $oEntry->getTitle()));
 				$oEmail = new EMail($sSubject, $oEmailContent);
 				$oSender = $oEntry->getUserRelatedByCreatedBy();
 				$oEmail->addRecipient($oSender->getEmail(), $oSender->getFullName());

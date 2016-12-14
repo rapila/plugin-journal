@@ -21,19 +21,19 @@ class JournalListWidgetModule extends SpecializedListWidgetModule {
 		$aResult = array('is_sortable' => true);
 		switch($sColumnIdentifier) {
 			case 'name':
-				$aResult['heading'] = StringPeer::getString('wns.journal.name');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.name');
 				break;
 			case 'enable_comments':
-				$aResult['heading'] = StringPeer::getString('wns.journal.enable_comments');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.enable_comments');
 				break;
 			case 'notify_comments':
-				$aResult['heading'] = StringPeer::getString('wns.journal.notify_comments');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.notify_comments');
 				break;
 			case 'use_captcha':
-				$aResult['heading'] = StringPeer::getString('wns.journal.use_captcha');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.use_captcha');
 				break;
 			case 'count_entries':
-				$aResult['heading'] = StringPeer::getString('wns.journal.count_entries');
+				$aResult['heading'] = TranslationPeer::getString('wns.journal.count_entries');
 				$aResult['is_sortable'] = false;
 				break;
 			case 'delete':

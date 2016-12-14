@@ -66,17 +66,17 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		// Display options
 		$aDisplayOptions = array();
 		foreach(self::$DISPLAY_OPTIONS as $sDisplayMode) {
-			$aDisplayOptions[$sDisplayMode] = StringPeer::getString('journal.display_mode.'.$sDisplayMode, null, StringUtil::makeReadableName($sDisplayMode));
+			$aDisplayOptions[$sDisplayMode] = TranslationPeer::getString('journal.display_mode.'.$sDisplayMode, null, StringUtil::makeReadableName($sDisplayMode));
 		}
 		$oTemplate->replaceIdentifier('display_options', TagWriter::optionsFromArray($aDisplayOptions, null, null, array()));
 
 		// Journal pages and journal options
 		$aJournalOptions = array();
 		foreach(PageQuery::create()->filterByPageType('journal')->orderByName()->find() as $oPage) {
-			$aJournalOptions['page'.self::PAGE_SEPARATOR . $oPage->getId()] = StringPeer::getString('wns.journal.journal_page_name', null, null, array('name' => $oPage->getLinkText()));
+			$aJournalOptions['page'.self::PAGE_SEPARATOR . $oPage->getId()] = TranslationPeer::getString('wns.journal.journal_page_name', null, null, array('name' => $oPage->getLinkText()));
 		}
 		foreach(JournalQuery::create()->orderByName()->find() as $oJournal) {
-			$aJournalOptions[$oJournal->getId()] = StringPeer::getString('wns.journal.journal_name', null, null, array('name' => $oJournal->getName()));
+			$aJournalOptions[$oJournal->getId()] = TranslationPeer::getString('wns.journal.journal_name', null, null, array('name' => $oJournal->getName()));
 		}
 		$oTemplate->replaceIdentifier('journal_options', TagWriter::optionsFromArray($aJournalOptions));
 		return $oTemplate;
