@@ -57,7 +57,7 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 			$this->filterByJournalId($mJournalId);
 		}
 		$this->withColumn('YEAR(publish_at)', 'Year');
-		$this->orderBy('Year');
+		$this->orderBy('Year', 'desc');
 		return $this->select(array('Year'))->find();
 	}
 
