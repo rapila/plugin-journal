@@ -2560,17 +2560,136 @@ abstract class BaseJournalEntry extends BaseObject implements Persistent
     // taggable behavior
 
     /**
+     * Add a tag to the current JournalEntry
+     */
+    public function addTag($mTag)
+    {
+        return self::addTagTo($this->getPKString(), $mTag);
+    }
+    /**
+     * Remove tag from the current JournalEntry
+     */
+    public function removeTag($mTag)
+    {
+        return self::removeTagFrom($this->getPKString(), $mTag);
+    }
+    /**
+     * Remove all tags from the current JournalEntry
+     */
+    public function removeAllTags()
+    {
+        return self::removeAllTagsFrom($this->getPKString());
+    }
+    /**
+     * @return All tags for the current JournalEntry
+     */
+    public function tags($sReturn = 'tag')
+    {
+        return self::tagsFor($this->getPKString(), $sReturn);
+    }
+    /**
      * @return A list of TagInstances (not Tags) which reference this JournalEntry
+     * @deprecated Use ->tags('instances')
      */
     public function getTags()
     {
-        return TagPeer::tagInstancesForObject($this);
+        return $this->tags('instances');
     }
+    /**
+     * Add a tag to the JournalEntry given by the id
+     */
+    public static function addTagTo($sJournalEntryId, $mTag)
+    {
+        if($mTag instanceof TagInstance) {
+            $mTag = $mTag->getTag();
+        }
+        if($mTag instanceof Tag) {
+            $mTag = $mTag->getName();
+        }
+        $sTagName = StringUtil::normalize($mTag);
+        $oTag = TagQuery::create()->findOneByName($sTagName);
+        if($oTag === null) {
+            $oTag = new Tag();
+            $oTag->setName($sTagName);
+            $oTag->save();
+        }
+        $oTagInstance = TagInstanceQuery::create()->findPk(array($oTag->getId(), $sJournalEntryId, "JournalEntry"));
+        if($oTagInstance !== null) {
+            return $oTagInstance;
+        }
+        $oTagInstance = new TagInstance();
+        $oTagInstance->setTag($oTag);
+        $oTagInstance->setModelName("JournalEntry");
+        $oTagInstance->setTaggedItemId($sJournalEntryId);
+        $oTagInstance->save();
+        return $oTagInstance;
+    }
+    /**
+     * Remove tag from the JournalEntry given by the id
+     */
+    public static function removeTagFrom($sJournalEntryId, $mTag)
+    {
+        if(is_string($mTag)) {
+            $mTag = TagQuery::create()->findOneByName($mTag);
+        }
+        if($mTag instanceof TagInstance) {
+            $mTag = $mTag->getTag();
+        }
+        if(!($mTag instanceof Tag)) {
+            return;
+        }
+        $oQuery = TagInstanceQuery::create();
+        $oQuery->filterByTaggedItemId($sJournalEntryId);
+        $oQuery->filterByModelName("JournalEntry");
+        $oQuery->filterByTag($mTag);
+        $oTagInstance = $oQuery->findOne();
+        if($oTagInstance) {
+            $oTagInstance->delete();
+        }
+    }
+    /**
+     * Remove all tags from the JournalEntry given by the id
+     */
+    public static function removeAllTagsFrom($sJournalEntryId)
+    {
+        $aTagInstances = self::tagsFor($sJournalEntryId, 'instances');
+        foreach($aTagInstances as $oTagInstance) {
+            $oTagInstance->delete();
+        }
+        return count($aTagInstances);
+    }
+    /**
+     * @return All tags for the JournalEntry given by the id
+     */
+    public static function tagsFor($sJournalEntryId = null, $sReturn = 'tag')
+    {
+        $oQuery = TagInstanceQuery::create();
+        if($sJournalEntryId !== null) {
+            $oQuery->filterByTaggedItemId($sJournalEntryId);
+        }
+        $oQuery->filterByModelName("JournalEntry");
+        if($sReturn === 'count') {
+            return $oQuery->find()->count();
+        }
+        $aTagInstances = $oQuery->find()->getArrayCopy();
+        if($sReturn === 'instances') {
+            return $aTagInstances;
+        }
+        if($sReturn === 'tags') {
+            return array_map(function($oTagInstance) {
+                return $oTagInstance->getTag();
+            }, $aTagInstances);
+        }
+        return array_map(function($oTagInstance) {
+            return $oTagInstance->getTag()->getName();
+        }, $aTagInstances);
+    }
+    const TAG_MODEL_NAME = 'Tag';
+    const TAG_INSTANCE_MODEL_NAME = 'TagInstance';
+
     // denyable behavior
     public function mayOperate($sOperation, $oUser = false) {
-        if($oUser === false) {
-            $oUser = Session::getSession()->getUser();
-        }
+        $oUser = JournalEntryPeer::getRightsUser($oUser);
         $bIsAllowed = false;
         if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalEntryPeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
             $bIsAllowed = true;
