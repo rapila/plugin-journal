@@ -200,22 +200,32 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!$oPager->requiresPagination() || !$oTemplate->hasIdentifier('pagination')) {
 			return;
 		}
+
 		// Basic page link without page number
 		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::PAGINATION_PARAM)));
 		$oPager->setPageLinkBase($sBasePageLink);
 		$oQuery = $oPager->getQuery();
 
 		$oPagerTemplate = $this->constructTemplate('pagination');
-		// All page links including current one
+
+		// display page link for all pages
 		$iTotalPages = $oPager->getTotalPageCount();
-		foreach($oPager as $oPage) {
-			if($oPage->page === $iPage) {
-				$oPageLink = TagWriter::quickTag('span', array(), $oPage->page);
-			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => TranslationPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPage->link), $oPage->page);
+		if($oPagerTemplate->hasIdentifier('page_links')) {
+			for($i = 1; $i <= $iTotalPages; $i++) {
+				if($i === $iPage) {
+					$oPageLink = TagWriter::quickTag('span', array(), $iPage);
+				} else {
+					$oPageLink = TagWriter::quickTag('a', array('title' => TranslationPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPager->getPageLink($i)), $i);
+				}
+				$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 			}
-			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
+		// display page info - page number and totol page count
+		if($oPagerTemplate->hasIdentifier('page_info')) {
+			$sPageInfo = TranslationPeer::getString('wns.journal.page_info', null, null, array('page_number' => $iPage, 'total_pages' => $iTotalPages));
+			$oPagerTemplate->replaceIdentifier('page_info', $sPageInfo);
+		}
+
 		$oPagerTemplate->replaceIdentifier('previous_link', $oPager->getPreviousLink());
 		$oPagerTemplate->replaceIdentifier('next_link', $oPager->getNextLink());
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
