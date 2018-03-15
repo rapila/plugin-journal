@@ -59,15 +59,25 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
 		$sText = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getText());
 		$oTemplate->replaceIdentifier('text', $sText);
-		if($oTemplate->hasIdentifier('images')) {
-			foreach($oJournalEntry->getImages() as $oJournalEntryImage) {
-				$oDocument = $oJournalEntryImage->getDocument();
-				$oItemTemplate = new Template('helpers/gallery_item');
-				$oItemTemplate->replaceIdentifier('jounal_entry_id', $oJournalEntry->getId());
-				$oDocument->renderListItem($oItemTemplate);
-				$oTemplate->replaceIdentifierMultiple('images', $oItemTemplate);
-			}
+		if(!$oTemplate->hasIdentifier('images')) {
+			return $oTemplate;
 		}
+		$iImages = $oJournalEntry->getImages();
+		if(count($iImages) === 0) {
+			return $oTemplate;
+		}
+		// images
+		$oGalleryTemplate = new Template('helpers/gallery');
+		$oItemPrototype = new Template('helpers/gallery_item');
+		foreach($iImages as $iIndex => $oJournalEntryImage) {
+			$oDocument = $oJournalEntryImage->getDocument();
+			$oItemTemplate = clone $oItemPrototype;
+			$oItemTemplate->replaceIdentifier('jounal_entry_id', $oJournalEntry->getId());
+			$oItemTemplate->replaceIdentifier('index', $iIndex);
+			$oDocument->renderListItem($oItemTemplate);
+			$oGalleryTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
+		}
+		$oTemplate->replaceIdentifierMultiple('images', $oGalleryTemplate);
 		return $oTemplate;
 	}
 
