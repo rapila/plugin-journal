@@ -58,6 +58,13 @@ class JournalDetailWidgetModule extends PersistentWidgetModule {
 			throw new ValidationException();
 		}
 		$oJournal->save();
-		return $oJournal->getId();
+		$oResult = new stdClass();
+		if($this->iJournalId === null) {
+			$oResult->inserted = true;
+		} else {
+			$oResult->updated = true;
+		}
+		$oResult->id = $this->iJournalId = $oJournal->getId();
+		return $oResult;
 	}
 }

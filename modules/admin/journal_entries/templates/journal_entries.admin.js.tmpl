@@ -85,9 +85,7 @@ jQuery(document).ready(function() {
 		}).disable();
 
 		Widget.handle('rapila-journals_changed', function(event, info) {
-			if(info.updated) {
-				sidebar.update_row(sidebar.row_from_row_data({journal_id: info.id}));
-			} else if (info.inserted) {
+			if(info.updated || info.inserted) {
 				sidebar.reload();
 			} else if (info.removed) {
 				var row = sidebar.row_from_row_data({journal_id: info.id})
