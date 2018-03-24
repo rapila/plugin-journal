@@ -49,7 +49,7 @@ jQuery(document).ready(function() {
 
 
 
-		// sidebar items edit and delete buttons
+		// Sidebar items edit and delete buttons
 		var remove_item = info_bar.add_button('remove-item', function() {
 			var row = sidebar.active_row();
 			var rowData = sidebar.collect_row_data(row);
@@ -74,6 +74,7 @@ jQuery(document).ready(function() {
 			}
 		}).disable();
 
+		// Edit journal detail (in sidebar)
 		var edit_item = info_bar.add_button('edit-item', function() {
 			Widget.create('journal_detail', function(widget) {
 				widget.settings.is_standalone = false;
@@ -105,5 +106,7 @@ jQuery(document).ready(function() {
 			content_list.setOption('journal_id', journal_id);
 			content_list.reload();
 		});
+
+		AdminInterface.strings.handle_strings_for_list_result('wns.journal_entries.no_result', ['journal_name', 'tag_name'], content_list);
 	});
 });
