@@ -23,6 +23,10 @@ class JournalEntriesAdminModule extends AdminModule {
 		$this->oInputWidget = new SidebarInputWidgetModule();
 	}
 
+	public static function getPrincipalModel() {
+		return 'JournalEntry';
+	}
+
 	public function mainContent() {
 		return $this->oListWidget->doWidget();
 	}
