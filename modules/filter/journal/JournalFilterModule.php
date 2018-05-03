@@ -29,8 +29,23 @@ class JournalFilterModule extends FilterModule {
 			$this->addChildrenToVirtualNavigationItem($oNavigationItem);
 		}
 	}
+	public function onNavigationItemChildrenCacheDetectOutdated(NavigationItem $oNavigationItem, Cache $oCache, $aIsOutdated) {
+		if($oNavigationItem instanceof PageNavigationItem && !$oNavigationItem->getMe()->isOfType('journal')) {
+			return;
+		}
+		if(!StringUtil::startsWith($oNavigationItem->getType(), 'journal-')) {
+			return;
+		}
+		if($aIsOutdated[0]) {
+			return;
+		}
+		if(Manager::getCurrentPrefix() === 'preview') {
+			return;
+		}
+		$aIsOutdated[0] = $oCache->isOlderThan(FrontendJournalEntryQuery::create());
+	}
 
-	private function addChildrenToPageNavigationItem($oNavigationItem) {
+	private function addChildrenToPageNavigationItem(NavigationItem $oNavigationItem) {
 		// Append virtual navigation items for year, overview and feed
 		$sJournalId = $oNavigationItem->getMe()->getPagePropertyValue('journal:journal_id', null);
 		$aJournalIds = explode(',',$sJournalId);

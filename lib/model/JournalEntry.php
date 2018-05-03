@@ -188,4 +188,20 @@ class JournalEntry extends BaseJournalEntry {
 		return TagQuery::create()->filterByTagged($this)->count() > 0;
 	}
 
+	public function setIsPublished($bIsPublished) {
+		if($bIsPublished && !$this->getIsPublished()) {
+			$this->setPublishAt(time());
+		}
+		return parent::setIsPublished($bIsPublished);
+	}
+
+	public function executeActionActivate() {
+		$this->setIsPublished(true);
+		$this->save();
+	}
+
+	public static function describeActionActivate() {
+		return ActionDescriptor::create('journal.activate');
+	}
+
 } // JournalEntry

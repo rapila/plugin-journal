@@ -7,6 +7,7 @@
 				<label>{{writeString=wns.created_info}}:</label><span class="created_info status"></span><br />
 				<label>{{writeString=wns.updated.info}}:</label><span class="updated_info status"></span><br />
 				<label>{{writeString=wns.id}}:</label><span class="detail_id status"></span><br />
+				<label>{{writeString=wns.journal_entry.publish_at}}</label><span class="publish_info"></span>
 			</div>
 		</div>
 		<label for="title" class="validate-journal_entry.title_required">{{writeString=wns.journal_entry.title}}</label>
@@ -14,10 +15,6 @@
 		<div class="group_fields">
 			<label for="journal_id" class="validate-journal_entry.journal_id_required">{{writeString=wns.journal}}</label>
 			<select name="journal_id" class="ui-widget-content" data-widget-type="journal_input"></select><br /><br />
-		</div>
-		<div class="group_fields">
-			<label for="publish_at" class="validate-publish_at_required">{{writeString=wns.journal_entry.publish_at}}</label>
-			<input type="text" name="publish_at" size="10" class="ui-widget-content autowidth" />
 		</div>
 		<div class="group_fields">
 			<label for="is_published">{{writeString=wns.journal_entry.is_published}}</label>

@@ -10,15 +10,6 @@ Widget.types.journal_entry_detail = {
 		this.current_detail_id = null;
 		this.text_widget = this._element.find('.text-widget');
 
-		this.published_at_input = this._element.find('input[name="publish_at"]');
-		this.published_at_input.datepicker({
-			dateFormat: _this.settings.date_format
-		});
-		// disable published_at_input if journal entry is published
-		this._element.find('input[name="is_published"]').change(function() {
-			_this.published_at_input.prop('disabled', this.checked);
-		});
-
 		this._element.find("select[name='journal_id']").prepareWidget(function(journal_input_widget) {
 			journal_input_widget.val(_this.settings.initial_journal_id);
 		}, jQuery.noop);
@@ -43,6 +34,14 @@ Widget.types.journal_entry_detail = {
 			});
 		}, jQuery.noop);
 
+		// Scheduler
+		Widget.createWithElement('scheduler', function(scheduler) {
+			_this.scheduler = scheduler;
+			_this.handle('opened', function() {
+				_this._element.closest('.ui-dialog').find('.ui-dialog-buttonset').append(_this.scheduler._element.button());
+			}, true, true);
+		}, this.settings.scheduler_session);
+
 		// Images upload
 		this.uploader = Widget.create('file_upload');
 		this.no_images_upload_info = jQuery('<div/>').html("{{writeString=wns.journal_entry.no_images_and_upload_info}}").addClass('no_images_placeholder');
@@ -61,51 +60,36 @@ Widget.types.journal_entry_detail = {
 		this.uploader.allow_drag_to(this.droppable_area, null, function(target, file) {
 			return { document_category_id: _this.settings.journal_entry_images_category_id, callback: _this.upload_success.bind(_this), error: _this.upload_error.bind(_this)};
 		});
-
-		this.handle('opened', function() {
-			this.init_textarea();
-		});
-		this.handle('saving', function(event, data) {
-			data.text = _this.text_editor.get_data();
-		}.bind(_this));
 	},
 
 	prepare: function() {
 		var _this = this;
-		this.published_at_input = this._element.find('input[name="publish_at"]');
-		this._element.find('input[name="is_published"]').change(function() {
-			_this.published_at_input.prop('disabled', this.checked);
-		});
 		this.text_widget = this._element.find('.text-widget').attr('data-widget-session', this.settings.richtext_session);
 		this.text_widget.prepareWidget(function(text_widget) {
-			this.handle('saving', function(event, data) {
+			_this.handle('saving', function(event, data) {
 				data.text = text_widget.get_data();
 			});
 		}.bind(this));
-		this.handle('opened', function() {
-			if(_this.published_at_input.val() === '') {
-				_this.published_at_input.val(_this.settings.date_today);
-			}
-			this.init_textarea();
-		});
 	},
 
 	fill_data: function() {
 		var _this = this;
 		this.detail_widget.disable();
-		this.init_textarea();
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
+			if(this.scheduler) {
+				this.scheduler.refresh();
+			}
 			this._element.find('input[name="title"]').val(data.Title);
 			this._element.find('input[name="is_published"]').prop('checked', data.IsPublished).change();
-			this.published_at_input.val(data.PublishAt);
+			this._element.find(".publish_info").text(data.PublishAt);
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);
 			this._element.find(".detail_id").text(data.Id);
+
 			this.journals.ensureWidget(function(journal_input) {
 				journal_input.val(data.JournalId);
 			});
-
 			this.text_widget.ensureWidget(function(widget) {
 				widget.set_data(data.Text);
 			});
@@ -121,16 +105,6 @@ Widget.types.journal_entry_detail = {
 			this._element.find('div.hide_if_not_saved').show();
 			this.detail_widget.enable();
 		});
-	},
-
-	init_textarea: function() {
-		var _this = this;
-		if(!this.text_widget.didPrepareWidget()) {
-			this.text_widget.attr('data-widget-session', this.settings.richtext_session).prepareWidget(function(rich_text_widget) {
-				_this.text_editor = rich_text_widget;
-				jQuery.extend(rich_text_widget.settings, _this.settings.richtext_settings);
-			}, jQuery.noop);
-		}
 	},
 
 	update_comments: function(comments) {

@@ -2,6 +2,7 @@
 class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	private $oRichTextWidget;
+	private $oScheduler;
 
 	private $iJournalId;
 
@@ -22,6 +23,11 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 		$iJournalEntryImageCategory = Settings::getSetting('journal', 'externally_managed_images_category', null);
 		$this->setSetting('journal_entry_images_category_id', $iJournalEntryImageCategory);
+
+		$this->oScheduler = WidgetModule::getWidget('scheduler');
+		$this->oScheduler->setModelName('JournalEntry');
+		$this->setSetting('scheduler_session', $this->oScheduler->getSessionKey());
+
 		$this->setSetting('date_today', date('d.m.Y'));
 		$this->setSetting('date_format', 'dd.mm.yy');
 	}
@@ -34,6 +40,7 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 	}
 
 	public function setJournalEntryId($iJournalEntryId) {
+		$this->oScheduler->setModelId($iJournalEntryId);
 		$this->iJournalEntryId = $iJournalEntryId;
 	}
 
@@ -152,7 +159,6 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oJournalEntry->setJournalId($aData['journal_id']);
 		$oJournalEntry->setTitle($aData['title']);
 		$oJournalEntry->setIsPublished($aData['is_published']);
-		$oJournalEntry->setPublishAt($aData['publish_at'] == null ? date('c') : $aData['publish_at']);
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oJournalEntry);
 		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
