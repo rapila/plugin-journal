@@ -65,8 +65,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	 */
 	private $oEntry;
 
-	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null) {
+	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null, $sLanguageId = null) {
 		parent::__construct($oPage, $oNavigationItem);
+		$this->sLanguageId = $sLanguageId;
 		if($oPage) {
 			$this->updateFlagsFromProperties();
 		}
@@ -82,6 +83,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iDay = $aData->getPublishAt('j');
 			}
 		}
+		$this->oFillHelper = new PageObjectFillHelper($oPage, $oNavigationItem);
 	}
 
 	public function updateFlagsFromProperties() {
@@ -170,7 +172,9 @@ class JournalPageTypeModule extends PageTypeModule {
 			Session::getSession()->setAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK, $this->oNavigationItem->getLink());
 		}
 		$sMethod = StringUtil::camelize("display_$sMethod");
-		return $this->$sMethod($oTemplate);
+		$this->$sMethod($oTemplate);
+		$this->oFillHelper->fill($this->sLanguageId, $oTemplate, $bIsPreview);
+
 	}
 
 	private function displayOverviewList($oTemplate, $oQuery = null) {
