@@ -29,6 +29,7 @@ class JournalFilterModule extends FilterModule {
 			$this->addChildrenToVirtualNavigationItem($oNavigationItem);
 		}
 	}
+	
 	public function onNavigationItemChildrenCacheDetectOutdated(NavigationItem $oNavigationItem, Cache $oCache, $aIsOutdated) {
 		if($oNavigationItem instanceof PageNavigationItem && !$oNavigationItem->getMe()->isOfType('journal')) {
 			return;
