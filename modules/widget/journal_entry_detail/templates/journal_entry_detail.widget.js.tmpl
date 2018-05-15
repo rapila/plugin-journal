@@ -8,7 +8,6 @@ Widget.types.journal_entry_detail = {
 		this._element.find('div.hide_if_not_saved').hide();
 
 		this.current_detail_id = null;
-		this.text_widget = this._element.find('.text-widget');
 
 		this.published_at_input = this._element.find('input[name="publish_at"]');
 		this.published_at_input.datepicker({
@@ -61,13 +60,6 @@ Widget.types.journal_entry_detail = {
 		this.uploader.allow_drag_to(this.droppable_area, null, function(target, file) {
 			return { document_category_id: _this.settings.journal_entry_images_category_id, callback: _this.upload_success.bind(_this), error: _this.upload_error.bind(_this)};
 		});
-
-		this.handle('opened', function() {
-			this.init_textarea();
-		});
-		this.handle('saving', function(event, data) {
-			data.text = _this.text_editor.get_data();
-		}.bind(_this));
 	},
 
 	prepare: function() {
@@ -78,7 +70,7 @@ Widget.types.journal_entry_detail = {
 		});
 		this.text_widget = this._element.find('.text-widget').attr('data-widget-session', this.settings.richtext_session);
 		this.text_widget.prepareWidget(function(text_widget) {
-			this.handle('saving', function(event, data) {
+			_this.handle('saving', function(event, data) {
 				data.text = text_widget.get_data();
 			});
 		}.bind(this));
@@ -86,14 +78,12 @@ Widget.types.journal_entry_detail = {
 			if(_this.published_at_input.val() === '') {
 				_this.published_at_input.val(_this.settings.date_today);
 			}
-			this.init_textarea();
 		});
 	},
 
 	fill_data: function() {
 		var _this = this;
 		this.detail_widget.disable();
-		this.init_textarea();
 		this.loadData(function(data) {
 			this.current_detail_id = data.Id;
 			this._element.find('input[name="title"]').val(data.Title);
@@ -121,16 +111,6 @@ Widget.types.journal_entry_detail = {
 			this._element.find('div.hide_if_not_saved').show();
 			this.detail_widget.enable();
 		});
-	},
-
-	init_textarea: function() {
-		var _this = this;
-		if(!this.text_widget.didPrepareWidget()) {
-			this.text_widget.attr('data-widget-session', this.settings.richtext_session).prepareWidget(function(rich_text_widget) {
-				_this.text_editor = rich_text_widget;
-				jQuery.extend(rich_text_widget.settings, _this.settings.richtext_settings);
-			}, jQuery.noop);
-		}
 	},
 
 	update_comments: function(comments) {
