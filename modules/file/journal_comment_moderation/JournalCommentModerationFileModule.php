@@ -31,8 +31,9 @@ class JournalCommentModerationFileModule extends FileModule {
 	}
 
 	public function commentDelete() {
+		// TODO: disable delete button and
 		if($this->oJournalComment->getIsPublished()) {
-			throw new Exception('Comment must be disabled in order to be deleted');
+			throw new Exception("Published comments can't be deleted");
 		}
 		$this->oJournalComment->delete();
 	}
