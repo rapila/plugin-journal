@@ -44,7 +44,7 @@ class JournalFilterModule extends FilterModule {
 
 		// Overview list
 		$bOverviewIsList = $oNavigationItem->getMe()->getPagePropertyValue('journal:overview_action', 'list') === 'list';
-		if(!$bOverviewIsList) {
+		if(!$bOverviewIsList && Settings::getSetting('journal', 'overview_list_link_auto_display', null)) {
 			$oOverviewItem = new VirtualNavigationItem('journal-overview_list', 'list', TranslationPeer::getString('wns.journal.list'), null, $aJournalIds);
 			$oOverviewItem->bIsIndexed = false;
 			$oNavigationItem->addChild($oOverviewItem);

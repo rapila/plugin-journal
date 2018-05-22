@@ -79,6 +79,8 @@ abstract class BaseJournalCommentPeer
 
     // denyable behavior
     private static $IGNORE_RIGHTS = false;
+    private static $RIGHTS_USER = false;
+
     /**
      * holds an array of fieldnames
      *
@@ -1731,6 +1733,18 @@ abstract class BaseJournalCommentPeer
     }
     public static function isIgnoringRights() {
         return self::$IGNORE_RIGHTS || PHP_SAPI === "cli";
+    }
+    public static function setRightsUser($oUser = false) {
+        self::$RIGHTS_USER = $oUser;
+    }
+    public static function getRightsUser($oUser = false) {
+        if($oUser === false) {
+            $oUser = self::$RIGHTS_USER;
+        }
+        if($oUser === false) {
+            $oUser = Session::getSession()->getUser();
+        }
+        return $oUser;
     }
     public static function mayOperateOn($oUser, $mObject, $sOperation) {
         if($oUser === null) {

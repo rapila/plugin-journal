@@ -51,13 +51,13 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
 	}
 
-	public function findAvailableYearsByJournalId($mJournalId) {
+	public function findAvailableYearsByJournalId($mJournalId, $sSortBy='desc') {
 		$this->distinct()->clearSelectColumns();
 		if($mJournalId) {
 			$this->filterByJournalId($mJournalId);
 		}
 		$this->withColumn('YEAR(publish_at)', 'Year');
-		$this->orderBy('Year');
+		$this->orderBy('Year', $sSortBy);
 		return $this->select(array('Year'))->find();
 	}
 

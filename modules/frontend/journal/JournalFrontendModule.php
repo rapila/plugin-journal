@@ -1,6 +1,6 @@
 <?php
 class JournalFrontendModule extends DynamicFrontendModule {
-	private static $DISPLAY_OPTIONS = array('recent_journal_entry_teaser', 'recent_comment_teaser');
+	private static $DISPLAY_OPTIONS = array('recent_journal_entry_teaser', 'recent_comment_teaser', 'recent_journal_entry');
 
 	private $bIsJournalEntry = true;
 	private $oJournalPage = null;
@@ -24,6 +24,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		switch($sDisplayMode) {
 			case('recent_journal_entry_teaser') : return $this->renderRecentJournalEntryTeaser($mJournalId);
 			case('recent_comment_teaser') : return $this->renderRecentJournalCommentTeaser($mJournalId);
+			case('recent_journal_entry') : return $this->renderRecentJournalEntry($mJournalId);
 			default: return null;
 		}
 	}
@@ -42,6 +43,41 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
 		$oTemplate->replaceIdentifier('text_short', $sTextShort);
 		$oTemplate->replaceIdentifier('text_short_truncated', StringUtil::truncate(strip_tags($sTextShort), 300));
+		return $oTemplate;
+	}
+
+	private function renderRecentJournalEntry($mJournalId) {
+		$oJournalEntry = FrontendJournalEntryQuery::create()->filterByJournalId($mJournalId)->mostRecentFirst()->findOne();
+		if($oJournalEntry === null) {
+			return null;
+		}
+		$oTemplate = $this->constructTemplate('journal_entry');
+		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
+		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
+		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
+		$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt(' %e. %B %Y'));
+		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
+		$sText = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getText());
+		$oTemplate->replaceIdentifier('text', $sText);
+		if(!$oTemplate->hasIdentifier('images')) {
+			return $oTemplate;
+		}
+		$iImages = $oJournalEntry->getImages();
+		if(count($iImages) === 0) {
+			return $oTemplate;
+		}
+		// images
+		$oGalleryTemplate = new Template('helpers/gallery');
+		$oItemPrototype = new Template('helpers/gallery_item');
+		foreach($iImages as $iIndex => $oJournalEntryImage) {
+			$oDocument = $oJournalEntryImage->getDocument();
+			$oItemTemplate = clone $oItemPrototype;
+			$oItemTemplate->replaceIdentifier('jounal_entry_id', $oJournalEntry->getId());
+			$oItemTemplate->replaceIdentifier('index', $iIndex);
+			$oDocument->renderListItem($oItemTemplate);
+			$oGalleryTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
+		}
+		$oTemplate->replaceIdentifierMultiple('images', $oGalleryTemplate);
 		return $oTemplate;
 	}
 

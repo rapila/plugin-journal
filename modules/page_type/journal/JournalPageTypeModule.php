@@ -65,8 +65,9 @@ class JournalPageTypeModule extends PageTypeModule {
 	 */
 	private $oEntry;
 
-	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null) {
+	public function __construct(Page $oPage = null, NavigationItem $oNavigationItem = null, $sLanguageId = null) {
 		parent::__construct($oPage, $oNavigationItem);
+		$this->sLanguageId = $sLanguageId;
 		if($oPage) {
 			$this->updateFlagsFromProperties();
 		}
@@ -82,6 +83,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iDay = $aData->getPublishAt('j');
 			}
 		}
+		$this->oFillHelper = new PageObjectFillHelper($oPage, $oNavigationItem);
 	}
 
 	public function updateFlagsFromProperties() {
@@ -170,7 +172,9 @@ class JournalPageTypeModule extends PageTypeModule {
 			Session::getSession()->setAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK, $this->oNavigationItem->getLink());
 		}
 		$sMethod = StringUtil::camelize("display_$sMethod");
-		return $this->$sMethod($oTemplate);
+		$this->$sMethod($oTemplate);
+		$this->oFillHelper->fill($this->sLanguageId, $oTemplate, $bIsPreview);
+
 	}
 
 	private function displayOverviewList($oTemplate, $oQuery = null) {
@@ -200,22 +204,32 @@ class JournalPageTypeModule extends PageTypeModule {
 		if(!$oPager->requiresPagination() || !$oTemplate->hasIdentifier('pagination')) {
 			return;
 		}
+
 		// Basic page link without page number
 		$sBasePageLink = LinkUtil::link(array_merge(FrontendManager::$CURRENT_NAVIGATION_ITEM->getLink(), array(self::PAGINATION_PARAM)));
 		$oPager->setPageLinkBase($sBasePageLink);
 		$oQuery = $oPager->getQuery();
 
 		$oPagerTemplate = $this->constructTemplate('pagination');
-		// All page links including current one
+
+		// display page link for all pages
 		$iTotalPages = $oPager->getTotalPageCount();
-		foreach($oPager as $oPage) {
-			if($oPage->page === $iPage) {
-				$oPageLink = TagWriter::quickTag('span', array(), $oPage->page);
-			} else {
-				$oPageLink = TagWriter::quickTag('a', array('title' => TranslationPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPage->link), $oPage->page);
+		if($oPagerTemplate->hasIdentifier('page_links')) {
+			for($i = 1; $i <= $iTotalPages; $i++) {
+				if($i === $iPage) {
+					$oPageLink = TagWriter::quickTag('span', array(), $iPage);
+				} else {
+					$oPageLink = TagWriter::quickTag('a', array('title' => TranslationPeer::getString('pager.go_to_page', null, null, array('page_number' => $i)), 'href' => $oPager->getPageLink($i)), $i);
+				}
+				$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 			}
-			$oPagerTemplate->replaceIdentifierMultiple('page_links', $oPageLink);
 		}
+		// display page info - page number and totol page count
+		if($oPagerTemplate->hasIdentifier('page_info')) {
+			$sPageInfo = TranslationPeer::getString('wns.journal.page_info', null, null, array('page_number' => $iPage, 'total_pages' => $iTotalPages));
+			$oPagerTemplate->replaceIdentifier('page_info', $sPageInfo);
+		}
+
 		$oPagerTemplate->replaceIdentifier('previous_link', $oPager->getPreviousLink());
 		$oPagerTemplate->replaceIdentifier('next_link', $oPager->getNextLink());
 		$oTemplate->replaceIdentifier('pagination', $oPagerTemplate);
@@ -811,15 +825,16 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate = $this->constructTemplate('journal_gallery');
 		$oListTemplate = new Template('helpers/gallery');
 		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
-
-		foreach($this->oEntry->getImages() as $oJournalEntryImage) {
+		$aImages = $this->oEntry->getImages();
+		$oListTemplate->replaceIdentifier('count_images', count($aImages));
+		foreach($aImages as $iIndex => $oJournalEntryImage) {
 			$oDocument = $oJournalEntryImage->getDocument();
 			$oItemTemplate = new Template('helpers/gallery_item');
+			$oItemTemplate->replaceIdentifier('index', $iIndex);
 			$oItemTemplate->replaceIdentifier('jounal_entry_id', $this->oEntry->getId());
 			$oDocument->renderListItem($oItemTemplate);
 			$oListTemplate->replaceIdentifierMultiple('items', $oItemTemplate);
 		}
-
 		$oEntryTemplate->replaceIdentifier('gallery', $oListTemplate);
 		return $oEntryTemplate;
 	}

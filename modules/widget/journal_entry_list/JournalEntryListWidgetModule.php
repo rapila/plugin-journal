@@ -92,6 +92,13 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 		return null;
 	}
 
+	public function getTagName() {
+		if($iTagId = $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags')) {
+			return TagQuery::create()->filterById($iTagId)->select('Name')->findOne();
+		}
+		return null;
+	}
+
 	public function toggleIsPublished($aRowData) {
 		$oJournalEntry = JournalEntryQuery::create()->findPk($aRowData['id']);
 		if($oJournalEntry) {

@@ -925,6 +925,19 @@ abstract class BaseJournalQuery extends ModelCriteria
     {
         return $this->addAscendingOrderByColumn(JournalPeer::CREATED_AT);
     }
+    public function findMostRecentUpdate($bAsTimestamp = false) {
+        $oQuery = clone $this;
+        $sDate = $oQuery->clearOrderByColumns()->lastUpdatedFirst()->select("UpdatedAt")->findOne();
+        if($sDate === null) {
+            return null;
+        }
+        $oDate = new DateTime($sDate);
+        if($bAsTimestamp) {
+            return $oDate->getTimestamp();
+        }
+        return $oDate;
+    }
+
     // extended_keyable behavior
 
     public function filterByPKArray($pkArray) {
