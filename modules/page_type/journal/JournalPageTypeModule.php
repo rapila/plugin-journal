@@ -60,6 +60,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	const SESSION_JOURNAL_FILTER = 'journal_filter';
 	const SESSION_LAST_OVERVIEW_ITEM_LINK = 'last_overview_link';
 
+	private $oFillHelper;
+
 	/**
 	 * @var JournalEntry the entry to be viewed
 	 */
@@ -83,6 +85,7 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->iDay = $aData->getPublishAt('j');
 			}
 		}
+
 		$this->oFillHelper = new PageObjectFillHelper($oPage, $oNavigationItem);
 	}
 
