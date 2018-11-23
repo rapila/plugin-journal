@@ -563,7 +563,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		// get all tags related to
 		// • model JournalEntry
 		// • active journal_enties with current journal_id
-		$aIncludeJournalEntryIds = $this->createQuery()->filterByJournalId($this->aJournalIds)->select('Id')->find()->getData();
+		$aIncludeJournalEntryIds = $this->createQuery()->filterByJournalId($this->aJournalIds)->select(['Id'])->find()->getData();
 		$oTagQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
 		$aTags = $oTagQuery->find()->toKeyValue('Name', 'TagInstanceCount');
 
