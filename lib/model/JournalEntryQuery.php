@@ -33,7 +33,7 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 	}
 
 	public function filterByTagName($sTagName) {
-		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select('TaggedItemId')->find();
+		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select(['TaggedItemId'])->find();
 		$this->filterById($aTaggedItems, Criteria::IN);
 		return $this;
 	}
@@ -48,7 +48,7 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		$this->withColumn('DAY(publish_at)', 'Day');
 		$this->withColumn('MONTH(publish_at)', 'Month');
 		$this->withColumn('YEAR(publish_at)', 'Year');
-		return $this->orderByYearMonthDay()->select('Year', 'Month', 'Day')->find();
+		return $this->orderByYearMonthDay()->select(['Year', 'Month', 'Day'])->find();
 	}
 
 	public function findAvailableYearsByJournalId($mJournalId, $sSortBy='desc') {
