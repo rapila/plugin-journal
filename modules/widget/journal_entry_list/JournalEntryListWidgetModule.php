@@ -94,7 +94,7 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 
 	public function getTagName() {
 		if($iTagId = $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags')) {
-			return TagQuery::create()->filterById($iTagId)->select('Name')->findOne();
+			return TagQuery::create()->filterById($iTagId)->select(['Name'])->findOne();
 		}
 		return null;
 	}
