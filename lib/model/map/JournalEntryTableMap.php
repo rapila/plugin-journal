@@ -41,7 +41,7 @@ class JournalEntryTableMap extends TableMap
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addForeignKey('journal_id', 'JournalId', 'INTEGER', 'journals', 'id', false, null, null);
         $this->addColumn('title', 'Title', 'VARCHAR', true, 180, null);
-        $this->addColumn('slug', 'Slug', 'VARCHAR', true, 50, null);
+        $this->addColumn('slug', 'Slug', 'VARCHAR', true, 180, null);
         $this->addColumn('text', 'Text', 'LONGVARCHAR', true, null, null);
         $this->addColumn('text_short', 'TextShort', 'LONGVARCHAR', true, null, null);
         $this->addColumn('is_published', 'IsPublished', 'BOOLEAN', false, 1, false);
