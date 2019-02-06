@@ -153,7 +153,7 @@ class JournalEntry extends BaseJournalEntry {
 
 	public function setTitle($sTitle) {
 		if($this->isNew() || $this->getSlug() == null) {
-			$this->setSlug(StringUtil::truncate(StringUtil::normalizePath($sTitle), 50, '', 0));
+			$this->setSlug(StringUtil::normalizePath($sTitle));
 		}
 		return parent::setTitle($sTitle);
 	}
