@@ -56,5 +56,5 @@
 		<reference local="document_id" foreign="id" />
 	</foreign-key>
 	<column name="sort" type="integer" />
-	<column name="legend" type="varchar" size="180" required="true"/>
+	<column name="legend" type="varchar" size="180"/>
 </table>
