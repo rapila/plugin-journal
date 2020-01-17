@@ -92,6 +92,13 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 		return null;
 	}
 
+	public function getTagName() {
+		if($iTagId = $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags')) {
+			return TagQuery::create()->filterById($iTagId)->select(['Name'])->findOne();
+		}
+		return null;
+	}
+
 	public function toggleIsPublished($aRowData) {
 		$oJournalEntry = JournalEntryQuery::create()->findPk($aRowData['id']);
 		if($oJournalEntry) {
@@ -127,7 +134,7 @@ class JournalEntryListWidgetModule extends SpecializedListWidgetModule {
 	public function getCriteria() {
 		$oQuery = JournalEntryQuery::create()->joinJournal();
 		if($this->oTagFilter && $this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags') !== CriteriaListWidgetDelegate::SELECT_ALL) {
-			$oQuery->filterByTagId($this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags'));
+			$oQuery->filterByTagName($this->oDelegateProxy->getListSettings()->getFilterColumnValue('has_tags'));
 		}
 		return $oQuery;
 	}

@@ -19,8 +19,6 @@
 	{{if=ne;1=\{\{writeFlashValue\=captcha_required\}\}}}
 	{{writeFlashValue=captcha_required}}{{endIf}}
 	</p>{{identifierContext=end;name=captcha}}
-	<p class="important_note"><label for="important_note">Important Note *</label><input type="text" name="important_note" value="" />
-	</p>
 	<p class="fields_required_legend">{{writeString=journal_comment.required_fields}}</p>
 	<p class="submit_buttons"><input value="{{writeString=journal.send_comment}}" name="submit" type="submit" /> <input value="{{writeString=journal.comment.preview}}" name="preview" type="submit" /></p>
 	</div>

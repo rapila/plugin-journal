@@ -2,29 +2,31 @@ journal:
   # Richtext editor toolbar configuration
   text_module:
     toolbar:
-      - 
+      -
         - ["Bold", "Italic"]
         - ["Link", "Unlink", "Anchor", "-", "Image"]
         - ["NumberedList", "BulletedList", "Blockquote"]
         - ["Undo", "Redo", "RemoveFormat", "-", "Find"]
         - ["Subscript", "Superscript", "-", "Maximize"]
         - ["Source"]
-   
+
   # If images and galleries are used frequently it is worthwhile to create and register a file category
-  # that is externally managed, to store the data in - solely a question of internal organisation.     
+  # that is externally managed, to store the data in - solely a question of internal organisation.
   externally_managed_images_category: null
-  
+
+  overview_list_link_auto_display: true
+
   # Calendar collapsible date tree widget: render years [1] and months [2] and days [3]
   display_journal_collapsible_tree_levels: 2
-  
+
   # Tag cloud widget tag style size settings: set pixel_size_min parameters to null, if you do not want variable style attributes
   tag_cloud:
     pixel_size_min: 12
     pixel_size_max: 22
-  
+
   # Query limit of entries
   recent_entries_widget_limit: 7
-  
+
   # Blogroll link category
   blogroll_link_category_id: null
 

@@ -1750,9 +1750,7 @@ abstract class BaseJournalComment extends BaseObject implements Persistent
 
     // denyable behavior
     public function mayOperate($sOperation, $oUser = false) {
-        if($oUser === false) {
-            $oUser = Session::getSession()->getUser();
-        }
+        $oUser = JournalCommentPeer::getRightsUser($oUser);
         $bIsAllowed = false;
         if($oUser && ($this->isNew() || $this->getCreatedBy() === $oUser->getId()) && JournalCommentPeer::mayOperateOnOwn($oUser, $this, $sOperation)) {
             $bIsAllowed = true;
