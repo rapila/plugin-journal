@@ -1,6 +1,6 @@
 <?php
 
-require_once('htmlpurifier/HTMLPurifier.standalone.php');
+require_once('htmlpurifier/HTMLPurifier.auto.php');
 
 class JournalFilterModule extends FilterModule {
 
