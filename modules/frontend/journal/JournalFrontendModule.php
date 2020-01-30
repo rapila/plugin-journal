@@ -38,7 +38,10 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
 		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
 		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
+		// publish_at and date are deprecated as their usage varies between the template types
 		$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt('U'));
+		$oTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oJournalEntry->getPublishAtTimestamp()));
+		$oTemplate->replaceIdentifier('date_timestamp', $oJournalEntry->getPublishAtTimestamp());
 		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
 		$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
 		$oTemplate->replaceIdentifier('text_short', $sTextShort);
@@ -55,7 +58,10 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
 		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
 		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
+		// publish_at and date are deprecated as their usage varies between the template types
 		$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt(' %e. %B %Y'));
+		$oTemplate->replaceIdentifier('date', $oJournalEntry->getPublishAtTimestamp());
+		$oTemplate->replaceIdentifier('date_timestamp', $oJournalEntry->getPublishAtTimestamp());
 		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
 		$sText = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getText());
 		$oTemplate->replaceIdentifier('text', $sText);

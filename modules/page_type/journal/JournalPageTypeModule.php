@@ -342,7 +342,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oEntryTemplate->replaceIdentifier('name', $oEntry->getSlug());
 		$oEntryTemplate->replaceIdentifier('user_name', $oEntry->getUserRelatedByCreatedBy()->getFullName());
 		$oEntryTemplate->replaceIdentifier('id', $oEntry->getId());
+		// date is deprecated as its usage varies between the template types
 		$oEntryTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oEntry->getPublishAtTimestamp()));
+		$oEntryTemplate->replaceIdentifier('date_timestamp', $oEntry->getPublishAtTimestamp());
 		$oEntryTemplate->replaceIdentifier('title', $oEntry->getTitle());
 		$oEntryTemplate->replaceIdentifier('comment_count', $oEntry->countJournalComments($oCommentQuery));
 		// Manager in link has to be set manually for the case when it's called asynchroneously in preview
