@@ -1,4 +1,4 @@
 <div class="journal_comment">
-  <p class="journal_sub heading">{{author}}{{if=ne;1=\{\{date\}\}}} at {{date}}{{endIf}}:</p>
+  <p class="journal_sub heading">{{author}}, {{writeParameterizedString=journal.comment_date;date=\{\{date_timestamp\}\}}}</p>
   {{text}}
 </div>

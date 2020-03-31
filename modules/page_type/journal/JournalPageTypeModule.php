@@ -429,6 +429,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oCommentTemplate->replaceIdentifier('text', $oComment->getText(), null, Template::NO_HTML_ESCAPE);
 		if($oComment->getCreatedAtTimestamp() !== null) {
 			$oCommentTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oComment->getCreatedAtTimestamp()));
+			$oCommentTemplate->replaceIdentifier('date_timestamp', $oComment->getCreatedAtTimestamp());
 		}
 		return $oCommentTemplate;
 	}
