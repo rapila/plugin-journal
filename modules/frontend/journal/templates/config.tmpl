@@ -5,6 +5,12 @@
 	</select>
 </div>
 <div class="group_fields">
+	<label for="limit">{{writeString=wns.journal.config.count}}</label>
+	<select name="limit" class="ui-widget-content autowidth">
+		{{limit_options}}
+	</select>
+</div>
+<div class="group_fields">
 	<label for="journal">{{writeString=wns.journal.journal_page_or_journal}}</label>
 	<select name="journal" class="ui-widget-content">
 		{{journal_options}}

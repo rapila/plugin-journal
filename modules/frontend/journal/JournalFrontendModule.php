@@ -6,47 +6,55 @@ class JournalFrontendModule extends DynamicFrontendModule {
 	private $oJournalPage = null;
 
 	const DISPLAY_MODE = 'display_mode';
+	const LIMIT_OPTION = 'limit';
 	const PAGE_SEPARATOR = '-';
 
 	public function renderFrontend() {
 		$aOptions = @unserialize($this->getData());
 		$sDisplayMode = $aOptions[self::DISPLAY_MODE];
+		$iLimit = 1;
+		if(isset($aOptions[self::LIMIT_OPTION])) {
+			$iLimit = $aOptions[self::LIMIT_OPTION];
+		}
 		$aJournalParams = isset($aOptions['journal']) ? explode('-', $aOptions['journal']) : array();
 		// get journal ids
 		if(isset($aJournalParams[1])) {
 			$this->oJournalPage = PageQuery::create()->active()->findPk($aJournalParams[1]);
 			$mJournalId = explode(',', $this->oJournalPage->getPagePropertyValue('journal:journal_id', ''));
-
 		} else {
 			$mJournalId = $aJournalParams[0];
 		}
-
 		switch($sDisplayMode) {
-			case('recent_journal_entry_teaser') : return $this->renderRecentJournalEntryTeaser($mJournalId);
-			case('recent_comment_teaser') : return $this->renderRecentJournalCommentTeaser($mJournalId);
+			case('recent_journal_entry_teaser') : return $this->renderRecentJournalEntryTeasers($mJournalId, $iLimit);
+			case('recent_comment_teaser') : return $this->renderRecentJournalCommentTeasers($mJournalId, $iLimit);
 			case('recent_journal_entry') : return $this->renderRecentJournalEntry($mJournalId);
 			default: return null;
 		}
 	}
 
-	private function renderRecentJournalEntryTeaser($mJournalId) {
-		$oJournalEntry = FrontendJournalEntryQuery::create()->filterByJournalId($mJournalId)->mostRecentFirst()->findOne();
-		if($oJournalEntry === null) {
+	private function renderRecentJournalEntryTeasers($mJournalId, $iLimit) {
+		$oJournalEntries = FrontendJournalEntryQuery::create()->filterByJournalId($mJournalId)->mostRecentFirst()->limit($iLimit)->find();
+		if($oJournalEntries == null) {
 			return null;
 		}
-		$oTemplate = $this->constructTemplate('journal_entry_teaser');
-		$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
-		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
-		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
-		// publish_at and date are deprecated as their usage varies between the template types
-		$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt('U'));
-		$oTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oJournalEntry->getPublishAtTimestamp()));
-		$oTemplate->replaceIdentifier('date_timestamp', $oJournalEntry->getPublishAtTimestamp());
-		$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
-		$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
-		$oTemplate->replaceIdentifier('text_short', $sTextShort);
-		$oTemplate->replaceIdentifier('text_short_truncated', StringUtil::truncate(strip_tags($sTextShort), 300));
-		return $oTemplate;
+		$oListTemplate = $this->constructTemplate('teaser_list');
+		foreach($oJournalEntries as $i => $oJournalEntry) {
+			$oTemplate = $this->constructTemplate('journal_entry_teaser');
+			$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
+			$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
+			$oTemplate->replaceIdentifier('link_to_detail', $sHref);
+			// publish_at and date are deprecated as their usage varies between the template types
+			$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt('U'));
+			$oTemplate->replaceIdentifier('date', LocaleUtil::localizeDate($oJournalEntry->getPublishAtTimestamp()));
+			$oTemplate->replaceIdentifier('date_timestamp', $oJournalEntry->getPublishAtTimestamp());
+			$oTemplate->replaceIdentifier('user_name', $oJournalEntry->getUserRelatedByCreatedBy()->getFullName());
+			$sTextShort = RichtextUtil::parseStorageForFrontendOutput($oJournalEntry->getTextShort());
+			$oTemplate->replaceIdentifier('text_short', $sTextShort);
+			$oTemplate->replaceIdentifier('text_short_truncated', StringUtil::truncate(strip_tags($sTextShort), 300));
+			$oListTemplate->replaceIdentifierMultiple('items', $oTemplate);
+		}
+		return $oListTemplate;
+
 	}
 
 	private function renderRecentJournalEntry($mJournalId) {
@@ -87,20 +95,22 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		return $oTemplate;
 	}
 
-	private function renderRecentJournalCommentTeaser($mJournalId) {
-		$oJournalComment = JournalCommentQuery::create()->excludeUnverified()->joinJournalEntry()->useQuery('JournalEntry')->filterByJournalId($mJournalId)->excludeDraft()->endUse()->mostRecentFirst()->findOne();
+	private function renderRecentJournalCommentTeasers($mJournalId, $iLimit) {
+		$aJournalComments = JournalCommentQuery::create()->excludeUnverified()->joinJournalEntry()->useQuery('JournalEntry')->filterByJournalId($mJournalId)->excludeDraft()->endUse()->mostRecentFirst()->limit($iLimit)->find();
 
-		if($oJournalComment === null) {
+		if($aJournalComments == null) {
 			return null;
 		}
-		$oTemplate = $this->constructTemplate('journal_comment_teaser');
-		$sHref = LinkUtil::link($oJournalComment->getJournalEntry()->getLink($this->oJournalPage)).'#comments';
-		$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('rel' => 'internal', 'href' => $sHref), $oJournalComment->getJournalEntry()->getTitle()));
-		$oTemplate->replaceIdentifier('link_to_detail', $sHref);
-		$oTemplate->replaceIdentifier('created_at', $oJournalComment->getCreatedAt('U'));
-		$oTemplate->replaceIdentifier('name', $oJournalComment->getUsername());
-		$oTemplate->replaceIdentifier('text', $oJournalComment->getText(), null, Template::NO_HTML_ESCAPE);
-		return $oTemplate;
+		foreach ($aJournalComments as $oJournalComment) {
+			$oTemplate = $this->constructTemplate('journal_comment_teaser');
+			$sHref = LinkUtil::link($oJournalComment->getJournalEntry()->getLink($this->oJournalPage)).'#comments';
+			$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('rel' => 'internal', 'href' => $sHref), $oJournalComment->getJournalEntry()->getTitle()));
+			$oTemplate->replaceIdentifier('link_to_detail', $sHref);
+			$oTemplate->replaceIdentifier('created_at', $oJournalComment->getCreatedAt('U'));
+			$oTemplate->replaceIdentifier('name', $oJournalComment->getUsername());
+			$oTemplate->replaceIdentifier('text', $oJournalComment->getText(), null, Template::NO_HTML_ESCAPE);
+			return $oTemplate;
+		}
 	}
 
 	public function renderBackend() {
@@ -120,6 +130,11 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		foreach(JournalQuery::create()->orderByName()->find() as $oJournal) {
 			$aJournalOptions[$oJournal->getId()] = TranslationPeer::getString('wns.journal.journal_name', null, null, array('name' => $oJournal->getName()));
 		}
+		$aLimitOptions = array();
+		foreach(range(1,3) as $iLimit) {
+			$aLimitOptions[$iLimit] = $iLimit;
+		}
+		$oTemplate->replaceIdentifier('limit_options', TagWriter::optionsFromArray($aLimitOptions, 1, null, array()));
 		$oTemplate->replaceIdentifier('journal_options', TagWriter::optionsFromArray($aJournalOptions));
 		return $oTemplate;
 	}
