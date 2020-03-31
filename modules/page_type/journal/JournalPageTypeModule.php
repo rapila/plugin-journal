@@ -111,8 +111,8 @@ class JournalPageTypeModule extends PageTypeModule {
 	}
 
 	private function setFilters() {
-		$this->aFilteredTags = Session::getSession()->getAttribute(self::SESSION_TAG_FILTER);
-		$this->aFilteredJournalIds = Session::getSession()->getAttribute(self::SESSION_JOURNAL_FILTER);
+		$this->aFilteredTags = Session::getSession()->getAttribute(self::SESSION_TAG_FILTER .$this->oPage->getId());
+		$this->aFilteredJournalIds = Session::getSession()->getAttribute(self::SESSION_JOURNAL_FILTER .$this->oPage->getId());
 
 		// Intial or reset tags
 		if($this->aFilteredTags === null || isset($_REQUEST[self::RESET_TAGS])) {
@@ -144,7 +144,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		// Write filter sessions
 		Session::getSession()->setAttribute(self::SESSION_JOURNAL_FILTER, $this->aFilteredJournalIds);
-		Session::getSession()->setAttribute(self::SESSION_TAG_FILTER, $this->aFilteredTags);
+		Session::getSession()->setAttribute(self::SESSION_TAG_FILTER .$this->oPage->getId(), $this->aFilteredTags);
 	}
 
 	public function display(Template $oTemplate, $bIsPreview = false) {
@@ -948,7 +948,7 @@ class JournalPageTypeModule extends PageTypeModule {
 		$this->oPage->updatePageProperty('journal:overview_action', $aData['mode']);
 		$this->oPage->updatePageProperty('journal:journal_id', implode(',', array_filter($aData['journal_ids'])));
 		// reset journal filter because a journal id that is not configured anymore might be in the session and take effect
-		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER);
+		Session::getSession()->resetAttribute(self::SESSION_JOURNAL_FILTER .$this->oPage->getId());
 		$this->oPage->updatePageProperty('journal:entries_per_page', $aData['entries_per_page'] == '' ? null : $aData['entries_per_page']);
 		$this->oPage->updatePageProperty('journal:template_set', $aData['template_set']);
 		$this->oPage->updatePageProperty('journal:container', $aData['container']);
