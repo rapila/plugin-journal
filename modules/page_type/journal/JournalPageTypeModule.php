@@ -561,8 +561,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		// • model JournalEntry
 		// • active journal_enties with current journal_id
 		$aIncludeJournalEntryIds = $this->createQuery()->filterByJournalId($this->aJournalIds)->select(['Id'])->find()->getData();
-		$oTagQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
-		$aTags = $oTagQuery->find()->toKeyValue('Name', 'TagInstanceCount');
+		$aTags = array();
+
+		// if there are no journal entries found, no need to get Tags
+		// Note: model_name would be searched in withTagInstanceCountFilteredByModel() and $this->aJournalIds ignores
+		if(count($aIncludeJournalEntryIds) > 0) {
+			$oTagQuery = TagQuery::create()->orderByName()->withTagInstanceCountFilteredByModel('JournalEntry', $aIncludeJournalEntryIds);
+			$aTags = $oTagQuery->find()->toKeyValue('Name', 'TagInstanceCount');
+		}
 
 		if(empty($aTags)) {
 			return null;
