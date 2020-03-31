@@ -58,7 +58,6 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	const SESSION_TAG_FILTER = 'tag_filter';
 	const SESSION_JOURNAL_FILTER = 'journal_filter';
-	const SESSION_LAST_OVERVIEW_ITEM_LINK = 'last_overview_link';
 
 	private $oFillHelper;
 
@@ -170,14 +169,9 @@ class JournalPageTypeModule extends PageTypeModule {
 				$this->oEntry = $this->oNavigationItem->getData();
 			}
 		}
-		// whenever there is no detail requested, store current navigation item for return_to_list_view link
-		if($this->oEntry === null) {
-			Session::getSession()->setAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK, $this->oNavigationItem->getLink());
-		}
 		$sMethod = StringUtil::camelize("display_$sMethod");
 		$this->$sMethod($oTemplate);
 		$this->oFillHelper->fill($this->sLanguageId, $oTemplate, $bIsPreview);
-
 	}
 
 	private function displayOverviewList($oTemplate, $oQuery = null) {
@@ -489,13 +483,13 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($this->oEntry === null) {
 			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray()));
 		}
+
+		// Always get parent page of entry, assuming it's displayed in it's context
+		$sOverviewHref = LinkUtil::link($this->oPage->getLink());
+
 		$oEntryTemplate = $this->constructTemplate('full_entry');
-		if($aLink = Session::getSession()->getAttribute(self::SESSION_LAST_OVERVIEW_ITEM_LINK)) {
-			$sOverviewHref = LinkUtil::link($aLink);
-		} else {
-			$sOverviewHref = LinkUtil::link($this->oPage->getLink());
-		}
 		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => TranslationPeer::getString('journal.back_to_list_view')), TranslationPeer::getString('journal.back_to_list_view')));
+		$oEntryTemplate->replaceIdentifier('overview_href', $sOverviewHref);
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
 	}
 
