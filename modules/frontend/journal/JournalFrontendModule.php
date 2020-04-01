@@ -98,7 +98,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 	private function renderRecentJournalCommentTeasers($mJournalId, $iLimit) {
 		$aJournalComments = JournalCommentQuery::create()->excludeUnverified()->joinJournalEntry()->useQuery('JournalEntry')->filterByJournalId($mJournalId)->excludeDraft()->endUse()->mostRecentFirst()->limit($iLimit)->find();
 
-		if($aJournalComments == null) {
+		if(empty($aJournalComments)) {
 			return null;
 		}
 		foreach ($aJournalComments as $oJournalComment) {
