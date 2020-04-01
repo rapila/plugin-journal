@@ -100,6 +100,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		if(empty($aJournalComments)) {
 			return null;
 		}
+		$oListTemplate = $this->constructTemplate('comment_teaser_list');
 		foreach ($aJournalComments as $oJournalComment) {
 			$oTemplate = $this->constructTemplate('journal_comment_teaser');
 			$sHref = LinkUtil::link($oJournalComment->getJournalEntry()->getLink($this->oJournalPage)).'#comments';
@@ -108,7 +109,8 @@ class JournalFrontendModule extends DynamicFrontendModule {
 			$oTemplate->replaceIdentifier('created_at', $oJournalComment->getCreatedAt('U'));
 			$oTemplate->replaceIdentifier('name', $oJournalComment->getUsername());
 			$oTemplate->replaceIdentifier('text', $oJournalComment->getText(), null, Template::NO_HTML_ESCAPE);
-			return $oTemplate;
+			$oListTemplate->replaceIdentifierMultiple('items', $oTemplate);
+			return $oListTemplate;
 		}
 	}
 
