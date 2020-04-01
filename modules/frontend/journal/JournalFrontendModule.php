@@ -54,7 +54,6 @@ class JournalFrontendModule extends DynamicFrontendModule {
 			$oListTemplate->replaceIdentifierMultiple('items', $oTemplate);
 		}
 		return $oListTemplate;
-
 	}
 
 	private function renderRecentJournalEntry($mJournalId) {
