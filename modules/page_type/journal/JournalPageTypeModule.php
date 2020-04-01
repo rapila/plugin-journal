@@ -485,7 +485,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			LinkUtil::redirect(LinkUtil::link($this->oPage->getLinkArray()));
 		}
 
-		// Always get parent page of entry, assuming it's displayed in it's context
+		// Always get parent page of entry, assuming it's displayed in its context
 		$sOverviewHref = LinkUtil::link($this->oPage->getLink());
 
 		$oEntryTemplate = $this->constructTemplate('full_entry');
