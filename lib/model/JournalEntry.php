@@ -43,8 +43,12 @@ class JournalEntry extends BaseJournalEntry {
 		return parent::getJournalComments($oCriteria, $oConnection);
 	}
 
-	public function getImages() {
-		return $this->getJournalEntryImages(JournalEntryImageQuery::create()->orderBySort(Criteria::ASC));
+	public function getImages($iLimit=null) {
+		$oCriteria = JournalEntryImageQuery::create()->orderBySort(Criteria::ASC);
+		if($iLimit !== null) {
+			$oCriteria->limit($iLimit);
+		}
+		return $this->getJournalEntryImages($oCriteria);
 	}
 
 	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
