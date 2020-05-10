@@ -832,10 +832,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oListTemplate = new Template('helpers/gallery');
 		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
 		$aImages = $this->oEntry->getImages();
-		$oListTemplate->replaceIdentifier('count_images', count($aImages));
+		$iCountImages = count($aImages);
+		$oListTemplate->replaceIdentifier('count_images', $iCountImages);
 		foreach($aImages as $iIndex => $oJournalEntryImage) {
 			$oDocument = $oJournalEntryImage->getDocument();
 			$oItemTemplate = new Template('helpers/gallery_item');
+			$oItemTemplate->replaceIdentifier('count_images', $iCountImages);
 			$oItemTemplate->replaceIdentifier('index', $iIndex);
 			$oItemTemplate->replaceIdentifier('jounal_entry_id', $this->oEntry->getId());
 			$oDocument->renderListItem($oItemTemplate);

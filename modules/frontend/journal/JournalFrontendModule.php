@@ -38,8 +38,21 @@ class JournalFrontendModule extends DynamicFrontendModule {
 			return null;
 		}
 		$oListTemplate = $this->constructTemplate('teaser_list');
+		// show image of first journal entry teaser if a template identifier 'image' exists.
 		foreach($oJournalEntries as $i => $oJournalEntry) {
 			$oTemplate = $this->constructTemplate('journal_entry_teaser');
+			if($oTemplate->hasIdentifier('display_url') && $i === 0) {
+				$oImage = $oJournalEntry->getImages(1)->getFirst();
+				if($oImage) {
+					$oDocument = $oImage->getDocument();
+					$oTemplate->replaceIdentifier('display_url', $oDocument->getDisplayUrl());
+					$oTemplate->replaceIdentifier('name', $oDocument->getName());
+					$oTemplate->replaceIdentifier('description', $oDocument->getDescription());
+					$oTemplate->replaceIdentifier('width', $oDocument->getImage()->getWidth());
+					$oTemplate->replaceIdentifier('height', $oDocument->getImage()->getHeight());
+					$oTemplate->replaceIdentifier('author', $oDocument->getAuthor());
+				}
+			}
 			$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
 			$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
 			$oTemplate->replaceIdentifier('link_to_detail', $sHref);
