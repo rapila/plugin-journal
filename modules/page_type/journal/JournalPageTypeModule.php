@@ -828,11 +828,14 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/
 	private function renderGallery(JournalEntry $oEntry) {
+		$aImages = $this->oEntry->getImages();
+		$iCountImages = count($aImages);
+		if($iCountImages === 0) {
+			return null;
+		}
 		$oEntryTemplate = $this->constructTemplate('journal_gallery');
 		$oListTemplate = new Template('helpers/gallery');
 		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
-		$aImages = $this->oEntry->getImages();
-		$iCountImages = count($aImages);
 		$oListTemplate->replaceIdentifier('count_images', $iCountImages);
 		foreach($aImages as $iIndex => $oJournalEntryImage) {
 			$oDocument = $oJournalEntryImage->getDocument();
