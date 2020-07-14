@@ -44,7 +44,7 @@ class JournalEntry extends BaseJournalEntry {
 	}
 
 	public function getImages($iLimit=null) {
-		$oCriteria = JournalEntryImageQuery::create()->orderBySort(Criteria::ASC);
+		$oCriteria = JournalEntryImageQuery::create()->orderBySort(Criteria::ASC)->orderByCreatedAt(Criteria::ASC);
 		if($iLimit !== null) {
 			$oCriteria->limit($iLimit);
 		}
