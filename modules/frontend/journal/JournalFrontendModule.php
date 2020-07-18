@@ -55,7 +55,8 @@ class JournalFrontendModule extends DynamicFrontendModule {
 				}
 			}
 			$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
-			$oTemplate->replaceIdentifier('title', TagWriter::quickTag('a', array('href' => $sHref), $oJournalEntry->getTitle()));
+			// the old usage of identifier 'title' that includes the detail link is configurable enought from the template
+			$oTemplate->replaceIdentifier('title', $oJournalEntry->getTitle());
 			$oTemplate->replaceIdentifier('link_to_detail', $sHref);
 			// publish_at and date are deprecated as their usage varies between the template types
 			$oTemplate->replaceIdentifier('publish_at', $oJournalEntry->getPublishAt('U'));
