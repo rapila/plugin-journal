@@ -8,9 +8,13 @@ Widget.types.journal_input = {
 		var _this = this;
 		var current = this._element.val();
 		this._element.empty();
+
+		var option = jQuery('<option/>');
+		option.clone().text("{{writeString=wns.choose}}").attr('value', '').appendTo(this._element);
 		this.listJournals(this.settings.journal_ids_configured, function(journals) {
-			_this._element.populate({'': "{{writeString=wns.choose}}"});
-			_this._element.populate(journals);
+			jQuery.each(journals, function(i, journal) {
+				option.clone().text(journal.name).attr('value', journal.id).appendTo(this._element);
+			}.bind(this));
 			if(current) {
 				this._element.val(current);
 			} else {
@@ -21,7 +25,7 @@ Widget.types.journal_input = {
 			}
 		});
 	},
-	
+
 	val: function(value) {
 		if(arguments.length) {
 			this._element.val(value);
@@ -30,7 +34,7 @@ Widget.types.journal_input = {
 		}
 		return this._element.val();
 	},
-	
+
 	settings: {
 		journal_ids_configured: null,
 		initial_selection: null
