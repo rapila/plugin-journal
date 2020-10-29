@@ -155,6 +155,18 @@ class JournalEntry extends BaseJournalEntry {
 		return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug());
 	}
 
+	public function getNextJournalEntry() {
+		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt(), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
+	}
+
+	public function getPreviousJournalEntry() {
+		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt(), Criteria::LESS_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
+	}
+
+	private static function getNeighbourQuery($iJournalId) {
+		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->filterByIsPublished(true)->limit(1);
+	}
+
 	public function setTitle($sTitle) {
 		if($this->isNew() || $this->getSlug() == null) {
 			$this->setSlug(StringUtil::normalizePath($sTitle));
