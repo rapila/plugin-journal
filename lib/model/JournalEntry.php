@@ -156,11 +156,11 @@ class JournalEntry extends BaseJournalEntry {
 	}
 
 	public function getNextJournalEntry() {
-		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('YYYY-mm-dd'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
+		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
 	}
 
 	public function getPreviousJournalEntry() {
-		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('YYYY-mm-dd'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
+		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
 	}
 
 	private static function getNeighbourQuery($iJournalId) {
