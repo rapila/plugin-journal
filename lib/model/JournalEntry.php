@@ -155,16 +155,16 @@ class JournalEntry extends BaseJournalEntry {
 		return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug());
 	}
 
-	public function getNextJournalEntry() {
-		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
-	}
-
 	public function getPreviousJournalEntry() {
-		return self::getNeighbourQuery($this->getJournalId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
+		return self::getNeighbourQuery($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
 	}
 
-	private static function getNeighbourQuery($iJournalId) {
-		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->filterByIsPublished(true)->limit(1);
+	public function getNextJournalEntry() {
+		return self::getNeighbourQuery($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
+	}
+
+	private static function getNeighbourQuery($iJournalId, $iCurrendId) {
+		return JournalEntryQuery::create()->filterByJournalId($iJournalId)->filterByIsPublished(true)->filterById($iCurrendId, Criteria::NOT_EQUAL)->limit(1);
 	}
 
 	public function setTitle($sTitle) {
