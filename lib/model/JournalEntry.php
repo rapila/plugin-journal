@@ -155,11 +155,11 @@ class JournalEntry extends BaseJournalEntry {
 		return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug());
 	}
 
-	public function getPreviousJournalEntry() {
+	public function getNextJournalEntry() {
 		return self::getNeighbourQuery($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
 	}
 
-	public function getNextJournalEntry() {
+	public function getPreviousJournalEntry() {
 		return self::getNeighbourQuery($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
 	}
 
