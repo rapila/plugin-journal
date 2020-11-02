@@ -38,7 +38,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 			return null;
 		}
 		$oListTemplate = $this->constructTemplate('teaser_list');
-		// show image of first journal entry teaser if a template identifier 'image' exists.
+		// show image of first journal entry teaser if a template identifier 'image' resp. 'display_url exists.
 		$oTeaserTemplate = $this->constructTemplate('journal_entry_teaser');
 		foreach($oJournalEntries as $i => $oJournalEntry) {
 			$oTemplate = clone $oTeaserTemplate;
@@ -55,7 +55,8 @@ class JournalFrontendModule extends DynamicFrontendModule {
 				}
 			}
 			$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
-			// the old usage of identifier 'title' that includes the detail link is configurable enought from the template
+			// the old usage of identifier 'title' that includes the detail link is not supported anymore
+			// title and link can be configured in template
 			$oTemplate->replaceIdentifier('title', $oJournalEntry->getTitle());
 			$oTemplate->replaceIdentifier('link_to_detail', $sHref);
 			// publish_at and date are deprecated as their usage varies between the template types
