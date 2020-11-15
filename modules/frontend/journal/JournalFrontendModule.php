@@ -38,20 +38,20 @@ class JournalFrontendModule extends DynamicFrontendModule {
 			return null;
 		}
 		$oListTemplate = $this->constructTemplate('teaser_list');
-		// show image of first journal entry teaser if a template identifier 'image' resp. 'display_url exists.
 		$oTeaserTemplate = $this->constructTemplate('journal_entry_teaser');
 		foreach($oJournalEntries as $i => $oJournalEntry) {
 			$oTemplate = clone $oTeaserTemplate;
-			if($oTemplate->hasIdentifier('display_url') && $i === 0) {
+			// show image of first journal entry teaser if a template identifier 'image_display_url' exists.
+			if($oTemplate->hasIdentifier('image_display_url') && $i === 0) {
 				$oImage = $oJournalEntry->getImages(1)->getFirst();
 				if($oImage) {
 					$oDocument = $oImage->getDocument();
-					$oTemplate->replaceIdentifier('name', $oDocument->getName());
-					$oTemplate->replaceIdentifier('description', $oDocument->getDescription());
-					$oTemplate->replaceIdentifier('width', $oDocument->getImage()->getWidth());
-					$oTemplate->replaceIdentifier('height', $oDocument->getImage()->getHeight());
-					$oTemplate->replaceIdentifier('author', $oDocument->getAuthor());
-					$oTemplate->replaceIdentifier('display_url', $oDocument->getDisplayUrl());
+					$oTemplate->replaceIdentifier('image_name', $oDocument->getName());
+					$oTemplate->replaceIdentifier('image_description', $oDocument->getDescription());
+					$oTemplate->replaceIdentifier('image_width', $oDocument->getImage()->getWidth());
+					$oTemplate->replaceIdentifier('image_height', $oDocument->getImage()->getHeight());
+					$oTemplate->replaceIdentifier('image_author', $oDocument->getAuthor());
+					$oTemplate->replaceIdentifier('image_display_url', $oDocument->getDisplayUrl());
 				}
 			}
 			$sHref = LinkUtil::link($oJournalEntry->getLink($this->oJournalPage));
