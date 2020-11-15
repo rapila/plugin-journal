@@ -354,14 +354,14 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		if($oEntryTemplate->hasIdentifier('next_entry_link')) {
 			$oNextEntry = $oEntry->getNextJournalEntry();
-			if($oNextEntry && $oNextEntry !== $oEntry) {
+			if($oNextEntry) {
 				$oEntryTemplate->replaceIdentifier('next_entry_link', LinkUtil::link($oNextEntry->getLink()));
 				$oEntryTemplate->replaceIdentifier('next_entry_title', $oNextEntry->getTitle());
 			}
 		}
 		if($oEntryTemplate->hasIdentifier('previous_entry_link')) {
 			$oPreviousEntry = $oEntry->getPreviousJournalEntry();
-			if($oPreviousEntry && $oPreviousEntry !== $oEntry) {
+			if($oPreviousEntry) {
 				$oEntryTemplate->replaceIdentifier('previous_entry_link', LinkUtil::link($oPreviousEntry->getLink()));
 				$oEntryTemplate->replaceIdentifier('previous_entry_title', $oPreviousEntry->getTitle());
 			}
