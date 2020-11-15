@@ -85,8 +85,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oJournalEntryImage = new JournalEntryImage();
 		$oJournalEntryImage->setJournalEntryId($this->iJournalEntryId);
 		$oJournalEntryImage->setDocumentId($iDocumentId);
-		$iImagesCount= JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->count();
-		$oJournalEntryImage->setSort($iImagesCount+1);
+		$iImagesSortHighest= JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderBySort(Criteria::DESC)->limit(1)->select(array('Sort'))->findOne();
+		$oJournalEntryImage->setSort($iImagesSortHighest+1);
 		return $oJournalEntryImage->save();
 	}
 
