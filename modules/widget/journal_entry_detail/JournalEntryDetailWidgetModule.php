@@ -7,6 +7,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalEntryId;
 
+	private $aUnsavedDocuments = array();
+
 	public function __construct($sSessionKey = null, $oPage = null) {
 		parent::__construct($sSessionKey);
 		$this->oRichTextWidget = WidgetModule::getWidget('rich_text', null, null, 'journal');
@@ -158,14 +160,21 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oJournalEntry);
 		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
+		if($oJournalEntry->isNew()) {
+			foreach($this->aUnsavedDocuments as $iDocumentId) {
+				$oJournalEntryImage = new JournalEntryImage();
+				$oJournalEntryImage->setDocumentId($iDocumentId);
+				$oJournalEntry->addJournalEntryImage($oJournalEntryImage);
+			}
+		}
 		$oJournalEntry->save();
-
 		$oResult = new StdClass();
 		if($this->iJournalEntryId === null) {
 			$oResult->inserted = true;
 		} else {
 			$oResult->updated = true;
 		}
+
 		$oResult->id = $this->iCategoryId = $oJournalEntry->getId();
 		return $oResult;
 	}
