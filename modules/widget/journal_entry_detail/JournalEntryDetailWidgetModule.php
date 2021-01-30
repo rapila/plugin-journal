@@ -64,6 +64,15 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$aResult['CreatedInfo'] = Util::formatCreatedInfo($oJournalEntry);
 		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournalEntry);
 		$aResult['comments'] = array();
+
+		// show preview link if JournalPage is configured and has active language
+		$oJournalPage = $oJournalEntry->getJournal()->getJournalPage();
+		$aResult['PreviewUrl'] = null;
+		$aPageStrings = $oJournalPage->getPageStrings(PageStringQuery::create()->filterByIsInactive(false));
+		if($aPageStrings[0]) {
+			$aResult['PreviewUrl'] = LinkUtil::link($oJournalEntry->getLink($oJournalPage), "FrontendManager", array(), $aPageStrings[0]->getLanguageId());
+		}
+		// get comments
 		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
 			$aComment = array();
 			$aComment['CreatedAtFormatted'] = $oComment->getCreatedAtFormatted();

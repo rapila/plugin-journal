@@ -95,6 +95,9 @@ Widget.types.journal_entry_detail = {
 			this._element.find(".updated_info").text(data.UpdatedInfo);
 			this._element.find(".created_info").text(data.CreatedInfo);
 			this._element.find(".detail_id").text(data.Id);
+			if(data.PreviewUrl) {
+				this._element.find('a.url_preview').attr('href', data.PreviewUrl).show();
+			}
 			this.journals.ensureWidget(function(journal_input) {
 				journal_input.val(data.JournalId);
 			});
