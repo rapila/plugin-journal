@@ -46,19 +46,22 @@ Widget.types.journal_entry_detail = {
 		this.uploader = Widget.create('file_upload');
 		this.no_images_upload_info = jQuery('<div/>').html("{{writeString=wns.journal_entry.no_images_and_upload_info}}").addClass('no_images_placeholder');
 		this.droppable_area = this._element.find('.droppable_area');
-		this.droppable_area.sortable({
-			update: function(document, ui) {
-				var ids = _this.droppable_area.children().map(function() {
-					return jQuery(this).data('document_id');
-				}).get();
-				if(_this.current_detail_id !== null) {
-					// only reorder if detail has been saved, otherwise sort order is taken from dom at saving time
-					_this.reorderDocuments(ids);
-				}
-			}
-		});
 		this.uploader.allow_drag_to(this.droppable_area, null, function(target, file) {
 			return { document_category_id: _this.settings.journal_entry_images_category_id, callback: _this.upload_success.bind(_this), error: _this.upload_error.bind(_this)};
+		});
+		// Handlers
+		this.handle('opened', function() {
+			this.droppable_area.sortable({
+				update: function(document, ui) {
+					var ids = _this.droppable_area.children().map(function() {
+						return jQuery(this).data('document_id');
+					}).get();
+					if(_this.current_detail_id !== null) {
+						// only reorder if detail has been saved, otherwise sort order is taken from dom at saving time
+						_this.reorderDocuments(ids);
+					}
+				}
+			});
 		});
 	},
 
