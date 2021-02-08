@@ -6,7 +6,7 @@
 		<div class="group_fields" style="width: 250px;margin-right:10px">
 			<label class="validate-journal_ids_required">{{writeString=journal.journals_to_be_displayed}}</label>
 			<div class="journal_list" style="border: 1px solid #f2f2f2;padding;8px;"></div>
-			<a class="info-bar-button info-bar-element add-new-item add_new_journal" style="margin: 3px" title="{{writeString=journal.new_entry}}">&nbsp;</a>		
+			<a class="info-bar-button info-bar-element add-new-item add_new_journal" style="margin: 3px" title="{{writeString=journal.new_entry}}">&nbsp;</a>
 		</div>
 		<div class="group_fields">
 			<label for="mode">{{writeString=wns.journal.action}}</label>
@@ -14,6 +14,7 @@
 				<option value="list">{{writeString=wns.journal.action.list}}</option>
 				<option value="truncated">{{writeString=wns.journal.action.truncated}}</option>
 				<option value="full">{{writeString=wns.journal.action.full}}</option>
+				<option value="no_list">{{writeString=wns.journal.action.no_list}}</option>
 			</select><br />
 			<label for="entries_per_page">{{writeString=wns.journal.pagination_limit}}</label>
 			<select name="entries_per_page" class="ui-widget-content">

@@ -181,6 +181,18 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
 	}
 
+	private function displayOverviewNoList($oTemplate, $oQuery = null) {
+		$oListTemplate = $this->constructTemplate('overview_list');
+		$oListTemplate->replaceIdentifier('overview_type', 'nolist');
+		// show truncated list only to authenticated users
+		if(Session::user()) {
+			$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oListTemplate, null, null, 'items');
+		} else {
+			$oListTemplate->replaceIdentifier('no_result_info', TranslationPeer::getString('journal_entries.no_list.info'));
+		}
+		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
+	}
+
 	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
 		$oListTemplate = $this->constructTemplate('overview_list');
 		$oListTemplate->replaceIdentifier('overview_type', 'truncated');
