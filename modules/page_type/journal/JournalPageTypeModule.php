@@ -181,6 +181,18 @@ class JournalPageTypeModule extends PageTypeModule {
 		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
 	}
 
+	private function displayOverviewNoList($oTemplate, $oQuery = null) {
+		$oListTemplate = $this->constructTemplate('overview_list');
+		$oListTemplate->replaceIdentifier('overview_type', 'nolist');
+		// show truncated list only to authenticated users
+		if(Session::user()) {
+			$this->renderJournalEntries($oQuery, $this->constructTemplate('truncated_entry'), $oListTemplate, null, null, 'items');
+		} else {
+			$oListTemplate->replaceIdentifier('no_result_info', TranslationPeer::getString('journal_entries.no_list.info'));
+		}
+		$oTemplate->replaceIdentifier('container', $oListTemplate, $this->sContainer);
+	}
+
 	private function displayOverviewTruncated($oTemplate, $oQuery = null) {
 		$oListTemplate = $this->constructTemplate('overview_list');
 		$oListTemplate->replaceIdentifier('overview_type', 'truncated');
@@ -351,6 +363,20 @@ class JournalPageTypeModule extends PageTypeModule {
 		}
 		if($oEntryTemplate->hasIdentifier('text_short')) {
 			$oEntryTemplate->replaceIdentifier('text_short', RichtextUtil::parseStorageForFrontendOutput($oEntry->getTextShort()));
+		}
+		if($oEntryTemplate->hasIdentifier('next_entry_link')) {
+			$oNextEntry = $oEntry->getNextJournalEntry();
+			if($oNextEntry) {
+				$oEntryTemplate->replaceIdentifier('next_entry_link', LinkUtil::link($oNextEntry->getLink()));
+				$oEntryTemplate->replaceIdentifier('next_entry_title', $oNextEntry->getTitle());
+			}
+		}
+		if($oEntryTemplate->hasIdentifier('previous_entry_link')) {
+			$oPreviousEntry = $oEntry->getPreviousJournalEntry();
+			if($oPreviousEntry) {
+				$oEntryTemplate->replaceIdentifier('previous_entry_link', LinkUtil::link($oPreviousEntry->getLink()));
+				$oEntryTemplate->replaceIdentifier('previous_entry_title', $oPreviousEntry->getTitle());
+			}
 		}
 		if($this->oEntry !== null && $this->oEntry == $oEntry) {
 			$oEntryTemplate->replaceIdentifier('current_class', ' class="current"', null, Template::NO_HTML_ESCAPE);
@@ -828,14 +854,19 @@ class JournalPageTypeModule extends PageTypeModule {
 	* @return Template object
 	*/
 	private function renderGallery(JournalEntry $oEntry) {
+		$aImages = $this->oEntry->getImages();
+		$iCountImages = count($aImages);
+		if($iCountImages === 0) {
+			return null;
+		}
 		$oEntryTemplate = $this->constructTemplate('journal_gallery');
 		$oListTemplate = new Template('helpers/gallery');
 		$oListTemplate->replaceIdentifier('title', $this->oEntry->getTitle());
-		$aImages = $this->oEntry->getImages();
-		$oListTemplate->replaceIdentifier('count_images', count($aImages));
+		$oListTemplate->replaceIdentifier('count_images', $iCountImages);
 		foreach($aImages as $iIndex => $oJournalEntryImage) {
 			$oDocument = $oJournalEntryImage->getDocument();
 			$oItemTemplate = new Template('helpers/gallery_item');
+			$oItemTemplate->replaceIdentifier('count_images', $iCountImages);
 			$oItemTemplate->replaceIdentifier('index', $iIndex);
 			$oItemTemplate->replaceIdentifier('jounal_entry_id', $this->oEntry->getId());
 			$oDocument->renderListItem($oItemTemplate);

@@ -7,6 +7,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalEntryId;
 
+	private $aUnsavedDocuments = array();
+
 	public function __construct($sSessionKey = null, $oPage = null) {
 		parent::__construct($sSessionKey);
 		$this->oRichTextWidget = WidgetModule::getWidget('rich_text', null, null, 'journal');
@@ -62,6 +64,15 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$aResult['CreatedInfo'] = Util::formatCreatedInfo($oJournalEntry);
 		$aResult['UpdatedInfo'] = Util::formatUpdatedInfo($oJournalEntry);
 		$aResult['comments'] = array();
+
+		// show preview link if JournalPage is configured and has active language
+		$oJournalPage = $oJournalEntry->getJournal()->getJournalPage();
+		$aResult['PreviewUrl'] = null;
+		$aPageStrings = $oJournalPage->getPageStrings(PageStringQuery::create()->filterByIsInactive(false));
+		if($aPageStrings[0]) {
+			$aResult['PreviewUrl'] = LinkUtil::link($oJournalEntry->getLink($oJournalPage), "FrontendManager", array(), $aPageStrings[0]->getLanguageId());
+		}
+		// get comments
 		foreach(JournalCommentQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderByCreatedAt(Criteria::DESC)->find() as $oComment) {
 			$aComment = array();
 			$aComment['CreatedAtFormatted'] = $oComment->getCreatedAtFormatted();
@@ -85,6 +96,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oJournalEntryImage = new JournalEntryImage();
 		$oJournalEntryImage->setJournalEntryId($this->iJournalEntryId);
 		$oJournalEntryImage->setDocumentId($iDocumentId);
+		$iImagesSortHighest= JournalEntryImageQuery::create()->filterByJournalEntryId($this->iJournalEntryId)->orderBySort(Criteria::DESC)->limit(1)->select(array('Sort'))->findOne();
+		$oJournalEntryImage->setSort($iImagesSortHighest+1);
 		return $oJournalEntryImage->save();
 	}
 
@@ -156,14 +169,21 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 		$oRichtextUtil = new RichtextUtil();
 		$oRichtextUtil->setTrackReferences($oJournalEntry);
 		$oJournalEntry->setText($oRichtextUtil->getTagParser($aData['text']));
+		if($oJournalEntry->isNew()) {
+			foreach($this->aUnsavedDocuments as $iDocumentId) {
+				$oJournalEntryImage = new JournalEntryImage();
+				$oJournalEntryImage->setDocumentId($iDocumentId);
+				$oJournalEntry->addJournalEntryImage($oJournalEntryImage);
+			}
+		}
 		$oJournalEntry->save();
-
 		$oResult = new StdClass();
 		if($this->iJournalEntryId === null) {
 			$oResult->inserted = true;
 		} else {
 			$oResult->updated = true;
 		}
+
 		$oResult->id = $this->iCategoryId = $oJournalEntry->getId();
 		return $oResult;
 	}

@@ -86,5 +86,9 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		$this->orderBy('Day');
 		return $this->select(array('Day'))->find();
 	}
+
+	public static function neighbourOf($iJournalId, $iCurrendId) {
+		return self::create()->filterByJournalId($iJournalId)->filterByIsPublished(true)->filterById($iCurrendId, Criteria::NOT_EQUAL)->limit(1);
+	}
 }
 

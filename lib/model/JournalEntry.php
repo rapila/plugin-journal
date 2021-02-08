@@ -43,8 +43,12 @@ class JournalEntry extends BaseJournalEntry {
 		return parent::getJournalComments($oCriteria, $oConnection);
 	}
 
-	public function getImages() {
-		return $this->getJournalEntryImages(JournalEntryImageQuery::create()->orderBySort(Criteria::ASC));
+	public function getImages($iLimit=null) {
+		$oCriteria = JournalEntryImageQuery::create()->orderBySort(Criteria::ASC)->orderByCreatedAt(Criteria::ASC);
+		if($iLimit !== null) {
+			$oCriteria->limit($iLimit);
+		}
+		return $this->getJournalEntryImages($oCriteria);
 	}
 
 	public function getRssAttributes($oJournalPage = null, $bIsForRpc = false) {
@@ -149,6 +153,14 @@ class JournalEntry extends BaseJournalEntry {
 			return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug(), $sSubpage);
 		}
 		return $oPage->getLinkArray($this->getPublishAt('Y'), $this->getPublishAt('n'), $this->getPublishAt('j'), $this->getSlug());
+	}
+
+	public function getNextJournalEntry() {
+		return JournalEntryQuery::neighbourOf($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::GREATER_THAN)->orderByPublishAt(Criteria::ASC)->findOne();
+	}
+
+	public function getPreviousJournalEntry() {
+		return JournalEntryQuery::neighbourOf($this->getJournalId(), $this->getId())->filterByPublishAt($this->getPublishAt('Y-m-d'), Criteria::LESS_THAN)->orderByPublishAt(Criteria::DESC)->findOne();
 	}
 
 	public function setTitle($sTitle) {
