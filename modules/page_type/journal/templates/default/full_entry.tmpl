@@ -4,5 +4,24 @@
   {{text}}
 </div>{{identifierContext=start;name=tags}}
 <p class="tags"><span>{{writeString=journal_entry.related_tags}}:</span> {{tags}}</p>{{identifierContext=end;name=tags}}
-{{journal_gallery}}{{journal_comments}}
+{{journal_gallery}}
+<!--
+// optional next / previous entry links for easier access to earlier or later journal entry
+<div class="journal_item_navigation">
+	{{if=ne;1=\{\{previous_entry_link\}\};2=}}
+	<a href="{{previous_entry_link}}" class="icon-arrow-left" title="{{previous_entry_title}}"><span>{{writeString=journal_entry.previous}}</span></a>
+	{{endIf}}
+	{{if=e;1=\{\{previous_entry_link\}\};2=}}
+	<a class="icon-arrow-left inactive"><span>{{writeString=journal_entry.previous}}</span></a>
+	{{endIf}}
+	<a href="{{overview_href}}" class="back_to_overview icon-arrow-up"><span>{{writeString=journal.back_to_list_view}}</span></a>
+	{{if=ne;1=\{\{next_entry_link\}\};2=}}
+	<a href="{{next_entry_link}}" class="icon-arrow-right" title="{{next_entry_title}}"><span>{{writeString=journal_entry.next}}</span></a>
+	{{endIf}}
+	{{if=e;1=\{\{next_entry_link\}\};2=}}
+	<a class="icon-arrow-right inactive"><span>{{writeString=journal_entry.next}}</span></a>
+	{{endIf}}
+</div>
+-->
+{{journal_comments}}
 {{return_to_list_view}}

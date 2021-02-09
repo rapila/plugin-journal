@@ -514,7 +514,12 @@ class JournalPageTypeModule extends PageTypeModule {
 		// Always get parent page of entry, assuming it's displayed in its context
 		$sOverviewHref = LinkUtil::link($this->oPage->getLink());
 
-		$oEntryTemplate = $this->constructTemplate('full_entry');
+		// use separate template for 'no_list' mode in order to handle overview and next/prev links appropriately (e.g. no show)
+		$sFullEntryTemplate = 'full_entry';
+		if($this->sOverviewMode === 'no_list' && !Session::user()) {
+			$sFullEntryTemplate = 'full_entry_no_list';
+		}
+		$oEntryTemplate = $this->constructTemplate($sFullEntryTemplate);
 		$oEntryTemplate->replaceIdentifier('return_to_list_view', TagWriter::quickTag('a', array('class'=> 'back_to_overview', 'href' => $sOverviewHref, 'title' => TranslationPeer::getString('journal.back_to_list_view')), TranslationPeer::getString('journal.back_to_list_view')));
 		$oEntryTemplate->replaceIdentifier('overview_href', $sOverviewHref);
 		$oTemplate->replaceIdentifier('container', $this->renderEntry($this->oEntry, $oEntryTemplate), $this->sContainer);
