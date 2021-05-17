@@ -32,8 +32,8 @@ class JournalEntryQuery extends BaseJournalEntryQuery {
 		return $this;
 	}
 
-	public function filterByTagName($sTagName) {
-		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($sTagName)->filterByModelName('JournalEntry')->select(['TaggedItemId'])->find();
+	public function filterByTagName($mTagName) {
+		$aTaggedItems = TagInstanceQuery::create()->filterByTagName($mTagName)->filterByModelName('JournalEntry')->select(['TaggedItemId'])->find();
 		$this->filterById($aTaggedItems, Criteria::IN);
 		return $this;
 	}
