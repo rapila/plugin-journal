@@ -34,7 +34,7 @@ class JournalFrontendModule extends DynamicFrontendModule {
 
 	private function renderRecentJournalEntryTeasers($mJournalId, $iLimit) {
 		$oJournalEntries = FrontendJournalEntryQuery::create()->filterByJournalId($mJournalId)->mostRecentFirst()->limit($iLimit)->find();
-		if($oJournalEntries == null) {
+		if(count($oJournalEntries) == 0) {
 			return null;
 		}
 		$oListTemplate = $this->constructTemplate('teaser_list');
