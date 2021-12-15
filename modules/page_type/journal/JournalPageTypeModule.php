@@ -75,9 +75,9 @@ class JournalPageTypeModule extends PageTypeModule {
 		if($oNavigationItem instanceof VirtualNavigationItem) {
 			$aData = $oNavigationItem->getData();
 			if(is_array($aData)) {
-				$this->iYear = @$aData[1];
-				$this->iMonth = @$aData[2];
-				$this->iDay = @$aData[3];
+				$this->iYear = isset($aData[1]) ? $aData[1] : null;
+				$this->iMonth = isset($aData[2]) ? $aData[2] : null;
+				$this->iDay = isset($aData[3]) ? $aData[3] : null;
 			} elseif($aData instanceof JournalEntry) {
 				$this->iYear = $aData->getPublishAt('Y');
 				$this->iMonth = $aData->getPublishAt('n');
