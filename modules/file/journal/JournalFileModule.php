@@ -12,7 +12,8 @@ class JournalFileModule extends FileModule {
 			Manager::usePath(); //the “journal” bit
 			$this->oJournalPage = PagePeer::getRootPage()->getPageOfType('journal');
 			$sLanguageId = Manager::usePath();
-			if(LanguageQuery::languageIsActive($sLanguageId)) {
+
+			if($sLanguageId && LanguageQuery::languageIsActive($sLanguageId)) {
 				Session::getSession()->setLanguage($sLanguageId);
 			}
 		}
