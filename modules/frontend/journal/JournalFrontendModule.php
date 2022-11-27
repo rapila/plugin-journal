@@ -39,10 +39,11 @@ class JournalFrontendModule extends DynamicFrontendModule {
 		}
 		$oListTemplate = $this->constructTemplate('teaser_list');
 		$oTeaserTemplate = $this->constructTemplate('journal_entry_teaser');
-		foreach($oJournalEntries as $i => $oJournalEntry) {
+		foreach($oJournalEntries as $iIndex => $oJournalEntry) {
 			$oTemplate = clone $oTeaserTemplate;
 			// show image of first journal entry teaser if a template identifier 'image_display_url' exists.
-			if($oTemplate->hasIdentifier('image_display_url') && $i === 0) {
+			if($oTemplate->hasIdentifier('image_display_url')) {
+				$oTemplate->replaceIdentifier('index', $iIndex);
 				$oImage = $oJournalEntry->getImages(1)->getFirst();
 				if($oImage) {
 					$oDocument = $oImage->getDocument();
