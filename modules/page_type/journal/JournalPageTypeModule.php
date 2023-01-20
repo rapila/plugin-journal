@@ -46,6 +46,8 @@ class JournalPageTypeModule extends PageTypeModule {
 
 	private $bIsPreview = false;
 
+	private $sLanguageId = null;
+
 	const PAGINATION_PARAM = 'page';
 
 	// Names of filters and sessions
@@ -640,7 +642,7 @@ class JournalPageTypeModule extends PageTypeModule {
 			$oItemTemplate = clone $oItemPrototype;
 			if($bUseSizes) {
 				$iFontSize = (int) ceil($iMinPixelFontSize + (($iCount - $iMinCount) * $iPixelStep));
-				$oItemTemplate->replaceIdentifier('size_style', ' style="font-size:'.$iFontSize.'px;line-height:'.ceil($iFontSize * 1.2).'px;"', null, Template::NO_HTML_ESCAPE);
+				$oItemTemplate->replaceIdentifier('size_style', ' style="font-size:'.$iFontSize.'px;line-height:'.ceil($iFontSize * 1.3).'px;"', null, Template::NO_HTML_ESCAPE);
 			}
 			if(is_array($this->aFilteredTags) && in_array($sName, $this->aFilteredTags)) {
 				$oItemTemplate->replaceIdentifier('class_active', ' active');
