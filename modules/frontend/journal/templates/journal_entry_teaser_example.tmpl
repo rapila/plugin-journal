@@ -2,13 +2,14 @@
 Example of html for displaying first image of journal entry image gallery in teaser
 Change (or add) the template "journal_entry_teaser.tmpl" in site/modules/frontend/journal/templates/journal_entry_teaser.tmpl
 	- use "IdentifierContext" for displaying image related content, if exists
-	- optionally use lessThan (if=<) condition within this context, to limit view of image for a specific number of entries (...	2=2)
+	- optionally use lessThan (if=<) condition within this context, to limit view of image to a specific number of entries (...	2=3)
 For further information check JournalFrontendModule.php and Template related classes
 -->
 
 <h2><a href="{{link_to_detail}}" class="read_more" title="{{writeString=wns.read_more}}: „{{title}}“">{{title}}</a></h2>
 {{identifierContext=start;name=image_display_url}}
-{{if=<;1=\{\{index\}\};2=2}}
+// show the first image of journal gallery for first three entries, if they exist
+{{if=<;1=\{\{index\}\};2=3}}
 <p class="images">
 	<a href="{{link_to_detail}}" class="read_more" title="{{writeString=wns.read_more}}: {{title}}">
 		<img src="{{image_display_url}}" alt="{{image_description}}" width="{{image_width}}" height="{{image_height}}" />
