@@ -7,6 +7,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalEntryId;
 
+	private $iCategoryId;
+
 	private $aUnsavedDocuments = array();
 
 	public function __construct($sSessionKey = null, $oPage = null) {
