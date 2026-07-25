@@ -7,6 +7,8 @@ class JournalEntryDetailWidgetModule extends PersistentWidgetModule {
 
 	private $iJournalEntryId;
 
+	private $iCategoryId;
+
 	public function __construct($sSessionKey = null, $oPage = null) {
 		parent::__construct($sSessionKey);
 		$this->oRichTextWidget = WidgetModule::getWidget('rich_text', null, null, 'journal');
